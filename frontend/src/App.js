@@ -4,9 +4,11 @@ import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-route
 import Login from './pages/Login';
 import Navbar from './components/Navbar';
 import { localStorageUtils } from './APIs/localStorageUtils';
+import Clients from './pages/Clients';
 
 
 function App() {
+
 
 
     return (
@@ -15,6 +17,7 @@ function App() {
                 {localStorageUtils.hasToken() && <Navbar />}
                 <Routes>
                     <Route exact path="/login" element={<Login />} />
+                    <Route exact path="/" element={<Clients />} />
                 </Routes>
             </Router>
         </div>

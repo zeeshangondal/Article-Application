@@ -1,8 +1,22 @@
 import axios from 'axios';
-import { localStorageUtils } from './localStorageUtils';  
+import { localStorageUtils } from './localStorageUtils';
 
-const API_URL = 'http://localhost:3005/user';  
+const API_URL = 'http://localhost:3005/user';
 
+// Create User Service
+const createUser = async (userData) => {
+    try {
+        const response = await axios.post(`${API_URL}/`, userData);
+        if (response.status == 200) {
+            alert(response.data.message);
+            return false
+        }
+        return true
+    } catch (error) {
+        alert("Error creating user");
+        return false;
+    }
+};
 
 // Login Service
 const login = async (data) => {
@@ -10,17 +24,18 @@ const login = async (data) => {
         const response = await axios.post(`${API_URL}/login`, data);
 
         // If login is successful and a JWT token is returned by the backend.
-        if (response.status==200 && response.data && response.data.token) {
-            
+        if (response.status == 200 && response.data && response.data.token) {
+
             // Save token to local storage using utility function
             localStorageUtils.setToken(response.data.token);
+
             if (response.data.user) {
                 localStorageUtils.setLoggedInUser(JSON.stringify(response.data.user));
             }
-            
+
             // Set up Axios to use the token for subsequent API requests
             axios.defaults.headers.common['Authorization'] = `Bearer ${localStorageUtils.getToken()}`;
-        }else{
+        } else {
             return false
         }
 
@@ -34,7 +49,7 @@ const login = async (data) => {
 const getUser = async (id) => {
     try {
         const response = await axios.get(`${API_URL}/${id}`);
-        console.log("User Created" , response.data )
+        console.log("User Created", response.data)
         return response.data;
     } catch (error) {
         throw error.response.data;
@@ -85,5 +100,5 @@ const deleteUser = async (id, token) => {
 //     }
 // }
 
-const users={  login, getUser, getAllUsers, updateUser, deleteUser }
+const users = { login, getUser, getAllUsers, updateUser, deleteUser, createUser }
 export default users;

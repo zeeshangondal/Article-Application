@@ -12,7 +12,7 @@ function AppNavbar() {
     };
 
     const loggedInUser = localStorageUtils.getLoggedInUser();
-
+    console.log(localStorage.getItem('loggedInUser'))
     return (
         <div style={{ fontWeight: 'bold' }}>
             <Navbar bg="light" expand="md">
@@ -20,7 +20,7 @@ function AppNavbar() {
                 <Navbar.Toggle aria-controls="navbar-nav" />
                 <Navbar.Collapse id="navbar-nav">
                     <Nav className="mr-auto">
-                        <Nav.Link as={Link} to="/" className="link-secondary fs-6">EP Funnel</Nav.Link>
+                        <Nav.Link as={Link} to="/" className="link-secondary fs-6">Clients</Nav.Link>
                     </Nav>
                     <Nav>
                         <Nav.Link as={Link} to={`/userProfile/${loggedInUser?._id}`} className="link-secondary fs-6">{loggedInUser && `${loggedInUser.username}`}</Nav.Link>

@@ -2,16 +2,47 @@ const User = require("../Models/User");
 const jwt = require('jsonwebtoken');
 
 
-let createUser = (req, res) => {
+let createUser = async (req, res) => {
+    try {
+        // Find the last user in the database to determine the next userId
+        const lastUser = await User.findOne().sort({ userId: -1 }).exec();
+        let nextUserId = 1;
 
-    let user = new User({ ...req.body });
+        if (lastUser) {
+            // If a user exists, increment the userId
+            nextUserId = lastUser.userId + 1;
+        }
 
-    user.save().then((createdUser) => {
-        res.status(200).send({ message: "User created", user: createdUser });
-    }).catch(err => {
-        res.status(500).send({ message: "Error", err });
-    });
+        // Extract other attributes from the request body
+        const { username, password, address, contactNumber, active } = req.body;
+
+        // Check if the username already exists in the database
+        const existingUser = await User.findOne({ username }).exec();
+
+        if (existingUser) {
+            // Username already exists, send an error response
+            return res.status(200).send({ message: "Username is already assigned to a client" });
+        }
+
+        // Username is unique, proceed to create a new user
+        const user = new User({
+            userId: nextUserId,
+            username,
+            password,
+            address,
+            contactNumber,
+            active,
+        });
+
+        const createdUser = await user.save();
+
+        res.status(201).send({ message: "User created successfully", user: createdUser });
+    } catch (error) {
+        console.error("Error creating user", error);
+        res.status(500).send({ message: "Error", error });
+    }
 };
+
 
 let login = (req, res) => {
     let { username, password } = req.body;
@@ -30,7 +61,7 @@ let login = (req, res) => {
             let token = jwt.sign({ ...loggedUser }, process.env.SECRET_KEY, { expiresIn: '24h' })
 
 
-            res.status(200).send({ token: token, user: loggedUser })
+            res.status(200).send({ token: token, user: user })
         }
     })
 }
