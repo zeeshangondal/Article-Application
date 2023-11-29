@@ -1,0 +1,14 @@
+.cool-div {
+    position: relative;
+    background: linear-gradient(135deg, #6200ea 40%, #03a9f4 60%);
+    padding: 20px;
+    overflow: hidden;
+    /* cursor: pointer; */ /* Commenting out this line */
+    color: white;
+}
+
+/* The second .cool-div class would override the first one in CSS. 
+So, it's a good practice to consolidate both or ensure that the one with desired styles is last. */
+.cool-div {
+    background: linear-gradient(135deg, #6200ea 40%, #03a9f4 80%);
+}
