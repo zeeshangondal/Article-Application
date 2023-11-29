@@ -5,6 +5,7 @@ import Login from './pages/Login';
 import Navbar from './components/Navbar';
 import { localStorageUtils } from './APIs/localStorageUtils';
 import Clients from './pages/Clients';
+import DrawTime from './pages/DrawTime';
 
 
 function App() {
@@ -18,6 +19,8 @@ function App() {
                 <Routes>
                     <Route exact path="/login" element={<Login />} />
                     <Route exact path="/" element={<Clients />} />
+                    <Route exact path="/draw" element={<DrawTime />} />
+                    
                 </Routes>
             </Router>
         </div>

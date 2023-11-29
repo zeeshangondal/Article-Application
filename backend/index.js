@@ -7,6 +7,7 @@ require("dotenv").config();
 const cors = require("cors")
 
 const userRouter = require("./Routes/userRoutes");
+const drawRouter = require("./Routes/drawRoutes");
 
 app.use(cors())
 app.use(express.json())
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }))
 
 
 app.use('/user', userRouter)
+app.use('/draw', drawRouter)
 
 // app.get('*', (req, res) => {
 //     res.sendFile(path.join(__dirname, 'public', 'index.html'))

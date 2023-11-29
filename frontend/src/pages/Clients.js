@@ -78,9 +78,9 @@ export default function Clients() {
     });
 
     return (
-        <div className='container mt-2'>
-            <SearchDivBackgroundDiv>
-                <h2 className="text-center">Clients</h2>
+        <div className='m-3'>
+            {/* <SearchDivBackgroundDiv>
+                <h3 className="text-center">Clients</h3>
                 <hr />
                 <div className='d-flex justify-content-between'>
                     <Form.Control
@@ -91,7 +91,7 @@ export default function Clients() {
                         style={{ width: '70%', marginRight: '3px' }}
                     />
                 </div>
-            </SearchDivBackgroundDiv>
+            </SearchDivBackgroundDiv> */}
             <div className='d-flex justify-content-end'>
                 <Button variant="primary btn btn-sm" onClick={handleCreateModalOpen} className="mt-3">
                     Create Client

@@ -1,10 +1,11 @@
 .cool-div {
     position: relative;
     background: linear-gradient(135deg, #6200ea 40%, #03a9f4 60%);
-    padding: 20px;
+    padding: 15px;
     overflow: hidden;
     /* cursor: pointer; */ /* Commenting out this line */
     color: white;
+    border-radius: 3px;
 }
 
 /* The second .cool-div class would override the first one in CSS. 
