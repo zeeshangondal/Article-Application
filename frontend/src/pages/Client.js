@@ -388,8 +388,8 @@ const UserDetails = () => {
                                 <tr>
                                     <td>{userDetails.debit}</td>
                                     <td>{userDetails.credit}</td>
-                                    <td>{userDetails.balance}</td>
-                                    <td>{userDetails.balanceUpline}</td>
+                                    <td >{userDetails.balance}</td>
+                                    <td style={{color:(userDetails.balanceUpline>0?'green':'red')}}>{userDetails.balanceUpline}</td>
                                 </tr>
                             </tbody>
                         </Table>
