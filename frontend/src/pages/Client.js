@@ -3,25 +3,30 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import APIs from '../APIs/users';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
-import { Button, Form } from 'react-bootstrap';
+import { Button, Form, Table } from 'react-bootstrap';
 
+
+// {
+//     commission: { commision: 0, share: 0, pcPercentage: 0 },
+//     hadd: { hindsyKiHad1: 0, hindsyKiHad2: 0, akraKiHad1: 0, akraKiHad2: 0, firstTendolaKiHad: 0, secondTendolaKiHad: 0, firstPangodaKiHad: 0, secondPangodaKiHad: 0 },
+//     generalInfo: { name: '', username: '', address: '', contactNumber: '', active: false },
+//     rewardCommission: { firstA: 0, firstB: 0, firstC: 0, firstD: 0 },
+//     purchaseLimit: {
+//         purchaseLimitA1: 0, purchaseLimitA2: 0,
+//         purchaseLimitB1: 0, purchaseLimitB2: 0,
+//         purchaseLimitC1: 0, purchaseLimitC2: 0,
+//         purchaseLimitD1: 0, purchaseLimitD2: 0
+//     }
+// }
 const UserDetails = () => {
     const { _id } = useParams();
     const [userDetails, setUserDetails] = useState(null);
     const [editMode, setEditMode] = useState(false);
+    const [paymentMode, setPaymentMode] = useState(false);
+    const [paymentModeN, setPaymentModeN] = useState(0);
     const [editModeN, setEditModeN] = useState(0);
-    const [formValues, setFormValues] = useState({
-        commission: { commision: 0, share: 0, pcPercentage: 0 },
-        hadd: { hindsyKiHad1: 0, hindsyKiHad2: 0, akraKiHad1: 0, akraKiHad2: 0, firstTendolaKiHad: 0, secondTendolaKiHad: 0, firstPangodaKiHad: 0, secondPangodaKiHad: 0 },
-        generalInfo: { name: '', username: '', address: '', contactNumber: '', active: false },
-        rewardCommission: { firstA: 0, firstB: 0, firstC: 0, firstD: 0 },
-        purchaseLimit: {
-            purchaseLimitA1: 0, purchaseLimitA2: 0,
-            purchaseLimitB1: 0, purchaseLimitB2: 0,
-            purchaseLimitC1: 0, purchaseLimitC2: 0,
-            purchaseLimitD1: 0, purchaseLimitD2: 0
-        }
-    });
+
+    const [formValues, setFormValues] = useState({});
 
     const handleFormInputChange = (category, field, value) => {
         setFormValues(prevValues => ({
@@ -33,36 +38,46 @@ const UserDetails = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Handle form submission here, you can send the formValues to the server
-        // and perform any necessary actions.
-        console.log(formValues)
+        try {
+            await APIs.updateUser(formValues)
+            await fetchUserDetails()
+
+            alert("Updated Successfully")
+        } catch (e) {
+            alert("Due to Error could not update")
+        }
         console.log("Form Submitted:", formValues);
     };
 
+    const fetchUserDetails = async () => {
+        try {
+            const response = await APIs.getUser(_id);
+            setUserDetails(response.user);
+            setFormValues(response.user)
+        } catch (error) {
+            console.error('Error fetching user details', error);
+        }
+    };
     useEffect(() => {
-        const fetchUserDetails = async () => {
-            try {
-                const response = await APIs.getUser(_id);
-                setUserDetails(response.user);
-            } catch (error) {
-                console.error('Error fetching user details', error);
-            }
-        };
+
 
         fetchUserDetails();
     }, [_id]);
 
     const handleEditClick = () => {
         setEditMode(!editMode);
+        setPaymentMode(false)
     };
-
+    const handlePaymentClick = () => {
+        setPaymentMode(!paymentMode);
+        setEditMode(false)
+    };
     if (!userDetails) {
         return <div>Loading user details...</div>;
     }
 
-    console.log(userDetails);
 
     return (
         <div className='m-3'>
@@ -74,7 +89,9 @@ const UserDetails = () => {
                 <Button className='btn btn-sm primary' style={{ marginRight: '1vh' }} onClick={handleEditClick}>
                     {editMode ? 'Cancel Edit' : 'Edit'}
                 </Button>
-                <Button className='btn btn-sm primary'>Payment | Demand</Button>
+                <Button className='btn btn-sm primary' onClick={handlePaymentClick}>
+                    {paymentMode ? 'Cancel Payment' : 'Payment'}
+                </Button>
             </div>
             {editMode &&
                 <div>
@@ -85,6 +102,107 @@ const UserDetails = () => {
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(5)}>Purchase Limit</a>
                 </div>
             }
+            {paymentMode &&
+                <div className='container'>
+                    <Button className='btn btn-sm btn-info  m-1' onClick={() => setPaymentModeN(1)} >Debit</Button>
+                    <Button className='btn btn-sm btn-info m-1' onClick={() => setPaymentModeN(2)}>Credit</Button>
+                </div>
+            }
+            {paymentMode &&
+                <div className='container'>
+                    <div>
+                        <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
+                            <thead>
+                                <tr>
+                                    <th>DEBIT</th>
+                                    <th>CREDIT</th>
+                                    <th>BALANCE</th>
+                                    <th>BALANCE UPLINE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{userDetails.debit}</td>
+                                    <td>{userDetails.credit}</td>
+                                    <td>{userDetails.balance}</td>
+                                    <td>{userDetails.balanceUpline}</td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </div>
+                    <div style={{ marginTop: '3vh' }}>
+                        <div className='text-center'>
+                            {window.innerWidth <= 600 ?
+                                <h6>Draw Limit</h6>
+                                :
+                                <h4 >Draw Limit</h4>
+                            }
+                        </div>
+                        <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
+                            <thead>
+                                <tr>
+                                    <th>CATEGORY</th>
+                                    <th>FIRST</th>
+                                    <th>SECOND</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Hindsa</td>
+                                    <td>{userDetails.purchaseLimit.purchaseLimitA1}</td>
+                                    <td>{userDetails.purchaseLimit.purchaseLimitA2}</td>
+                                </tr>
+                                <tr>
+                                    <td>Akra</td>
+                                    <td>{userDetails.purchaseLimit.purchaseLimitB1}</td>
+                                    <td>{userDetails.purchaseLimit.purchaseLimitB2}</td>
+                                </tr>
+                                <tr>
+                                    <td>Tandola</td>
+                                    <td>{userDetails.purchaseLimit.purchaseLimitC1}</td>
+                                    <td>{userDetails.purchaseLimit.purchaseLimitC2}</td>
+                                </tr>
+                                <tr>
+                                    <td>PC</td>
+                                    <td>{userDetails.purchaseLimit.purchaseLimitD1}</td>
+                                    <td>{userDetails.purchaseLimit.purchaseLimitD2}</td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </div>
+
+                    <div style={{ marginTop: '3vh' }}>
+                        <div className='text-center'>
+                            {window.innerWidth <= 600 ?
+                                <h5>TRANSACTION HISTORY</h5>
+                                :
+                                <h4>TRANSACTION HISTORY</h4>
+                            }
+                        </div>
+
+                        <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
+                            <thead>
+                                <tr>
+                                    <th>DEBIT</th>
+                                    <th>CREDIT</th>
+                                    <th>BALANCE</th>
+                                    <th>BALANCE UPLINE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{userDetails.debit}</td>
+                                    <td>{userDetails.credit}</td>
+                                    <td>{userDetails.balance}</td>
+                                    <td>{userDetails.balanceUpline}</td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </div>
+
+                </div>
+            }
+
             {editMode && (
                 <div className="container mt-1 row justify-content-center" style={{ fontSize: '0.8rem' }}>
                     {editModeN === 1 ? (
@@ -281,9 +399,8 @@ const UserDetails = () => {
                                                 <Form.Label>Username</Form.Label>
                                                 <Form.Control
                                                     type="text"
-                                                    value={formValues.generalInfo.username}
-                                                    onChange={(e) =>
-                                                        handleFormInputChange('generalInfo', 'username', e.target.value)
+                                                    value={formValues.username}
+                                                    onChange={(e) => { setFormValues(pre => { return { ...pre, username: e.target.value } }) }
                                                     }
                                                 />
                                             </Form.Group>
@@ -528,24 +645,27 @@ const UserDetails = () => {
                     ) : ''}
                 </div>
             )}
-            {!editMode ?
-                <div>
+
+
+
+
+            {!editMode && !paymentMode ?
+                <div >
                     <h2>Details</h2>
                     <div className="row">
                         <div className="col-md-6">
                             <p><strong>User ID:</strong> {userDetails.userId}</p>
-                            <p><strong>Name:</strong> {userDetails.name}</p>
+                            <p><strong>Name:</strong> {userDetails.generalInfo.name}</p>
                             <p><strong>Username:</strong> {userDetails.username}</p>
                             <p><strong>Password:</strong> {userDetails.password}</p>
-                            <p><strong>Address:</strong> {userDetails.address}</p>
-                            <p><strong>Active:</strong> {userDetails.active ? 'Yes' : 'No'}</p>
+                            <p><strong>Address:</strong> {userDetails.generalInfo.address}</p>
                         </div>
                         <div className="col-md-6">
-                            <p><strong>Email:</strong> {userDetails.email}</p>
-                            <p><strong>Phone Number:</strong> {userDetails.contactNumber}</p>
+                            <p><strong>Phone Number:</strong> {userDetails.generalInfo.contactNumber}</p>
                             <p><strong>Debit:</strong> {userDetails.debit}</p>
                             <p><strong>Credit:</strong> {userDetails.credit}</p>
                             <p><strong>Balance:</strong> {userDetails.balance}</p>
+                            <p><strong>Active:</strong> {userDetails.generalInfo.active ? 'Yes' : 'No'}</p>
                         </div>
                     </div>
                 </div>

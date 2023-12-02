@@ -3,6 +3,7 @@ import { Button, Modal, Form, Table } from 'react-bootstrap';
 import APIs from '../APIs/users';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { Link, Route, Routes, useParams, useNavigate } from 'react-router-dom';
+import { localStorageUtils } from '../APIs/localStorageUtils';
 
 const initialUserData = {
     name: '',
@@ -55,9 +56,12 @@ export default function Clients() {
                 alert("Please fill in all the required fields");
                 return;
             }
-
+            let obj={
+                ...newUserData,
+                creator:localStorageUtils.getLoggedInUser()._id,
+            }
             // Call the API to create a new user
-            let res = await APIs.createUser(newUserData);
+            let res = await APIs.createUser(obj);
             if (res) {
                 setNewUserData(initialUserData);
                 handleCreateModalClose();
