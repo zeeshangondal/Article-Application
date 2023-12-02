@@ -6,7 +6,7 @@ const UserSchema = mongoose.Schema({
     },
     username: {
         type: String,
-        unique:true
+        unique: true
     },
     role: {
         type: String,
@@ -14,7 +14,7 @@ const UserSchema = mongoose.Schema({
     creator: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-      },    
+    },
     password: {
         type: String,
     },
@@ -30,7 +30,7 @@ const UserSchema = mongoose.Schema({
         type: Number,
         default: 0
     },
-    balanceUpline:{
+    balanceUpline: {
         type: Number,
         default: 0
     },
@@ -71,6 +71,30 @@ const UserSchema = mongoose.Schema({
         purchaseLimitD1: { type: Number, default: 0 },
         purchaseLimitD2: { type: Number, default: 0 },
     },
+    transactionHistory: [{
+        description:{
+            type:String,
+        },
+        amount: {
+            type: Number,
+            required: true,
+        },
+        debit: {
+            type: Number,
+            default: 0,
+        },
+        credit: {
+            type: Number,
+            default: 0,
+        },
+        balanceUpline: {
+            type: Number,
+            default: 0,
+        },
+        date: {
+            type: String,
+        },
+    }],
 
 }, { timestamps: true });
 

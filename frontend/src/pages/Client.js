@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import APIs from '../APIs/users';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
-import { Button, Form, Table } from 'react-bootstrap';
+import { Button, Form, Modal, Table } from 'react-bootstrap';
+import { formatDate } from '../Utils/Utils';
 
 
 // {
@@ -18,6 +19,12 @@ import { Button, Form, Table } from 'react-bootstrap';
 //         purchaseLimitD1: 0, purchaseLimitD2: 0
 //     }
 // }
+let initialCreditTransaction={
+    description: '',
+    txType: 1, // Default value, you can set it to the initial option value
+    amount: 0,
+
+}
 const UserDetails = () => {
     const { _id } = useParams();
     const [userDetails, setUserDetails] = useState(null);
@@ -25,8 +32,9 @@ const UserDetails = () => {
     const [paymentMode, setPaymentMode] = useState(false);
     const [paymentModeN, setPaymentModeN] = useState(0);
     const [editModeN, setEditModeN] = useState(0);
-
+    const [showModel, setShowModel] = useState(0);
     const [formValues, setFormValues] = useState({});
+    const [creditTransaction, setCreditTransaction] = useState({...initialCreditTransaction});
 
     const handleFormInputChange = (category, field, value) => {
         setFormValues(prevValues => ({
@@ -48,7 +56,6 @@ const UserDetails = () => {
         } catch (e) {
             alert("Due to Error could not update")
         }
-        console.log("Form Submitted:", formValues);
     };
 
     const fetchUserDetails = async () => {
@@ -78,6 +85,103 @@ const UserDetails = () => {
         return <div>Loading user details...</div>;
     }
 
+    const handleModalOpen = () => {
+        setShowModel(true);
+    };
+
+    const handleModelClose = () => {
+        setShowModel(false);
+    };
+
+    const handleCreditInputChange = (e) => {
+        const { name, value } = e.target;
+        setCreditTransaction((prevValues) => ({
+            ...prevValues,
+            [name]: value,
+        }));
+    };
+
+    const getCreditForm = () => {
+        return (
+            <Form >
+                <Form.Group>
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder=""
+                        name="description"
+                        value={creditTransaction.description}
+                        onChange={handleCreditInputChange}
+                    />
+                </Form.Group>
+
+                <Form.Group>
+                    <Form.Label>Select Tx Type</Form.Label>
+                    <Form.Select
+                        name="txType"
+                        value={creditTransaction.txType}
+                        onChange={handleCreditInputChange}
+                    >
+                        <option value={1}>Draw</option>
+                        <option value={2}>Withdraw</option>
+                    </Form.Select>
+                </Form.Group>
+                <Form.Group>
+                    <Form.Label>Amount</Form.Label>
+                    <Form.Control
+                        type="Number"
+                        placeholder="0"
+                        name="amount"
+                        value={creditTransaction.amount}
+                        onChange={handleCreditInputChange}
+                    />
+                </Form.Group>
+            </Form>
+        )
+    }
+    const handleCreditFormSubmit = async () => {
+        console.log(creditTransaction)
+        let obj = { ...formValues }
+        if (creditTransaction.txType == 1) {
+            let transaction = {
+                amount: creditTransaction.amount,
+                description: creditTransaction.description,
+                debit: obj.debit,
+                credit: obj.credit + Number(creditTransaction.amount),
+                date: (new Date()).toISOString().split('T')[0],
+                balanceUpline: obj.balanceUpline
+            }
+            obj = {
+                ...obj,
+                credit: obj.credit + Number(creditTransaction.amount),
+                transactionHistory: [...obj.transactionHistory, transaction]
+            }
+        }else if (creditTransaction.txType == 2) {
+            let transaction = {
+                amount: creditTransaction.amount,
+                description: creditTransaction.description,
+                debit: obj.debit,
+                credit: obj.credit - Number(creditTransaction.amount),
+                date: (new Date()).toISOString().split('T')[0],
+                balanceUpline: obj.balanceUpline
+            }
+            obj = {
+                ...obj,
+                credit: obj.credit - Number(creditTransaction.amount),
+                transactionHistory: [...obj.transactionHistory, transaction]
+            }
+        }
+        try {
+            await APIs.updateUser(obj)
+            await fetchUserDetails()
+            setCreditTransaction({...initialCreditTransaction})
+            handleModelClose()
+        } catch (e) {
+            alert("Due to Error could not update")
+        }
+
+    }
+
 
     return (
         <div className='m-3'>
@@ -94,7 +198,7 @@ const UserDetails = () => {
                 </Button>
             </div>
             {editMode &&
-                <div>
+                <div style={{ marginLeft: (window.innerWidth <= 600 ? '' : '6vh') }}>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(1)} >Commission</a>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(2)}>Hadd</a>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(3)}>General Info</a>
@@ -104,8 +208,28 @@ const UserDetails = () => {
             }
             {paymentMode &&
                 <div className='container'>
-                    <Button className='btn btn-sm btn-info  m-1' onClick={() => setPaymentModeN(1)} >Debit</Button>
-                    <Button className='btn btn-sm btn-info m-1' onClick={() => setPaymentModeN(2)}>Credit</Button>
+                    <Button className='btn btn-sm btn-info  m-1' onClick={() => { setPaymentModeN(1); handleModalOpen() }} >Debit</Button>
+                    <Button className='btn btn-sm btn-info m-1' onClick={() => { setPaymentModeN(2); handleModalOpen() }}>Credit</Button>
+
+                    <Modal show={showModel} onHide={handleModelClose}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>{paymentModeN == 1 ? "Debit" : "Credit"} Manager</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            {paymentModeN == 2 ?
+                                getCreditForm()
+                                : ''}
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={handleModelClose}>
+                                Close
+                            </Button>
+                            <Button variant="primary" onClick={paymentModeN == 2 ? handleCreditFormSubmit : ''}>
+                                Submit
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
                 </div>
             }
             {paymentMode &&
@@ -171,7 +295,7 @@ const UserDetails = () => {
                         </Table>
                     </div>
 
-                    <div style={{ marginTop: '3vh' }}>
+                    <div style={{ marginTop: '4vh' }}>
                         <div className='text-center'>
                             {window.innerWidth <= 600 ?
                                 <h5>TRANSACTION HISTORY</h5>
@@ -179,23 +303,26 @@ const UserDetails = () => {
                                 <h4>TRANSACTION HISTORY</h4>
                             }
                         </div>
-
                         <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
                             <thead>
                                 <tr>
+                                    <th>AMOUNT</th>
                                     <th>DEBIT</th>
                                     <th>CREDIT</th>
-                                    <th>BALANCE</th>
                                     <th>BALANCE UPLINE</th>
+                                    <th>DATE</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>{userDetails.debit}</td>
-                                    <td>{userDetails.credit}</td>
-                                    <td>{userDetails.balance}</td>
-                                    <td>{userDetails.balanceUpline}</td>
-                                </tr>
+                                {userDetails.transactionHistory.map(t=>(
+                                    <tr>
+                                        <td>{t.amount}</td>
+                                        <td>{t.debit}</td>
+                                        <td>{t.credit}</td>
+                                        <td>{t.balanceUpline}</td>
+                                        <td>{formatDate(t.date)}</td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </Table>
                     </div>
