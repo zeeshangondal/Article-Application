@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Table } from 'react-bootstrap';
 import APIs from '../APIs/users';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
+import { Link, Route, Routes, useParams, useNavigate } from 'react-router-dom';
 
 const initialUserData = {
     name: '',
@@ -18,7 +19,7 @@ export default function Clients() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newUserData, setNewUserData] = useState(initialUserData);
     const [searchInput, setSearchInput] = useState('');
-
+    const navigate = useNavigate();
     useEffect(() => {
         // Fetch users when the component mounts
         fetchUsers();
@@ -76,7 +77,10 @@ export default function Clients() {
             user.username.toLowerCase().includes(searchInput.toLowerCase())
         );
     });
-
+    const handleRowClick = (_id) => {
+        // Navigate to UserDetails component with the userId as a parameter
+        navigate(`/users/${_id}`);
+      };
     return (
         <div className='m-3'>
             <SearchDivBackgroundDiv>
@@ -103,18 +107,14 @@ export default function Clients() {
                         <th>User ID</th>
                         <th>Username</th>
                         <th>Password</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredUsers.map(user => (
-                        <tr key={user._id}>
+                        <tr key={user._id} style={{cursor:'pointer'}} onClick={()=>handleRowClick(user._id)}>
                             <td>{user.userId}</td>
                             <td>{user.username}</td>
                             <td>{user.password}</td>
-                            <td>
-                                <Button variant="primary btn btn-sm" >View</Button>
-                            </td>
                         </tr>
                     ))}
                 </tbody>
