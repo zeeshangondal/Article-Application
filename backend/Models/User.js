@@ -31,7 +31,20 @@ const UserSchema = mongoose.Schema({
     },
     password: {
         type: String,
-    }
+    },
+
+    debit: {
+        type: Number,
+        default:0
+    },
+    credit: {
+        type: Number,
+        default:0
+    },
+    balance: {
+        type: Number,
+        default:0
+    },
 },
     { timestamps: true }
 );

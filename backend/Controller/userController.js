@@ -14,7 +14,7 @@ let createUser = async (req, res) => {
         }
 
         // Extract other attributes from the request body
-        const { username, password, address, contactNumber, active } = req.body;
+        const {name, username, password, address, contactNumber, active } = req.body;
 
         // Check if the username already exists in the database
         const existingUser = await User.findOne({ username }).exec();
@@ -27,6 +27,7 @@ let createUser = async (req, res) => {
         // Username is unique, proceed to create a new user
         const user = new User({
             userId: nextUserId,
+            name,
             username,
             password,
             address,
