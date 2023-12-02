@@ -19,12 +19,19 @@ import { formatDate } from '../Utils/Utils';
 //         purchaseLimitD1: 0, purchaseLimitD2: 0
 //     }
 // }
-let initialCreditTransaction={
+let initialCreditTransaction = {
     description: '',
     txType: 1, // Default value, you can set it to the initial option value
     amount: 0,
-
 }
+
+let initialDebitTransaction = {
+    description: '',
+    txType: 1, // Default value, you can set it to the initial option value
+    amount: 0,
+    reduce: 1
+}
+
 const UserDetails = () => {
     const { _id } = useParams();
     const [userDetails, setUserDetails] = useState(null);
@@ -34,7 +41,8 @@ const UserDetails = () => {
     const [editModeN, setEditModeN] = useState(0);
     const [showModel, setShowModel] = useState(0);
     const [formValues, setFormValues] = useState({});
-    const [creditTransaction, setCreditTransaction] = useState({...initialCreditTransaction});
+    const [creditTransaction, setCreditTransaction] = useState({ ...initialCreditTransaction });
+    const [debitTransaction, setDebitTransaction] = useState({ ...initialDebitTransaction });
 
     const handleFormInputChange = (category, field, value) => {
         setFormValues(prevValues => ({
@@ -101,6 +109,14 @@ const UserDetails = () => {
         }));
     };
 
+    const handleDebitInputChange = (e) => {
+        const { name, value } = e.target;
+        setDebitTransaction((prevValues) => ({
+            ...prevValues,
+            [name]: value,
+        }));
+    };
+
     const getCreditForm = () => {
         return (
             <Form >
@@ -139,6 +155,59 @@ const UserDetails = () => {
             </Form>
         )
     }
+    const getDebitForm = () => {
+        return (
+            <Form >
+                <Form.Group>
+                    <Form.Label>Description</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder=""
+                        name="description"
+                        value={debitTransaction.description}
+                        onChange={handleDebitInputChange}
+                    />
+                </Form.Group>
+
+                <Form.Group>
+                    <Form.Label>Select Tx Type</Form.Label>
+                    <Form.Select
+                        name="txType"
+                        value={debitTransaction.txType}
+                        onChange={handleDebitInputChange}
+                    >
+                        <option value={1}>Draw</option>
+                        <option value={2}>Withdraw</option>
+                    </Form.Select>
+                </Form.Group>
+
+                {debitTransaction.txType == 2 ?
+                    <Form.Group>
+                        <Form.Label>Select Reduce</Form.Label>
+                        <Form.Select
+                            name="reduce"
+                            value={debitTransaction.reduce}
+                            onChange={handleDebitInputChange}
+                        >
+                            <option value={1}>Reduce</option>
+                            <option value={2}>No Reduce</option>
+                        </Form.Select>
+                    </Form.Group>
+                    : ''}
+                <Form.Group>
+                    <Form.Label>Amount</Form.Label>
+                    <Form.Control
+                        type="Number"
+                        placeholder="0"
+                        name="amount"
+                        value={debitTransaction.amount}
+                        onChange={handleDebitInputChange}
+                    />
+                </Form.Group>
+            </Form>
+        )
+    }
+
     const handleCreditFormSubmit = async () => {
         console.log(creditTransaction)
         let obj = { ...formValues }
@@ -156,7 +225,7 @@ const UserDetails = () => {
                 credit: obj.credit + Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
-        }else if (creditTransaction.txType == 2) {
+        } else if (creditTransaction.txType == 2) {
             let transaction = {
                 amount: creditTransaction.amount,
                 description: creditTransaction.description,
@@ -174,14 +243,70 @@ const UserDetails = () => {
         try {
             await APIs.updateUser(obj)
             await fetchUserDetails()
-            setCreditTransaction({...initialCreditTransaction})
+            setCreditTransaction({ ...initialCreditTransaction })
             handleModelClose()
         } catch (e) {
             alert("Due to Error could not update")
         }
-
     }
 
+    const handleDebitFormSubmit = async () => {
+        let obj = { ...formValues }
+        let transaction = {
+            amount: debitTransaction.amount,
+            description: debitTransaction.description,
+            credit: obj.credit,
+            date: (new Date()).toISOString().split('T')[0],
+        }
+        if (debitTransaction.txType == 1) {
+            transaction = {
+                ...transaction,
+                debit: obj.debit + Number(debitTransaction.amount),
+                balanceUpline: obj.balanceUpline + Number(debitTransaction.amount)
+            }
+            obj = {
+                ...obj,
+                debit: obj.debit + Number(debitTransaction.amount),
+                transactionHistory: [...obj.transactionHistory, transaction],
+                balanceUpline: obj.balanceUpline + Number(debitTransaction.amount)
+            }
+        } else if (debitTransaction.txType == 2) {
+            if (debitTransaction.reduce == 1) {
+                transaction = {
+                    ...transaction,
+                    debit: obj.debit - Number(debitTransaction.amount),
+                    balanceUpline: obj.balanceUpline - Number(debitTransaction.amount)
+                }
+                obj = {
+                    ...obj,
+                    debit: obj.debit - Number(debitTransaction.amount),
+                    balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
+                    transactionHistory: [...obj.transactionHistory, transaction]
+                }
+            } else {
+                transaction = {
+                    ...transaction,
+                    debit: obj.debit - Number(debitTransaction.amount),
+                    balanceUpline: obj.balanceUpline - Number(debitTransaction.amount)
+                }
+                obj = {
+                    ...obj,
+                    debit: obj.debit - Number(debitTransaction.amount),
+                    balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
+                    transactionHistory: [...obj.transactionHistory, transaction]
+                }
+
+            }
+        }
+        try {
+            await APIs.updateUser(obj)
+            await fetchUserDetails()
+            setDebitTransaction({ ...initialDebitTransaction })
+            handleModelClose()
+        } catch (e) {
+            alert("Due to Error could not update")
+        }
+    }
 
     return (
         <div className='m-3'>
@@ -218,13 +343,13 @@ const UserDetails = () => {
                         <Modal.Body>
                             {paymentModeN == 2 ?
                                 getCreditForm()
-                                : ''}
+                                : getDebitForm()}
                         </Modal.Body>
                         <Modal.Footer>
                             <Button variant="secondary" onClick={handleModelClose}>
                                 Close
                             </Button>
-                            <Button variant="primary" onClick={paymentModeN == 2 ? handleCreditFormSubmit : ''}>
+                            <Button variant="primary" onClick={paymentModeN == 2 ? handleCreditFormSubmit : handleDebitFormSubmit}>
                                 Submit
                             </Button>
                         </Modal.Footer>
@@ -314,7 +439,7 @@ const UserDetails = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {userDetails.transactionHistory.map(t=>(
+                                {userDetails.transactionHistory.map(t => (
                                     <tr>
                                         <td>{t.amount}</td>
                                         <td>{t.debit}</td>
