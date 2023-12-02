@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import APIs from '../APIs/users';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
-import { Button, Form, Modal, Table } from 'react-bootstrap';
+import { Button, Col, Form, Modal, Row, Table } from 'react-bootstrap';
 import { formatDate } from '../Utils/Utils';
 
 
@@ -43,6 +43,7 @@ const UserDetails = () => {
     const [formValues, setFormValues] = useState({});
     const [creditTransaction, setCreditTransaction] = useState({ ...initialCreditTransaction });
     const [debitTransaction, setDebitTransaction] = useState({ ...initialDebitTransaction });
+    const [transactionStatEndDates, setTransactionStatEndDates] = useState({ startDate: '', endDate: '' })
 
     const handleFormInputChange = (category, field, value) => {
         setFormValues(prevValues => ({
@@ -308,6 +309,20 @@ const UserDetails = () => {
         }
     }
 
+    function getTransactionsInDateRange() {
+        if (transactionStatEndDates.startDate == "" || transactionStatEndDates.endDate == "") {
+            return userDetails.transactionHistory
+        }
+        const start = new Date(transactionStatEndDates.startDate);
+        const end = new Date(transactionStatEndDates.endDate);
+        const transactionsInRange = userDetails.transactionHistory.filter(transaction => {
+            const transactionDate = new Date(transaction.date);
+            return transactionDate >= start && transactionDate <= end;
+        });
+
+        return transactionsInRange;
+    }
+
     return (
         <div className='m-3'>
             <SearchDivBackgroundDiv>
@@ -428,6 +443,34 @@ const UserDetails = () => {
                                 <h4>TRANSACTION HISTORY</h4>
                             }
                         </div>
+                        <div>
+                            <Form style={{ fontSize: '0.8rem' }}>
+                                <Row>
+                                    <Col>
+                                        <Form.Group >
+                                            <Form.Label>Start Date</Form.Label>
+                                            <Form.Control
+                                                type="date"
+                                                placeholder="Enter Start date"
+                                                value={transactionStatEndDates.startDate}
+                                                onChange={(e) => setTransactionStatEndDates({ ...transactionStatEndDates, startDate: e.target.value })}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col>
+                                        <Form.Group >
+                                            <Form.Label>End Date</Form.Label>
+                                            <Form.Control
+                                                type="date"
+                                                placeholder="Enter End date"
+                                                value={transactionStatEndDates.endDate}
+                                                onChange={(e) => setTransactionStatEndDates({ ...transactionStatEndDates, endDate: e.target.value })}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Form>
+                        </div>
                         <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
                             <thead>
                                 <tr>
@@ -439,7 +482,7 @@ const UserDetails = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {userDetails.transactionHistory.map(t => (
+                                {getTransactionsInDateRange().map(t => (
                                     <tr>
                                         <td>{t.amount}</td>
                                         <td>{t.debit}</td>
