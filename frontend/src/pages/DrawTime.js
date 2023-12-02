@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Table, Row, Col } from 'react-bootstrap';
 import DrawAPIs from '../APIs/draws';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
+import { formatDate, formatTime } from '../Utils/Utils';
 
 const initialDrawData = {
     title: '',
@@ -20,8 +21,10 @@ const initialDrawData = {
 
 export default function DrawTime() {
     const [draws, setDraws] = useState([]);
-    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     const [newDrawData, setNewDrawData] = useState(initialDrawData);
+    const [editDrawId, setEditDrawId] = useState(null); // Track the draw being edited
+    const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
     const [searchInput, setSearchInput] = useState('');
 
     useEffect(() => {
@@ -37,34 +40,46 @@ export default function DrawTime() {
         }
     };
 
-    const handleCreateModalOpen = () => {
-        setShowCreateModal(true);
+    const handleModalOpen = () => {
+        setShowModal(true);
     };
 
-    const handleCreateModalClose = () => {
-        setShowCreateModal(false);
+    const handleModalClose = () => {
+        setShowModal(false);
+        setEditDrawId(null); // Reset edit draw ID when closing the modal
+        setModalMode('create'); // Reset modal mode
+        setNewDrawData(initialDrawData);
     };
 
-    const handleCreateDraw = async () => {
+    const handleEditDraw = (drawId) => {
+        const drawToEdit = draws.find(draw => draw._id === drawId);
+        setEditDrawId(drawId);
+        setModalMode('edit');
+        setNewDrawData({ ...initialDrawData, ...drawToEdit });
+        handleModalOpen();
+    };
+
+    const handleCreateOrUpdateDraw = async () => {
         try {
-            if (
-                !newDrawData.title ||
-                !newDrawData.drawDate ||
-                !newDrawData.drawTime
-            ) {
-                alert("Please fill in all the required fields");
+            if (!newDrawData.title || !newDrawData.drawDate || !newDrawData.drawTime) {
+                alert('Please fill in all the required fields');
                 return;
             }
-            console.log(newDrawData)
-            let res = await DrawAPIs.createDraw(newDrawData);
+
+            let res;
+            if (modalMode === 'create') {
+                res = await DrawAPIs.createDraw(newDrawData);
+            } else if (modalMode === 'edit' && editDrawId) {
+                res = await DrawAPIs.updateDraw(newDrawData);
+            }
+
             if (res) {
-                setNewDrawData(initialDrawData);
-                handleCreateModalClose();
-                alert("New Draw Successfully created");
+                handleModalClose();
+                alert(modalMode === 'create' ? 'New Draw Successfully created' : 'Draw Successfully updated');
                 fetchDraws();
             }
         } catch (error) {
-            console.error("Error creating draw", error);
+            console.error(`Error ${modalMode === 'create' ? 'creating' : 'updating'} draw`, error);
         }
     };
 
@@ -72,9 +87,34 @@ export default function DrawTime() {
         return draw.title.toLowerCase().includes(searchInput.toLowerCase());
     });
 
+    const disableDraw=async (draw)=>{
+        try{
+            await DrawAPIs.updateDraw({...draw,drawStatus:false});
+            const newDraws = draws.map(drawF => {
+                return drawF._id === draw._id? {...drawF,drawStatus:false} :drawF
+            });
+            setDraws(newDraws)
+        }catch(e){
+            alert("Could not disable draw")
+        }
+    }
+    const activateDraw=async (draw)=>{
+        try{
+            await DrawAPIs.updateDraw({...draw,drawStatus:true});        
+            const newDraws = draws.map(drawF => {
+                return drawF._id === draw._id? {...drawF,drawStatus:true} :drawF
+            });
+            setDraws(newDraws)
+        }catch(e){
+            alert("Could not activate draw")
+
+        }
+    }
+    
+
     return (
         <div className='m-3'>
-            {/* <SearchDivBackgroundDiv>
+            <SearchDivBackgroundDiv>
                 <h3 className="text-center">Draws</h3>
                 <hr />
                 <div className='d-flex justify-content-between'>
@@ -86,10 +126,10 @@ export default function DrawTime() {
                         style={{ width: '70%', marginRight: '3px' }}
                     />
                 </div>
-            </SearchDivBackgroundDiv> */}
+            </SearchDivBackgroundDiv>
 
             <div className='d-flex justify-content-end'>
-                <Button variant="primary btn btn-sm" onClick={handleCreateModalOpen} className="mt-3">
+                <Button variant="primary btn btn-sm" onClick={handleModalOpen} className="mt-3">
                     Create Draw
                 </Button>
             </div>
@@ -97,9 +137,8 @@ export default function DrawTime() {
                 <thead>
                     <tr>
                         <th>Draw Title</th>
-                        <th>Draw Date</th>
                         <th>Time</th>
-                        <th>Draw Status</th>
+                        <th>Status</th>
                         <th>One Digit (A)</th>
                         <th>One Digit (B)</th>
                         <th>Two Digit (A)</th>
@@ -109,16 +148,19 @@ export default function DrawTime() {
                         <th>Four Digit (A)</th>
                         <th>Four Digit (B)</th>
                         <th>Actions</th>
-                        
+
                     </tr>
                 </thead>
                 <tbody>
                     {filteredDraws.map(draw => (
                         <tr key={draw._id}>
                             <td>{draw.title}</td>
-                            <td>{draw.drawDate}</td>
-                            <td>{draw.drawTime}</td>
-                            <td>{draw.drawStatus.toString()}</td>
+                            <td>{`${formatDate(draw.drawDate)} ${formatTime(draw.drawTime)}`}</td>
+                            {draw.drawStatus ?
+                                <td style={{ color: 'blue' }}>Active</td>
+                                :
+                                <td style={{ color: 'red' }}>Disabled</td>
+                            }
                             <td>{draw.oneDigitFirst}</td>
                             <td>{draw.oneDigitSecond}</td>
                             <td>{draw.twoDigitFirst}</td>
@@ -128,45 +170,57 @@ export default function DrawTime() {
                             <td>{draw.fourDigitFirst}</td>
                             <td>{draw.fourDigitSecond}</td>
                             <td>
-                                <Button variant="primary btn btn-sm" >View</Button>
+                                <div className='d-flex justify-content-between'>
+                                    <Button variant="primary btn btn-sm" onClick={() => handleEditDraw(draw._id)}>Edit</Button>
+                                    {draw.drawStatus ?
+                                        <Button variant="danger btn btn-sm"  onClick={()=>disableDraw(draw)}>Disable</Button>
+                                        :
+                                        <Button variant="primary btn btn-sm" onClick={()=>activateDraw(draw)}>Activate</Button>
+                                    }
+                                </div>
                             </td>
+
                         </tr>
                     ))}
                 </tbody>
             </Table>
 
-            <Modal show={showCreateModal} onHide={handleCreateModalClose}>
+            <Modal show={showModal} onHide={handleModalClose} >
                 <Modal.Header closeButton>
-                    <Modal.Title>Create Draw</Modal.Title>
+                    <Modal.Title>{modalMode === 'create' ? 'Create Draw' : 'Edit Draw'}</Modal.Title>
                 </Modal.Header>
-                <Modal.Body >
+                <Modal.Body>
                     <Form style={{ fontSize: '0.8rem' }}>
-                        <Form.Group controlId="formTitle">
-                            <Form.Label>Title</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="Enter title"
-                                value={newDrawData.title}
-                                onChange={(e) => setNewDrawData({ ...newDrawData, title: e.target.value })}
-                            />
-                        </Form.Group>
                         <Row>
                             <Col>
+                                <Form.Group controlId="formTitle">
+                                    <Form.Label>Title</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Enter title"
+                                        value={newDrawData.title}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, title: e.target.value })}
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formDrawDate">
                                     <Form.Label>Draw Date</Form.Label>
                                     <Form.Control
-                                        type="text"
+                                        type="date"
                                         placeholder="Enter draw date"
                                         value={newDrawData.drawDate}
                                         onChange={(e) => setNewDrawData({ ...newDrawData, drawDate: e.target.value })}
                                     />
                                 </Form.Group>
                             </Col>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formDrawTime">
                                     <Form.Label>Draw Time</Form.Label>
                                     <Form.Control
-                                        type="text"
+                                        type="time"
                                         placeholder="Enter draw time"
                                         value={newDrawData.drawTime}
                                         onChange={(e) => setNewDrawData({ ...newDrawData, drawTime: e.target.value })}
@@ -183,7 +237,7 @@ export default function DrawTime() {
                             />
                         </Form.Group>
                         <Row>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formOneDigitFirst">
                                     <Form.Label>One Digit First</Form.Label>
                                     <Form.Control
@@ -194,7 +248,7 @@ export default function DrawTime() {
                                     />
                                 </Form.Group>
                             </Col>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formOneDigitSecond">
                                     <Form.Label>One Digit Second</Form.Label>
                                     <Form.Control
@@ -207,7 +261,7 @@ export default function DrawTime() {
                             </Col>
                         </Row>
                         <Row>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formTwoDigitFirst">
                                     <Form.Label>Two Digit First</Form.Label>
                                     <Form.Control
@@ -218,7 +272,7 @@ export default function DrawTime() {
                                     />
                                 </Form.Group>
                             </Col>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formTwoDigitSecond">
                                     <Form.Label>Two Digit Second</Form.Label>
                                     <Form.Control
@@ -231,7 +285,7 @@ export default function DrawTime() {
                             </Col>
                         </Row>
                         <Row>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formThreeDigitFirst">
                                     <Form.Label>Three Digit First</Form.Label>
                                     <Form.Control
@@ -242,7 +296,7 @@ export default function DrawTime() {
                                     />
                                 </Form.Group>
                             </Col>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formThreeDigitSecond">
                                     <Form.Label>Three Digit Second</Form.Label>
                                     <Form.Control
@@ -255,7 +309,7 @@ export default function DrawTime() {
                             </Col>
                         </Row>
                         <Row>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formFourDigitFirst">
                                     <Form.Label>Four Digit First</Form.Label>
                                     <Form.Control
@@ -266,7 +320,7 @@ export default function DrawTime() {
                                     />
                                 </Form.Group>
                             </Col>
-                            <Col>
+                            <Col xs={6} md={6}>
                                 <Form.Group controlId="formFourDigitSecond">
                                     <Form.Label>Four Digit Second</Form.Label>
                                     <Form.Control
@@ -280,12 +334,13 @@ export default function DrawTime() {
                         </Row>
                     </Form>
                 </Modal.Body>
+
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCreateModalClose}>
+                    <Button variant="secondary" onClick={handleModalClose}>
                         Close
                     </Button>
-                    <Button variant="primary" onClick={handleCreateDraw}>
-                        Create Draw
+                    <Button variant="primary" onClick={handleCreateOrUpdateDraw}>
+                        {modalMode === 'create' ? 'Create Draw' : 'Update Draw'}
                     </Button>
                 </Modal.Footer>
             </Modal>
