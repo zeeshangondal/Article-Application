@@ -81,7 +81,7 @@ export default function Clients() {
                     role = "merchent"
                 else if (merchentDistributorMode == 2)
                     role = "distributor"
-            obj={
+            obj = {
                 ...obj,
                 role
             }
@@ -192,6 +192,7 @@ export default function Clients() {
                         <th>User ID</th>
                         <th>Username</th>
                         <th>Password</th>
+                        <th>Active</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -200,6 +201,7 @@ export default function Clients() {
                             <td>{user.userId}</td>
                             <td>{user.username}</td>
                             <td>{user.password}</td>
+                            <td>{user.generalInfo.active? "Yes" : "No"}</td>
                         </tr>
                     ))}
                 </tbody>

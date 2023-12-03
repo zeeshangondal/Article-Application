@@ -5,6 +5,7 @@ import APIs from '../APIs/users';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { Button, Col, Form, Modal, Row, Table } from 'react-bootstrap';
 import { formatDate } from '../Utils/Utils';
+import { localStorageUtils } from '../APIs/localStorageUtils';
 
 
 // {
@@ -44,6 +45,7 @@ const UserDetails = () => {
     const [creditTransaction, setCreditTransaction] = useState({ ...initialCreditTransaction });
     const [debitTransaction, setDebitTransaction] = useState({ ...initialDebitTransaction });
     const [transactionStatEndDates, setTransactionStatEndDates] = useState({ startDate: '', endDate: '' })
+    const [users, setUsers] = useState([]);
 
     const handleFormInputChange = (category, field, value) => {
         setFormValues(prevValues => ({
@@ -54,33 +56,40 @@ const UserDetails = () => {
             }
         }));
     };
+    const fetchAllUsersOf = async (_id) => {
+        try {
+            const response = await APIs.getAllUsers();
+            let tempUsers = response.users.filter(user => user.creator == _id)
+            setUsers(tempUsers);
+        } catch (error) {
+            console.error("Error fetching users", error);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             await APIs.updateUser(formValues)
             await fetchUserDetails()
-
             alert("Updated Successfully")
         } catch (e) {
             alert("Due to Error could not update")
         }
     };
+    useEffect(() => {
+        fetchUserDetails();
+    }, [_id]);
 
     const fetchUserDetails = async () => {
         try {
             const response = await APIs.getUser(_id);
+            fetchAllUsersOf(_id)
             setUserDetails(response.user);
             setFormValues(response.user)
         } catch (error) {
             console.error('Error fetching user details', error);
         }
     };
-    useEffect(() => {
-
-
-        fetchUserDetails();
-    }, [_id]);
 
     const handleEditClick = () => {
         setEditMode(!editMode);
@@ -117,6 +126,7 @@ const UserDetails = () => {
             [name]: value,
         }));
     };
+
 
     const getCreditForm = () => {
         return (
@@ -389,7 +399,7 @@ const UserDetails = () => {
                                     <td>{userDetails.debit}</td>
                                     <td>{userDetails.credit}</td>
                                     <td >{userDetails.balance}</td>
-                                    <td style={{color:(userDetails.balanceUpline>0?'green':'red')}}>{userDetails.balanceUpline}</td>
+                                    <td style={{ color: (userDetails.balanceUpline > 0 ? 'green' : 'red') }}>{userDetails.balanceUpline}</td>
                                 </tr>
                             </tbody>
                         </Table>
@@ -945,7 +955,7 @@ const UserDetails = () => {
 
 
             {!editMode && !paymentMode ?
-                <div >
+                <div className='container'>
                     <h2>Details</h2>
                     <div className="row">
                         <div className="col-md-6">
@@ -963,6 +973,35 @@ const UserDetails = () => {
                             <p><strong>Active:</strong> {userDetails.generalInfo.active ? 'Yes' : 'No'}</p>
                         </div>
                     </div>
+                    {(localStorageUtils.getLoggedInUser().role == 'admin' || localStorageUtils.getLoggedInUser().role == 'distributor') && (userDetails.role!="merchent") &&
+                        <div className='mt-2'>
+                            <h4>Sub Distributors and Merchents </h4>
+                            <Table striped hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
+                                <thead>
+                                    <tr>
+                                        <th>User ID</th>
+                                        <th>Username</th>
+                                        <th>Password</th>
+                                        <th>Role</th>
+                                        <th>Active</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {users.map(user => (
+                                        <tr key={user._id} >
+                                            <td>{user.userId}</td>
+                                            <td>{user.username}</td>
+                                            <td>{user.password}</td>
+                                            <td>{user.role.charAt(0).toUpperCase() + user.role.slice(1) }</td>
+                                            <td>{user.generalInfo.active ? "Yes" : "No"}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+
+                        </div>
+                    }
+
                 </div>
                 : ''}
 
