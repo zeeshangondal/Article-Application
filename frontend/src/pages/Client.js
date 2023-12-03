@@ -234,6 +234,7 @@ const UserDetails = () => {
             obj = {
                 ...obj,
                 credit: obj.credit + Number(creditTransaction.amount),
+                balance:obj.balance+Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
         } else if (creditTransaction.txType == 2) {
@@ -248,6 +249,7 @@ const UserDetails = () => {
             obj = {
                 ...obj,
                 credit: obj.credit - Number(creditTransaction.amount),
+                balance:obj.balance-Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
         }
@@ -286,12 +288,13 @@ const UserDetails = () => {
                 transaction = {
                     ...transaction,
                     debit: obj.debit - Number(debitTransaction.amount),
-                    balanceUpline: obj.balanceUpline - Number(debitTransaction.amount)
+                    balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
                 }
                 obj = {
                     ...obj,
                     debit: obj.debit - Number(debitTransaction.amount),
                     balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
+                    balance:obj.balance-Number(debitTransaction.amount),
                     transactionHistory: [...obj.transactionHistory, transaction]
                 }
             } else {
@@ -353,7 +356,10 @@ const UserDetails = () => {
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(2)}>Hadd</a>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(3)}>General Info</a>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(4)}>Reward Commision</a>
-                    <a className='btn btn-sm primary' onClick={() => setEditModeN(5)}>Purchase Limit</a>
+                    {userDetails.role != "merchent" &&
+                        <a className='btn btn-sm primary' onClick={() => setEditModeN(5)}>Purchase Limit</a>
+
+                    }
                 </div>
             }
             {paymentMode &&
@@ -398,52 +404,55 @@ const UserDetails = () => {
                                 <tr>
                                     <td>{userDetails.debit}</td>
                                     <td>{userDetails.credit}</td>
-                                    <td >{userDetails.balance}</td>
+                                    <td style={{ color: (userDetails.balance> 0 ? 'green' : 'red') }} >{userDetails.balance}</td>
                                     <td style={{ color: (userDetails.balanceUpline > 0 ? 'green' : 'red') }}>{userDetails.balanceUpline}</td>
                                 </tr>
                             </tbody>
                         </Table>
                     </div>
-                    <div style={{ marginTop: '3vh' }}>
-                        <div className='text-center'>
-                            {window.innerWidth <= 600 ?
-                                <h6>Draw Limit</h6>
-                                :
-                                <h4 >Draw Limit</h4>
-                            }
+                    {userDetails.role != "merchent" &&
+                        <div style={{ marginTop: '3vh' }}>
+                            <div className='text-center'>
+                                {window.innerWidth <= 600 ?
+                                    <h6>Draw Limit</h6>
+                                    :
+                                    <h4 >Draw Limit</h4>
+                                }
+                            </div>
+                            <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
+                                <thead>
+                                    <tr>
+                                        <th>CATEGORY</th>
+                                        <th>FIRST</th>
+                                        <th>SECOND</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Hindsa</td>
+                                        <td>{userDetails.purchaseLimit.purchaseLimitA1}</td>
+                                        <td>{userDetails.purchaseLimit.purchaseLimitA2}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Akra</td>
+                                        <td>{userDetails.purchaseLimit.purchaseLimitB1}</td>
+                                        <td>{userDetails.purchaseLimit.purchaseLimitB2}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tandola</td>
+                                        <td>{userDetails.purchaseLimit.purchaseLimitC1}</td>
+                                        <td>{userDetails.purchaseLimit.purchaseLimitC2}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>PC</td>
+                                        <td>{userDetails.purchaseLimit.purchaseLimitD1}</td>
+                                        <td>{userDetails.purchaseLimit.purchaseLimitD2}</td>
+                                    </tr>
+                                </tbody>
+                            </Table>
                         </div>
-                        <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
-                            <thead>
-                                <tr>
-                                    <th>CATEGORY</th>
-                                    <th>FIRST</th>
-                                    <th>SECOND</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Hindsa</td>
-                                    <td>{userDetails.purchaseLimit.purchaseLimitA1}</td>
-                                    <td>{userDetails.purchaseLimit.purchaseLimitA2}</td>
-                                </tr>
-                                <tr>
-                                    <td>Akra</td>
-                                    <td>{userDetails.purchaseLimit.purchaseLimitB1}</td>
-                                    <td>{userDetails.purchaseLimit.purchaseLimitB2}</td>
-                                </tr>
-                                <tr>
-                                    <td>Tandola</td>
-                                    <td>{userDetails.purchaseLimit.purchaseLimitC1}</td>
-                                    <td>{userDetails.purchaseLimit.purchaseLimitC2}</td>
-                                </tr>
-                                <tr>
-                                    <td>PC</td>
-                                    <td>{userDetails.purchaseLimit.purchaseLimitD1}</td>
-                                    <td>{userDetails.purchaseLimit.purchaseLimitD2}</td>
-                                </tr>
-                            </tbody>
-                        </Table>
-                    </div>
+
+                    }
 
                     <div style={{ marginTop: '4vh' }}>
                         <div className='text-center'>
@@ -484,9 +493,14 @@ const UserDetails = () => {
                         <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
                             <thead>
                                 <tr>
-                                    <th>AMOUNT</th>
+                                    {userDetails.role != "merchent" &&
+                                        <th>AMOUNT</th>
+                                    }
                                     <th>DEBIT</th>
                                     <th>CREDIT</th>
+                                    {userDetails.role == "merchent" &&
+                                        <th>TOTAL PURCHASE</th>
+                                    }
                                     <th>BALANCE UPLINE</th>
                                     <th>DATE</th>
                                 </tr>
@@ -494,9 +508,14 @@ const UserDetails = () => {
                             <tbody>
                                 {getTransactionsInDateRange().map(t => (
                                     <tr>
-                                        <td>{t.amount}</td>
+                                        {userDetails.role != "merchent" &&
+                                            <td>{t.amount}</td>
+                                        }
                                         <td>{t.debit}</td>
                                         <td>{t.credit}</td>
+                                        {userDetails.role == "merchent" &&
+                                            <td>0</td>
+                                        }
                                         <td>{t.balanceUpline}</td>
                                         <td>{formatDate(t.date)}</td>
                                     </tr>
@@ -964,6 +983,7 @@ const UserDetails = () => {
                             <p><strong>Username:</strong> {userDetails.username}</p>
                             <p><strong>Password:</strong> {userDetails.password}</p>
                             <p><strong>Address:</strong> {userDetails.generalInfo.address}</p>
+                            <p><strong>Role:</strong> {userDetails.role.charAt(0).toUpperCase() + userDetails.role.slice(1)}</p>
                         </div>
                         <div className="col-md-6">
                             <p><strong>Phone Number:</strong> {userDetails.generalInfo.contactNumber}</p>
@@ -973,7 +993,7 @@ const UserDetails = () => {
                             <p><strong>Active:</strong> {userDetails.generalInfo.active ? 'Yes' : 'No'}</p>
                         </div>
                     </div>
-                    {(localStorageUtils.getLoggedInUser().role == 'admin' || localStorageUtils.getLoggedInUser().role == 'distributor') && (userDetails.role!="merchent") &&
+                    {(localStorageUtils.getLoggedInUser().role == 'admin' || localStorageUtils.getLoggedInUser().role == 'distributor') && (userDetails.role != "merchent") &&
                         <div className='mt-2'>
                             <h4>Sub Distributors and Merchents </h4>
                             <Table striped hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
@@ -992,7 +1012,7 @@ const UserDetails = () => {
                                             <td>{user.userId}</td>
                                             <td>{user.username}</td>
                                             <td>{user.password}</td>
-                                            <td>{user.role.charAt(0).toUpperCase() + user.role.slice(1) }</td>
+                                            <td>{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td>
                                             <td>{user.generalInfo.active ? "Yes" : "No"}</td>
                                         </tr>
                                     ))}
