@@ -38,7 +38,7 @@ const UserDetails = () => {
     const [editMode, setEditMode] = useState(false);
     const [paymentMode, setPaymentMode] = useState(false);
     const [paymentModeN, setPaymentModeN] = useState(0);
-    const [editModeN, setEditModeN] = useState(0);
+    const [editModeN, setEditModeN] = useState(1);
     const [showModel, setShowModel] = useState(0);
     const [formValues, setFormValues] = useState({});
     const [creditTransaction, setCreditTransaction] = useState({ ...initialCreditTransaction });

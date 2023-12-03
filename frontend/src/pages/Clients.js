@@ -12,7 +12,7 @@ const initialUserData = {
     address: '',
     contactNumber: '',
     active: false,
-    role: 'distributor'
+    role: ''
 }
 
 export default function Clients() {
@@ -20,13 +20,15 @@ export default function Clients() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newUserData, setNewUserData] = useState(initialUserData);
     const [searchInput, setSearchInput] = useState('');
+    const [merchentDistributorMode, setMerchentDistributorMode] = useState(1);
+
     const navigate = useNavigate();
     useEffect(() => {
         // Fetch users when the component mounts
-        fetchUsers();
+        fetchAllUsersOf(localStorageUtils.getLoggedInUser()._id)
     }, []);
 
-    const fetchUsers = async () => {
+    const fetchAllUsers = async () => {
         try {
             const response = await APIs.getAllUsers();
             setUsers(response.users);
@@ -34,6 +36,16 @@ export default function Clients() {
             console.error("Error fetching users", error);
         }
     };
+    const fetchAllUsersOf = async (_id) => {
+        try {
+            const response = await APIs.getAllUsers();
+            let tempUsers = response.users.filter(user => user.creator == _id)
+            setUsers(tempUsers);
+        } catch (error) {
+            console.error("Error fetching users", error);
+        }
+    };
+
 
     const handleCreateModalOpen = () => {
         setShowCreateModal(true);
@@ -56,9 +68,22 @@ export default function Clients() {
                 alert("Please fill in all the required fields");
                 return;
             }
-            let obj={
+            let obj = {
                 ...newUserData,
-                creator:localStorageUtils.getLoggedInUser()._id,
+                creator: localStorageUtils.getLoggedInUser()._id,
+            }
+            let role = ""
+            let loggedInUser = localStorageUtils.getLoggedInUser()
+            if (loggedInUser.role == "admin")
+                role = "distributor"
+            else if (loggedInUser.role == "distributor")
+                if (merchentDistributorMode == 1)
+                    role = "merchent"
+                else if (merchentDistributorMode == 2)
+                    role = "distributor"
+            obj={
+                ...obj,
+                role
             }
             // Call the API to create a new user
             let res = await APIs.createUser(obj);
@@ -66,7 +91,7 @@ export default function Clients() {
                 setNewUserData(initialUserData);
                 handleCreateModalClose();
                 alert("New Client Successfully created");
-                fetchUsers();
+                fetchAllUsersOf(localStorageUtils.getLoggedInUser()._id)
             }
             // Close the modal
         } catch (error) {
@@ -75,16 +100,33 @@ export default function Clients() {
     };
 
     // Filter users based on search input
-    const filteredUsers = users.filter(user => {
+    const handleRowClick = (_id) => {
+        // Navigate to UserDetails component with the userId as a parameter
+        navigate(`/users/${_id}`);
+    };
+
+    const getMyUsers = () => {
+        let myUsers = users
+        let loggedInUser = localStorageUtils.getLoggedInUser()
+        if (loggedInUser.role == "distributor") {
+            if (merchentDistributorMode == 1) {
+                myUsers = users.filter(user => user.role == "merchent")
+            } else if (merchentDistributorMode == 2) {
+                myUsers = users.filter(user => user.role == "distributor")
+            }
+        }
+        return myUsers
+    }
+    let myUsers = getMyUsers()
+
+
+    const filteredUsers = myUsers.filter(user => {
         return (
             user.userId.toString().includes(searchInput) ||
             user.username.toLowerCase().includes(searchInput.toLowerCase())
         );
     });
-    const handleRowClick = (_id) => {
-        // Navigate to UserDetails component with the userId as a parameter
-        navigate(`/users/${_id}`);
-      };
+
     return (
         <div className='m-3'>
             <SearchDivBackgroundDiv>
@@ -100,12 +142,51 @@ export default function Clients() {
                     />
                 </div>
             </SearchDivBackgroundDiv>
-            <div className='d-flex justify-content-end'>
-                <Button variant="primary btn btn-sm" onClick={handleCreateModalOpen} className="mt-3">
-                    Create Client
-                </Button>
-            </div>
-            <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
+            {localStorageUtils.getLoggedInUser().role == "admin" &&
+                <div className='d-flex justify-content-between mt-3'>
+                    <div>
+                        <h4>Clients</h4>
+                    </div>
+                    <div className='d-flex justify-content-end'>
+                        <Button variant="primary btn btn-sm" onClick={handleCreateModalOpen} >
+                            Create Client
+                        </Button>
+                    </div>
+
+                </div>
+            }
+            {localStorageUtils.getLoggedInUser().role == "distributor" &&
+                <div>
+                    <div className='d-flex justify-content-end'>
+                        <Button variant={`${merchentDistributorMode == 1 ? "" : "outline-"}primary btn btn-sm`} style={{ marginRight: '1vh' }} onClick={() => setMerchentDistributorMode(1)} className="mt-3">
+                            Merchents
+                        </Button>
+                        <Button variant={`${merchentDistributorMode == 2 ? "" : "outline-"}primary btn btn-sm`} onClick={() => setMerchentDistributorMode(2)} className="mt-3">
+                            Distributors
+                        </Button>
+                    </div>
+                    <div className='mt-2'>
+                        <div className='d-flex justify-content-between'>
+                            <div>
+                                <h4>{merchentDistributorMode == 1 ? "Merchents" : "Distributors"}</h4>
+                            </div>
+                            <div className='d-flex justify-content-end '>
+                                {merchentDistributorMode == 1 ?
+                                    <Button variant="primary btn btn-sm" onClick={handleCreateModalOpen}>
+                                        Create Merchent
+                                    </Button>
+                                    :
+                                    <Button variant="primary btn btn-sm" onClick={handleCreateModalOpen}>
+                                        Create Distributor
+                                    </Button>
+                                }
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+            <Table striped hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
                 <thead>
                     <tr>
                         <th>User ID</th>
@@ -115,7 +196,7 @@ export default function Clients() {
                 </thead>
                 <tbody>
                     {filteredUsers.map(user => (
-                        <tr key={user._id} style={{cursor:'pointer'}} onClick={()=>handleRowClick(user._id)}>
+                        <tr key={user._id} style={{ cursor: 'pointer' }} onClick={() => handleRowClick(user._id)}>
                             <td>{user.userId}</td>
                             <td>{user.username}</td>
                             <td>{user.password}</td>
@@ -126,10 +207,18 @@ export default function Clients() {
 
             <Modal show={showCreateModal} onHide={handleCreateModalClose}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Create Client</Modal.Title>
+                    <Modal.Title>
+                        {localStorageUtils.getLoggedInUser().role === "admin" ?
+                            "Create Client"
+                            :
+                            localStorageUtils.getLoggedInUser().role === "distributor" ?
+                                merchentDistributorMode == 1 ? "Create Merchent" : "Create Distributor"
+                                :
+                                ""//merchent code
+                        }
+                    </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    {/* Form for capturing user details */}
                     <Form>
                         <Form.Group controlId="formName">
                             <Form.Label>Name</Form.Label>
@@ -140,7 +229,7 @@ export default function Clients() {
                                 onChange={(e) => setNewUserData({ ...newUserData, name: e.target.value })}
                             />
                         </Form.Group>
-                        <Form.Group controlId="formUsername">
+                        <Form.Group className='mt-2' controlId="formUsername">
                             <Form.Label>Username</Form.Label>
                             <Form.Control
                                 type="text"
@@ -149,7 +238,7 @@ export default function Clients() {
                                 onChange={(e) => setNewUserData({ ...newUserData, username: e.target.value })}
                             />
                         </Form.Group>
-                        <Form.Group controlId="formPassword">
+                        <Form.Group className='mt-2' controlId="formPassword">
                             <Form.Label>Password</Form.Label>
                             <Form.Control
                                 type="password"
@@ -158,7 +247,7 @@ export default function Clients() {
                                 onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
                             />
                         </Form.Group>
-                        <Form.Group controlId="formAddress">
+                        <Form.Group className='mt-2' controlId="formAddress">
                             <Form.Label>Address</Form.Label>
                             <Form.Control
                                 type="text"
@@ -167,7 +256,7 @@ export default function Clients() {
                                 onChange={(e) => setNewUserData({ ...newUserData, address: e.target.value })}
                             />
                         </Form.Group>
-                        <Form.Group controlId="formContactNumber">
+                        <Form.Group className='mt-2' controlId="formContactNumber">
                             <Form.Label>Contact Number</Form.Label>
                             <Form.Control
                                 type="text"
@@ -176,7 +265,7 @@ export default function Clients() {
                                 onChange={(e) => setNewUserData({ ...newUserData, contactNumber: e.target.value })}
                             />
                         </Form.Group>
-                        <Form.Group controlId="formActive">
+                        <Form.Group className='mt-2' controlId="formActive">
                             <Form.Check
                                 type="checkbox"
                                 label="Active"
@@ -191,7 +280,7 @@ export default function Clients() {
                         Close
                     </Button>
                     <Button variant="primary" onClick={handleCreateUser}>
-                        Create Client
+                        Create
                     </Button>
                 </Modal.Footer>
             </Modal>
