@@ -512,11 +512,9 @@ const UserDetails = () => {
                                     }
                                     <th>DEBIT</th>
                                     <th>CREDIT</th>
-                                    {userDetails.role == "merchent" &&
-                                        <th>TOTAL PURCHASE</th>
-                                    }
                                     <th>BALANCE UPLINE</th>
                                     <th>DATE</th>
+                                    <th>DESCRIPTION</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -527,11 +525,9 @@ const UserDetails = () => {
                                         }
                                         <td>{t.debit}</td>
                                         <td>{t.credit}</td>
-                                        {userDetails.role == "merchent" &&
-                                            <td>0</td>
-                                        }
                                         <td>{t.balanceUpline}</td>
                                         <td>{formatDate(t.date)}</td>
+                                        <td>{t.description}</td>
                                     </tr>
                                 ))}
                             </tbody>
