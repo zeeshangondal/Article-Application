@@ -103,7 +103,7 @@ let deleteUser = (req, res) => {
 };
 
 let getAllUsers = (req, res) => {
-    User.find({})
+    User.find({}).populate('creator')
         .then((users) => {
             res.status(200).send({ users });
         })
@@ -115,7 +115,7 @@ let getAllUsers = (req, res) => {
 let getUserById = (req, res) => {
     let userId = req.params.id;
 
-    User.findById(userId)
+    User.findById(userId).populate('creator')
         .then((user) => {
             if (!user) {
                 return res.status(404).send({ message: "User not found" });

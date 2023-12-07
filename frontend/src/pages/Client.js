@@ -6,6 +6,7 @@ import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { Button, Col, Form, Modal, Row, Table } from 'react-bootstrap';
 import { formatDate } from '../Utils/Utils';
 import { localStorageUtils } from '../APIs/localStorageUtils';
+import { useNavigate } from 'react-router-dom';
 
 
 // {
@@ -46,6 +47,7 @@ const UserDetails = () => {
     const [debitTransaction, setDebitTransaction] = useState({ ...initialDebitTransaction });
     const [transactionStatEndDates, setTransactionStatEndDates] = useState({ startDate: '', endDate: '' })
     const [users, setUsers] = useState([]);
+    const navigate = useNavigate();
 
     const handleFormInputChange = (category, field, value) => {
         setFormValues(prevValues => ({
@@ -56,10 +58,15 @@ const UserDetails = () => {
             }
         }));
     };
+    if (!localStorageUtils.hasToken()) {
+        navigate(`/login`);
+    }
+
     const fetchAllUsersOf = async (_id) => {
         try {
             const response = await APIs.getAllUsers();
-            let tempUsers = response.users.filter(user => user.creator == _id)
+            let tempUsers=response.users.filter(user=> user.role!='admin')
+            tempUsers = tempUsers.filter(user => user.creator._id == _id)
             setUsers(tempUsers);
         } catch (error) {
             console.error("Error fetching users", error);
@@ -127,6 +134,11 @@ const UserDetails = () => {
         }));
     };
 
+    const handleSubUserRowClick = (_id) => {
+        // Navigate to UserDetails component with the userId as a parameter
+        navigate(`/users/${_id}`);
+    };
+
 
     const getCreditForm = () => {
         return (
@@ -166,6 +178,7 @@ const UserDetails = () => {
             </Form>
         )
     }
+
     const getDebitForm = () => {
         return (
             <Form >
@@ -234,7 +247,7 @@ const UserDetails = () => {
             obj = {
                 ...obj,
                 credit: obj.credit + Number(creditTransaction.amount),
-                balance:obj.balance+Number(creditTransaction.amount),
+                balance: obj.balance + Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
         } else if (creditTransaction.txType == 2) {
@@ -249,7 +262,7 @@ const UserDetails = () => {
             obj = {
                 ...obj,
                 credit: obj.credit - Number(creditTransaction.amount),
-                balance:obj.balance-Number(creditTransaction.amount),
+                balance: obj.balance - Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
         }
@@ -294,7 +307,7 @@ const UserDetails = () => {
                     ...obj,
                     debit: obj.debit - Number(debitTransaction.amount),
                     balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
-                    balance:obj.balance-Number(debitTransaction.amount),
+                    balance: obj.balance - Number(debitTransaction.amount),
                     transactionHistory: [...obj.transactionHistory, transaction]
                 }
             } else {
@@ -353,12 +366,13 @@ const UserDetails = () => {
             {editMode &&
                 <div style={{ marginLeft: (window.innerWidth <= 600 ? '' : '6vh') }}>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(1)} >Commission</a>
-                    <a className='btn btn-sm primary' onClick={() => setEditModeN(2)}>Hadd</a>
+                    {userDetails.role == "distributor" && userDetails.creator.role=="admin" &&   
+                        <a className='btn btn-sm primary' onClick={() => setEditModeN(2)}>Hadd</a>
+                    }
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(3)}>General Info</a>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(4)}>Reward Commision</a>
-                    {userDetails.role != "merchent" &&
+                    {userDetails.role == "distributor" && userDetails.creator.role=="admin"  &&
                         <a className='btn btn-sm primary' onClick={() => setEditModeN(5)}>Purchase Limit</a>
-
                     }
                 </div>
             }
@@ -404,7 +418,7 @@ const UserDetails = () => {
                                 <tr>
                                     <td>{userDetails.debit}</td>
                                     <td>{userDetails.credit}</td>
-                                    <td style={{ color: (userDetails.balance> 0 ? 'green' : 'red') }} >{userDetails.balance}</td>
+                                    <td style={{ color: (userDetails.balance > 0 ? 'green' : 'red') }} >{userDetails.balance}</td>
                                     <td style={{ color: (userDetails.balanceUpline > 0 ? 'green' : 'red') }}>{userDetails.balanceUpline}</td>
                                 </tr>
                             </tbody>
@@ -1008,7 +1022,7 @@ const UserDetails = () => {
                                 </thead>
                                 <tbody>
                                     {users.map(user => (
-                                        <tr key={user._id} >
+                                        <tr key={user._id} style={{ cursor: 'pointer' }} onClick={() => handleSubUserRowClick(user._id)} >
                                             <td>{user.userId}</td>
                                             <td>{user.username}</td>
                                             <td>{user.password}</td>

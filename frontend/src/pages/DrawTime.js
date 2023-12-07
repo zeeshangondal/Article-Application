@@ -3,6 +3,8 @@ import { Button, Modal, Form, Table, Row, Col } from 'react-bootstrap';
 import DrawAPIs from '../APIs/draws';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { formatDate, formatTime } from '../Utils/Utils';
+import { localStorageUtils } from '../APIs/localStorageUtils';
+import { useNavigate } from 'react-router-dom';
 
 const initialDrawData = {
     title: '',
@@ -26,11 +28,18 @@ export default function DrawTime() {
     const [editDrawId, setEditDrawId] = useState(null); // Track the draw being edited
     const [modalMode, setModalMode] = useState('create'); // 'create' or 'edit'
     const [searchInput, setSearchInput] = useState('');
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchDraws();
     }, []);
 
+    if(!localStorageUtils.hasToken()){
+        navigate(`/login`);
+    }
+    if(localStorageUtils.getLoggedInUser().role!="admin"){
+        navigate(`/`);
+    }
     const fetchDraws = async () => {
         try {
             const response = await DrawAPIs.getAllDraws();

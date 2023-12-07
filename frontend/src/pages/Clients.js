@@ -21,11 +21,17 @@ export default function Clients() {
     const [newUserData, setNewUserData] = useState(initialUserData);
     const [searchInput, setSearchInput] = useState('');
     const [merchentDistributorMode, setMerchentDistributorMode] = useState(1);
+    const [currentLoggedInUser,setCurrentLoggedInUser] = useState({})
 
     const navigate = useNavigate();
+    if (!localStorageUtils.hasToken()) {
+        navigate(`/login`);
+    }
+
     useEffect(() => {
         // Fetch users when the component mounts
         fetchAllUsersOf(localStorageUtils.getLoggedInUser()._id)
+        fetchLoggedInUser()
     }, []);
 
     const fetchAllUsers = async () => {
@@ -39,13 +45,24 @@ export default function Clients() {
     const fetchAllUsersOf = async (_id) => {
         try {
             const response = await APIs.getAllUsers();
-            let tempUsers = response.users.filter(user => user.creator == _id)
+            let tempUsers = response.users.filter(user => user.role != 'admin')
+            tempUsers = tempUsers.filter(user => user.creator._id == _id)
             setUsers(tempUsers);
         } catch (error) {
             console.error("Error fetching users", error);
         }
     };
-
+    const fetchLoggedInUser = async () => {
+        try {
+            const response = await APIs.getAllUsers();
+            let tempUser = response.users.find(user => user._id == localStorageUtils.getLoggedInUser()._id)
+            setCurrentLoggedInUser(tempUser);
+            localStorageUtils.setLoggedInUser(JSON.stringify(tempUser));
+        } catch (error) {
+            console.error("Error fetching users", error);
+        }
+    };
+    
 
     const handleCreateModalOpen = () => {
         setShowCreateModal(true);
@@ -126,12 +143,38 @@ export default function Clients() {
             user.username.toLowerCase().includes(searchInput.toLowerCase())
         );
     });
+    
 
+    const getMerchentsBalance=()=>{
+        const val = users.reduce((accumulator, currentUser) => {
+            return accumulator + (currentUser.role=="merchent" ? currentUser.balance: 0);
+        }, 0);
+        return val
+    }
+    const getDistributorsBalance=()=>{
+        const val = users.reduce((accumulator, currentUser) => {
+            return accumulator + (currentUser.role=="distributor" ? currentUser.balance: 0);
+        }, 0);
+        return val
+    }
+    const getAvailableBalance=()=>{
+        let merchentBalance=getMerchentsBalance()
+        let distributorBalance=getDistributorsBalance()
+        return currentLoggedInUser.balance-(merchentBalance+distributorBalance)
+    }
     return (
         <div className='m-3'>
             <SearchDivBackgroundDiv>
                 <h3 className="text-center">Clients</h3>
                 <hr />
+                {localStorageUtils.getLoggedInUser().role != "admin" &&
+                    <div className='d-flex mb-2 justify-content-between'>
+                        <p>BALANCE: {currentLoggedInUser.balance}</p>
+                        <p>AVAILABLE BALANCE: {getAvailableBalance()}</p>
+                        <p>MERCHENT: {getMerchentsBalance()}</p>
+                        <p>DISTRIBUTERS: {getDistributorsBalance()}</p>
+                    </div>
+                }
                 <div className='d-flex justify-content-between'>
                     <Form.Control
                         type="text"
@@ -201,7 +244,7 @@ export default function Clients() {
                             <td>{user.userId}</td>
                             <td>{user.username}</td>
                             <td>{user.password}</td>
-                            <td>{user.generalInfo.active? "Yes" : "No"}</td>
+                            <td>{user.generalInfo.active ? "Yes" : "No"}</td>
                         </tr>
                     ))}
                 </tbody>
