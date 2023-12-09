@@ -13,60 +13,64 @@ const DrawSchema = mongoose.Schema({
     drawStatus: {
         type: Boolean,
     },
+    drawExpired:{
+        type:Boolean,
+        default:false
+    },
     oneDigitFirst: {
         price: { type: Number },
         articles: {
-            type: Map,
-            of: { type: Number },
+            type: Object, // Change from Map to Object
+            default: {},  // Default to an empty object
         },
     },
     oneDigitSecond: {
         price: { type: Number },
         articles: {
-            type: Map,
-            of: { type: Number },
+            type: Object, // Change from Map to Object
+            default: {},  // Default to an empty object
         },
     },
     twoDigitFirst: {
         price: { type: Number },
         articles: {
-            type: Map,
-            of: { type: Number },
+            type: Object, // Change from Map to Object
+            default: {},  // Default to an empty object
         },
     },
     twoDigitSecond: {
         price: { type: Number },
         articles: {
-            type: Map,
-            of: { type: Number },
+            type: Object, // Change from Map to Object
+            default: {},  // Default to an empty object
         },
     },
     threeDigitFirst: {
         price: { type: Number },
         articles: {
-            type: Map,
-            of: { type: Number },
+            type: Object, // Change from Map to Object
+            default: {},  // Default to an empty object
         },
     },
     threeDigitSecond: {
         price: { type: Number },
         articles: {
-            type: Map,
-            of: { type: Number },
+            type: Object, // Change from Map to Object
+            default: {},  // Default to an empty object
         },
     },
     fourDigitFirst: {
         price: { type: Number },
         articles: {
-            type: Map,
-            of: { type: Number },
+            type: Object, // Change from Map to Object
+            default: {},  // Default to an empty object
         },
     },
     fourDigitSecond: {
         price: { type: Number },
         articles: {
-            type: Map,
-            of: { type: Number },
+            type: Object, // Change from Map to Object
+            default: {},  // Default to an empty object
         },
     },
 }, { timestamps: true });

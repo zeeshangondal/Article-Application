@@ -3,10 +3,9 @@ const Draw = require("../Models/Draw");
 // Create a new draw
 let createDraw = async (req, res) => {
     try {
-        const { title, drawDate, drawTime, drawStatus, oneDigitFirst, oneDigitSecond, twoDigitFirst, twoDigitSecond, threeDigitFirst, threeDigitSecond, fourDigitFirst, fourDigitSecond, drawExpired } = req.body;
-        const draw = new Draw({ ...req.body });
+        let drawData={ ...req.body }
+        const draw = new Draw(initializeDraw(drawData));
         const createdDraw = await draw.save();
-
         res.status(201).send({ message: "Draw created successfully", draw: createdDraw });
     } catch (error) {
         console.error("Error creating draw");
@@ -14,10 +13,89 @@ let createDraw = async (req, res) => {
     }
 };
 
+
+function initializeDraw(drawObj){
+    const { title, drawDate, drawTime, drawStatus, oneDigitFirst, oneDigitSecond, twoDigitFirst, twoDigitSecond, threeDigitFirst, threeDigitSecond, fourDigitFirst, fourDigitSecond, drawExpired } = drawObj
+    const drawData={
+        title, drawDate, drawTime, drawStatus, 
+        oneDigitFirst: initializeOneDigit(oneDigitFirst.price), 
+        oneDigitSecond: initializeOneDigit(oneDigitSecond.price), 
+        twoDigitFirst: initializeTwoDigit(twoDigitFirst.price), 
+        twoDigitSecond: initializeTwoDigit(twoDigitSecond.price), 
+        threeDigitFirst: initializeThreeDigit(threeDigitFirst.price), 
+        threeDigitSecond: initializeThreeDigit(threeDigitSecond.price),
+        fourDigitFirst: initializeFourDigit(fourDigitFirst.price), 
+        fourDigitSecond:initializeFourDigit(fourDigitSecond.price), 
+        drawExpired
+    }
+    return drawData
+}
+function initializeOneDigit(price=0) {
+    const digitsArray = Array.from({ length: 10 }, (_, index) => index.toString());
+    const articles = {};
+    digitsArray.forEach((digit) => {
+        articles[digit] = price;
+    });
+    const oneDigit = {
+        price: price, // Replace with your actual price
+        articles: articles,
+    };
+    return oneDigit
+}
+function initializeTwoDigit(price=0) {
+    const twoDigitsArray = Array.from({ length: 100 }, (_, index) => index.toString().padStart(2, '0'));
+    const articles = {};
+    
+    twoDigitsArray.forEach((digits) => {
+        articles[digits] = price;
+    });
+
+    const twoDigit = {
+        price: price,
+        articles: articles,
+    };
+    return twoDigit
+}
+
+function initializeThreeDigit(price = 0) {
+    const threeDigitsArray = Array.from({ length: 1000 }, (_, index) => index.toString().padStart(3, '0'));
+    const articles = {};
+
+    threeDigitsArray.forEach((digits) => {
+        articles[digits] = price;
+    });
+
+    const threeDigit = {
+        price: price,
+        articles: articles,
+    };
+    return threeDigit
+}
+
+function initializeFourDigit(price = 0) {
+    const fourDigitsArray = Array.from({ length: 10000 }, (_, index) => index.toString().padStart(4, '0'));
+    const articles = {};
+
+    fourDigitsArray.forEach((digits) => {
+        articles[digits] = price;
+    });
+
+    const fourDigit = {
+        price: price,
+        articles: articles,
+    };
+    return fourDigit;
+}
+
+
 // Update a draw
 let updateDraw = (req, res) => {
     let _id = req.params.id;
-    let updates = req.body;
+    const { title, drawDate, drawTime, drawStatus, oneDigitFirst, oneDigitSecond, twoDigitFirst, twoDigitSecond, threeDigitFirst, threeDigitSecond, fourDigitFirst, fourDigitSecond, drawExpired } = req.body
+
+    let updates = {
+        title, drawDate, drawTime, drawStatus, oneDigitFirst:{price:oneDigitFirst.price}, oneDigitSecond:{price:oneDigitSecond.price}, twoDigitFirst:{price:twoDigitFirst.price}, twoDigitSecond:{price:twoDigitFirst.price}, threeDigitFirst:{price: threeDigitFirst.price}, threeDigitSecond:{price:threeDigitSecond.price}, fourDigitFirst:{price:fourDigitFirst.price}, fourDigitSecond:{price:fourDigitSecond.price}, drawExpired
+    };
 
     Draw.findOneAndUpdate({ _id }, updates, { new: true })
         .then((updatedDraw) => {
@@ -59,7 +137,7 @@ function isDrawTimePassed(drawDate, drawTime) {
 let getAllDraws = async (req, res) => {
     try {
         // Fetch all draws
-        const draws = await Draw.find({});
+        const draws = await Draw.find({}).select('-oneDigitFirst.articles -oneDigitSecond.articles -twoDigitFirst.articles -twoDigitSecond.articles -threeDigitFirst.articles -threeDigitSecond.articles -fourDigitFirst.articles -fourDigitSecond.articles');
 
         // Update draw status for each draw
         const updates = draws.map(async draw => {
@@ -67,7 +145,6 @@ let getAllDraws = async (req, res) => {
 
             // Check if draw time has passed
             const isExpired = isDrawTimePassed(drawDate, drawTime);
-
             // Update draw status
             draw.drawExpired = isExpired;
             if (isExpired) {

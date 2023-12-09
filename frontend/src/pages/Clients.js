@@ -62,8 +62,6 @@ export default function Clients() {
             console.error("Error fetching users", error);
         }
     };
-    
-
     const handleCreateModalOpen = () => {
         setShowCreateModal(true);
     };
