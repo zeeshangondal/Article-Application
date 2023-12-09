@@ -11,7 +11,6 @@ import DrawAPIs from '../APIs/draws';
 export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
     const [showModal, setShowModal] = useState(false);
-    const [modalMode, setModalMode] = useState('create');
     const [draws, setDraws] = useState([]);
 
     const [form, setForm] = useState({
@@ -26,6 +25,7 @@ export default function Merchent() {
         fetchDraws();
     }, []);
 
+    
     const fetchDraws = async () => {
         try {
             const response = await DrawAPIs.getAllDraws();
@@ -58,7 +58,13 @@ export default function Merchent() {
         // Close the modal
         setShowModal(false);
     };
-
+    const handleBundleChange=(bundle)=>{
+        setForm({...form,bundle:bundle})
+        if(form.selectedOption.length>0){
+            console.log(form.selectedOption)
+        }
+    }
+    
     return (
         <div className='m-3'>
             <SearchDivBackgroundDiv>
@@ -90,7 +96,7 @@ export default function Merchent() {
                                     >
                                         <option value=''>Select Draw</option>
                                         {draws.map((draw) => (
-                                            <option key={draw._id} value={draw.title}>
+                                            <option key={draw._id} value={draw._id}>
                                                 {draw.title}
                                             </option>
                                         ))}
@@ -107,7 +113,7 @@ export default function Merchent() {
                                             type='text'
                                             placeholder=''
                                             value={form.bundle}
-                                            onChange={(e) => setForm({ ...form, bundle: e.target.value })}
+                                            onChange={(e) => handleBundleChange(e.target.value)}
                                         />
                                     </Form.Group>
                                 </Col>
