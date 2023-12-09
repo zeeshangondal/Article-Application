@@ -21,13 +21,18 @@ export default function Clients() {
     const [newUserData, setNewUserData] = useState(initialUserData);
     const [searchInput, setSearchInput] = useState('');
     const [merchentDistributorMode, setMerchentDistributorMode] = useState(1);
-    const [currentLoggedInUser,setCurrentLoggedInUser] = useState({generalInfo:{name:''}, username:''})
+    const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' })
 
     const navigate = useNavigate();
-    if (!localStorageUtils.hasToken()) {
-        navigate(`/login`);
-    }
-
+    useEffect(() => {
+        if (!localStorageUtils.hasToken()) {
+            navigate(`/login`);
+        } else {
+            if (localStorageUtils.getLoggedInUser().role === "merchent") {
+                navigate('/merchent');
+            }
+        }
+    })
     useEffect(() => {
         // Fetch users when the component mounts
         fetchAllUsersOf(localStorageUtils.getLoggedInUser()._id)
@@ -141,24 +146,24 @@ export default function Clients() {
             user.username.toLowerCase().includes(searchInput.toLowerCase())
         );
     });
-    
 
-    const getMerchentsBalance=()=>{
+
+    const getMerchentsBalance = () => {
         const val = users.reduce((accumulator, currentUser) => {
-            return accumulator + (currentUser.role=="merchent" ? currentUser.balance: 0);
+            return accumulator + (currentUser.role == "merchent" ? currentUser.balance : 0);
         }, 0);
         return val
     }
-    const getDistributorsBalance=()=>{
+    const getDistributorsBalance = () => {
         const val = users.reduce((accumulator, currentUser) => {
-            return accumulator + (currentUser.role=="distributor" ? currentUser.balance: 0);
+            return accumulator + (currentUser.role == "distributor" ? currentUser.balance : 0);
         }, 0);
         return val
     }
-    const getAvailableBalance=()=>{
-        let merchentBalance=getMerchentsBalance()
-        let distributorBalance=getDistributorsBalance()
-        return currentLoggedInUser.balance-(merchentBalance+distributorBalance)
+    const getAvailableBalance = () => {
+        let merchentBalance = getMerchentsBalance()
+        let distributorBalance = getDistributorsBalance()
+        return currentLoggedInUser.balance - (merchentBalance + distributorBalance)
     }
     return (
         <div className='m-3'>

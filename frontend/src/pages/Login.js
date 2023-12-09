@@ -9,7 +9,10 @@ export default function Login(props) {
     useEffect(() => {
         if (localStorageUtils.hasToken()) {
             props.refresh()
-            navigate('/');
+            if(localStorageUtils.getLoggedInUser().role=="merchent"){
+                navigate('/merchent');
+            }else
+                navigate("/")
         }
     });
 

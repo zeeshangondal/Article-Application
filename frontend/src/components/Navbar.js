@@ -21,13 +21,15 @@ function AppNavbar() {
                 <Navbar.Toggle aria-controls="navbar-nav" />
                 <Navbar.Collapse id="navbar-nav">
                     <Nav className="mr-auto">
-                        <Nav.Link as={Link} to="/" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Clients</Nav.Link>
+                        <Nav.Link as={Link} to="/" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Home</Nav.Link>
                         {loggedInUser.role == "admin" &&
                             <>
                                 <Nav.Link as={Link} to="/draw" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Draw Time</Nav.Link>
                                 <Nav.Link as={Link} to="/draw-result" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Draw Result</Nav.Link>
                             </>
                         }
+                        <Nav.Link as={Link} to="/report" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Reports</Nav.Link>
+
                     </Nav>
                     <Nav>
                         <Nav.Link as={Link} to={`/userProfile/${loggedInUser?._id}`} className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>{loggedInUser && `${loggedInUser.username}`}</Nav.Link>

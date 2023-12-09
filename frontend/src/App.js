@@ -7,6 +7,7 @@ import { localStorageUtils } from './APIs/localStorageUtils';
 import Clients from './pages/Clients';
 import Client from './pages/Client';
 import DrawTime from './pages/DrawTime';
+import Merchent from './pages/Merchent';
 
 
 function App() {
@@ -20,9 +21,10 @@ function App() {
                 {localStorageUtils.hasToken() && <Navbar />}
                 <Routes>
                     <Route exact path="/login" element={<Login refresh={handleRefresh} />} />
-                    <Route exact path="/" element={<Clients refresh={handleRefresh}/>} />
-                    <Route exact path="/draw" element={<DrawTime refresh={handleRefresh}/>} />
-                    <Route path="/users/:_id" element={<Client refresh={handleRefresh}/>} />
+                    <Route exact path="/" element={<Clients />} />
+                    <Route exact path="/draw" element={<DrawTime />} />
+                    <Route path="/users/:_id" element={<Client />} />
+                    <Route exact path="/merchent" element={<Merchent />} />
                 </Routes>
             </Router>
         </div>

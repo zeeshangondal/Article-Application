@@ -27,7 +27,7 @@ let createDraw = async (req, res) => {
         });
 
         // Save the Draw document
-        const createdDraw = await draw.save();
+        await draw.save();
         res.status(201).send({ message: "Draw created successfully" });
     } catch (error) {
         console.error("Error creating draw");
@@ -110,7 +110,6 @@ let updateDraw = async (req, res) => {
     }
 };
 
-// Function to trigger dummy update in associated Digit models
 const updateAssociatedDigits = async (updatedDraw, prevDraw) => {
     try {
         // Loop through each digit field and trigger a dummy update in the associated Digit model
