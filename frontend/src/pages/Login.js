@@ -3,11 +3,12 @@ import APIs from '../APIs/users';
 import { useNavigate } from 'react-router-dom';
 import { localStorageUtils } from '../APIs/localStorageUtils';
 
-export default function Login() {
+export default function Login(props) {
     const navigate = useNavigate();
 
     useEffect(() => {
         if (localStorageUtils.hasToken()) {
+            props.refresh()
             navigate('/');
         }
     });
@@ -31,12 +32,12 @@ export default function Login() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const loginSuccess = await APIs.login(formData);
-        if (!loginSuccess) {
-            setErrorMessage('Invalid username or password. Please try again.');
+        const loginObj = await APIs.login(formData);
+        if (!loginObj.con) {
+            setErrorMessage(loginObj.msg);
         } else {
-            setErrorMessage('');
-            window.location = '/';
+            setErrorMessage(loginObj.msg);
+            navigate('/');
         }
     };
 

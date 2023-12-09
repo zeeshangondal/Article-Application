@@ -3,15 +3,13 @@ const Draw = require("../Models/Draw");
 // Create a new draw
 let createDraw = async (req, res) => {
     try {
-        const { title, drawDate, drawTime, drawStatus, oneDigitFirst, oneDigitSecond, twoDigitFirst, twoDigitSecond, threeDigitFirst, threeDigitSecond, fourDigitFirst, fourDigitSecond } = req.body;
-        console.log(req.body)
-        const draw = new Draw({...req.body});
-
+        const { title, drawDate, drawTime, drawStatus, oneDigitFirst, oneDigitSecond, twoDigitFirst, twoDigitSecond, threeDigitFirst, threeDigitSecond, fourDigitFirst, fourDigitSecond, drawExpired } = req.body;
+        const draw = new Draw({ ...req.body });
         const createdDraw = await draw.save();
 
         res.status(201).send({ message: "Draw created successfully", draw: createdDraw });
     } catch (error) {
-        console.error("Error creating draw", error);
+        console.error("Error creating draw");
         res.status(500).send({ message: "Error", error });
     }
 };
@@ -49,15 +47,47 @@ let deleteDraw = (req, res) => {
         });
 };
 
-// Get all draws
-let getAllDraws = (req, res) => {
-    Draw.find({})
-        .then((draws) => {
-            res.status(200).send({ draws });
-        })
-        .catch(err => {
-            res.status(500).send({ message: "Error", err });
+
+// Function to check if draw time has passed
+function isDrawTimePassed(drawDate, drawTime) {
+    const drawDateTime = new Date(`${drawDate} ${drawTime}`);
+    const currentDateTime = new Date();
+    return currentDateTime > drawDateTime;
+}
+
+// Get all draws with updated drawStatus and save the updates
+let getAllDraws = async (req, res) => {
+    try {
+        // Fetch all draws
+        const draws = await Draw.find({});
+
+        // Update draw status for each draw
+        const updates = draws.map(async draw => {
+            const { drawDate, drawTime, drawExpired } = draw;
+
+            // Check if draw time has passed
+            const isExpired = isDrawTimePassed(drawDate, drawTime);
+
+            // Update draw status
+            draw.drawExpired = isExpired;
+            if (isExpired) {
+                draw.drawStatus == false
+            }
+            // Save the updated draw
+            await draw.save();
+
+            // Return the updated draw
+            return draw.toObject();
         });
+
+        // Wait for all updates to be completed
+        const updatedDraws = await Promise.all(updates);
+
+        // Send the updated draws to the frontend
+        res.status(200).send({ draws: updatedDraws });
+    } catch (err) {
+        res.status(500).send({ message: "Error", err });
+    }
 };
 
 // Get draw by ID

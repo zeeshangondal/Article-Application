@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const DrawSchema = mongoose.Schema({
     title: {
@@ -14,40 +14,62 @@ const DrawSchema = mongoose.Schema({
         type: Boolean,
     },
     oneDigitFirst: {
-        type: Number,
+        price: { type: Number },
+        articles: {
+            type: Map,
+            of: { type: Number },
+        },
     },
     oneDigitSecond: {
-        type: Number,
+        price: { type: Number },
+        articles: {
+            type: Map,
+            of: { type: Number },
+        },
     },
-
     twoDigitFirst: {
-        type: Number,
+        price: { type: Number },
+        articles: {
+            type: Map,
+            of: { type: Number },
+        },
     },
     twoDigitSecond: {
-        type: Number,
+        price: { type: Number },
+        articles: {
+            type: Map,
+            of: { type: Number },
+        },
     },
-
     threeDigitFirst: {
-        type: Number,
+        price: { type: Number },
+        articles: {
+            type: Map,
+            of: { type: Number },
+        },
     },
     threeDigitSecond: {
-        type: Number,
+        price: { type: Number },
+        articles: {
+            type: Map,
+            of: { type: Number },
+        },
     },
-
     fourDigitFirst: {
-        type: Number,
+        price: { type: Number },
+        articles: {
+            type: Map,
+            of: { type: Number },
+        },
     },
     fourDigitSecond: {
-        type: Number,
+        price: { type: Number },
+        articles: {
+            type: Map,
+            of: { type: Number },
+        },
     },
-},
-    { timestamps: true }
-);
-
-
-
-
-
+}, { timestamps: true });
 
 const Draw = mongoose.model('Draw', DrawSchema);
 

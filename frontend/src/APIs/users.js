@@ -18,13 +18,11 @@ const createUser = async (userData) => {
     }
 };
 
-// Login Service
 const login = async (data) => {
     try {
         const response = await axios.post(`${API_URL}/login`, data);
-
         // If login is successful and a JWT token is returned by the backend.
-        if (response.status == 200 && response.data && response.data.token) {
+        if (response.status === 200 && response.data && response.data.token) {
 
             // Save token to local storage using utility function
             localStorageUtils.setToken(response.data.token);
@@ -35,15 +33,19 @@ const login = async (data) => {
 
             // Set up Axios to use the token for subsequent API requests
             axios.defaults.headers.common['Authorization'] = `Bearer ${localStorageUtils.getToken()}`;
-        } else {
-            return false
-        }
 
-        return true;
+            return true;
+        } else if (response.status === 201) {
+            // Account deactivated, return false and a message
+            return { con: false, msg: "This account has been deactivated" };
+        } else {
+            return { con: false, msg: "Unexpected error occurred" };
+        }
     } catch (error) {
-        console.log("Something wrong. Please try again");
+        return { con: false, msg: "Invalid username or password" };
     }
-}
+};
+
 
 // Get Single User Service
 const getUser = async (id) => {

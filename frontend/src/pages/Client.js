@@ -233,7 +233,6 @@ const UserDetails = () => {
     }
 
     const handleCreditFormSubmit = async () => {
-        console.log(creditTransaction)
         let obj = { ...formValues }
         if (creditTransaction.txType == 1) {
             let transaction = {
@@ -734,8 +733,7 @@ const UserDetails = () => {
                                                 <Form.Control
                                                     type="text"
                                                     value={formValues.username}
-                                                    onChange={(e) => { setFormValues(pre => { return { ...pre, username: e.target.value } }) }
-                                                    }
+                                                    onChange={(e) => { setFormValues(pre => { return { ...pre, username: e.target.value } }) }}
                                                 />
                                             </Form.Group>
                                         </div>
@@ -771,8 +769,19 @@ const UserDetails = () => {
                                         </div>
                                     </div>
                                     <div className="row">
+                                    <div className="col-md-6">
+                                            <Form.Group className="mb-3" controlId="general-info-field7">
+                                                <Form.Label>Password</Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    value={formValues.password}
+                                                    onChange={(e) => { setFormValues(pre => { return { ...pre, password: e.target.value } }) }}
+                                                />
+                                            </Form.Group>
+                                        </div>
                                         <div className="col-md-6">
                                             <Form.Group className="mb-3" controlId="general-info-field5">
+                                                <br/>
                                                 <Form.Check
                                                     type="checkbox"
                                                     label="Active"

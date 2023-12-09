@@ -10,18 +10,19 @@ import DrawTime from './pages/DrawTime';
 
 
 function App() {
-
-
-
+    const [refresh,setRefresh]= useState(false)
+    const handleRefresh=()=>{
+        setRefresh(true)
+    }
     return (
         <div>
             <Router>
                 {localStorageUtils.hasToken() && <Navbar />}
                 <Routes>
-                    <Route exact path="/login" element={<Login />} />
-                    <Route exact path="/" element={<Clients />} />
-                    <Route exact path="/draw" element={<DrawTime />} />
-                    <Route path="/users/:_id" element={<Client />} />
+                    <Route exact path="/login" element={<Login refresh={handleRefresh} />} />
+                    <Route exact path="/" element={<Clients refresh={handleRefresh}/>} />
+                    <Route exact path="/draw" element={<DrawTime refresh={handleRefresh}/>} />
+                    <Route path="/users/:_id" element={<Client refresh={handleRefresh}/>} />
                 </Routes>
             </Router>
         </div>

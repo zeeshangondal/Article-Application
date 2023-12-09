@@ -14,7 +14,7 @@ let createUser = async (req, res) => {
         }
 
         // Extract other attributes from the request body
-        const {name,role, username, password, address, contactNumber, active, creator } = req.body;
+        const { name, role, username, password, address, contactNumber, active, creator } = req.body;
 
         // Check if the username already exists in the database
         const existingUser = await User.findOne({ username }).exec();
@@ -23,13 +23,13 @@ let createUser = async (req, res) => {
             // Username already exists, send an error response
             return res.status(200).send({ message: "Username is already assigned to a client" });
         }
-        let obj={
+        let obj = {
             userId: nextUserId,
             password,
             creator,
             username,
             role,
-            generalInfo:{
+            generalInfo: {
                 name,
                 address,
                 contactNumber,
@@ -54,38 +54,69 @@ let login = (req, res) => {
     User.findOne({ username, password }).then((user) => {
         if (!user) {
             console.log('user not found')
-            res.status(404).send({ message: "User not Found" })
+            return res.status(404).send({ message: "User not Found" })
         }
         else {
-            const currentDate = new Date();
-            const dateTimeString = currentDate.toLocaleString();
-            let loggedUser = {
-                ...user,
-                loggedInTime: dateTimeString
+            if (user.generalInfo.active===false) {
+                return res.status(201).send({ message: "This account has been deactivated" })
             }
-            let token = jwt.sign({ ...loggedUser }, process.env.SECRET_KEY, { expiresIn: '24h' })
+            else {
+                const currentDate = new Date();
+                const dateTimeString = currentDate.toLocaleString();
+                let loggedUser = {
+                    ...user,
+                    loggedInTime: dateTimeString
+                }
+                let token = jwt.sign({ ...loggedUser }, process.env.SECRET_KEY, { expiresIn: '24h' })
+                res.status(200).send({ token: token, user: user })
 
-
-            res.status(200).send({ token: token, user: user })
+            }
         }
     })
 }
 
-let updateUser = (req, res) => {
-    let _id = req.params.id;
-    let updates = req.body;
+const updateUser = async (req, res) => {
+    const _id = req.params.id;
+    const updates = req.body;
 
-    User.findOneAndUpdate({ _id }, updates, { new: true })
-        .then((updatedUser) => {
-            if (!updatedUser) {
-                return res.status(404).send({ message: "User not found" });
-            }
-            res.status(200).send({ message: "User updated", user: updatedUser });
-        })
-        .catch(err => {
-            res.status(500).send({ message: "Error", err });
-        });
+    try {
+        const updatedUser = await User.findOneAndUpdate({ _id }, updates, { new: true });
+
+        if (!updatedUser) {
+            return res.status(404).send({ message: "User not found" });
+        }
+
+        if (updates.generalInfo && updates.generalInfo.active === false) {
+            // Update 'active' to false for all users recursively
+            await updateRelatedUsers(_id);
+        }
+
+        // Respond with success message
+        res.status(200).send({ message: "User updated", user: updatedUser });
+    } catch (err) {
+        res.status(500).send({ message: "Error", err });
+    }
 };
+
+// Recursive function to update 'active' for related users
+const updateRelatedUsers = async (userId) => {
+    try {
+        // Find all users whose creator is the specified userId
+        const relatedUsers = await User.find({ creator: userId });
+
+        // Update 'active' to false for the current set of related users
+        await User.updateMany({ creator: userId }, { $set: { 'generalInfo.active': false } });
+
+        // Recursively update 'active' for users created by the current set of related users
+        const updatePromises = relatedUsers.map((user) => updateRelatedUsers(user._id));
+        await Promise.all(updatePromises);
+    } catch (err) {
+        // Handle error, e.g., log it or handle it based on your application's requirements
+        console.error("Error updating related users:", err);
+    }
+};
+
+
 
 let deleteUser = (req, res) => {
     let _id = req.params.id;

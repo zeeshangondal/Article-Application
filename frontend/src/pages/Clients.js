@@ -21,7 +21,7 @@ export default function Clients() {
     const [newUserData, setNewUserData] = useState(initialUserData);
     const [searchInput, setSearchInput] = useState('');
     const [merchentDistributorMode, setMerchentDistributorMode] = useState(1);
-    const [currentLoggedInUser,setCurrentLoggedInUser] = useState({})
+    const [currentLoggedInUser,setCurrentLoggedInUser] = useState({generalInfo:{name:''}, username:''})
 
     const navigate = useNavigate();
     if (!localStorageUtils.hasToken()) {
@@ -165,7 +165,7 @@ export default function Clients() {
     return (
         <div className='m-3'>
             <SearchDivBackgroundDiv>
-                <h3 className="text-center">Clients</h3>
+                <h3 className="text-center">{`${currentLoggedInUser.generalInfo.name} - ${currentLoggedInUser.username}`}</h3>
                 <hr />
                 {localStorageUtils.getLoggedInUser().role != "admin" &&
                     <div className='d-flex mb-2 justify-content-between'>
