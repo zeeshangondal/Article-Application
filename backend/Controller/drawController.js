@@ -1,114 +1,161 @@
 const Draw = require("../Models/Draw");
+const Digit = require("../Models/Digit");
 
 // Create a new draw
 let createDraw = async (req, res) => {
     try {
-        let drawData={ ...req.body }
-        const draw = new Draw(initializeDraw(drawData));
+        let drawData = { ...req.body }
+        const oneDigitFirst = await createDigit(initializeOneDigit(drawData.oneDigitFirst.price));
+        const oneDigitSecond = await createDigit(initializeOneDigit(drawData.oneDigitSecond.price));
+        const twoDigitFirst = await createDigit(initializeTwoDigit(drawData.twoDigitFirst.price));
+        const twoDigitSecond = await createDigit(initializeTwoDigit(drawData.twoDigitSecond.price));
+        const threeDigitFirst = await createDigit(initializeThreeDigit(drawData.threeDigitFirst.price));
+        const threeDigitSecond = await createDigit(initializeThreeDigit(drawData.threeDigitSecond.price));
+        const fourDigitFirst = await createDigit(initializeFourDigit(drawData.fourDigitFirst.price));
+        const fourDigitSecond = await createDigit(initializeFourDigit(drawData.fourDigitSecond.price));
+
+        const draw = new Draw({
+            ...drawData,
+            oneDigitFirst: { digit: oneDigitFirst._id, price: drawData.oneDigitFirst.price },
+            oneDigitSecond: { digit: oneDigitSecond._id, price: drawData.oneDigitSecond.price },
+            twoDigitFirst: { digit: twoDigitFirst._id, price: drawData.twoDigitFirst.price },
+            twoDigitSecond: { digit: twoDigitSecond._id, price: drawData.twoDigitSecond.price },
+            threeDigitFirst: { digit: threeDigitFirst._id, price: drawData.threeDigitFirst.price },
+            threeDigitSecond: { digit: threeDigitSecond._id, price: drawData.threeDigitSecond.price },
+            fourDigitFirst: { digit: fourDigitFirst._id, price: drawData.fourDigitFirst.price },
+            fourDigitSecond: { digit: fourDigitSecond._id, price: drawData.fourDigitSecond.price },
+        });
+
+        // Save the Draw document
         const createdDraw = await draw.save();
-        res.status(201).send({ message: "Draw created successfully", draw: createdDraw });
+        res.status(201).send({ message: "Draw created successfully" });
     } catch (error) {
         console.error("Error creating draw");
         res.status(500).send({ message: "Error", error });
     }
 };
 
-
-function initializeDraw(drawObj){
-    const { title, drawDate, drawTime, drawStatus, oneDigitFirst, oneDigitSecond, twoDigitFirst, twoDigitSecond, threeDigitFirst, threeDigitSecond, fourDigitFirst, fourDigitSecond, drawExpired } = drawObj
-    const drawData={
-        title, drawDate, drawTime, drawStatus, 
-        oneDigitFirst: initializeOneDigit(oneDigitFirst.price), 
-        oneDigitSecond: initializeOneDigit(oneDigitSecond.price), 
-        twoDigitFirst: initializeTwoDigit(twoDigitFirst.price), 
-        twoDigitSecond: initializeTwoDigit(twoDigitSecond.price), 
-        threeDigitFirst: initializeThreeDigit(threeDigitFirst.price), 
-        threeDigitSecond: initializeThreeDigit(threeDigitSecond.price),
-        fourDigitFirst: initializeFourDigit(fourDigitFirst.price), 
-        fourDigitSecond:initializeFourDigit(fourDigitSecond.price), 
-        drawExpired
-    }
-    return drawData
+async function createDigit(data) {
+    const digit = new Digit(data);
+    return await digit.save();
 }
-function initializeOneDigit(price=0) {
+
+function initializeOneDigit(price = 0) {
     const digitsArray = Array.from({ length: 10 }, (_, index) => index.toString());
     const articles = {};
     digitsArray.forEach((digit) => {
         articles[digit] = price;
     });
-    const oneDigit = {
-        price: price, // Replace with your actual price
+    return {
         articles: articles,
     };
-    return oneDigit
 }
-function initializeTwoDigit(price=0) {
+function initializeTwoDigit(price = 0) {
     const twoDigitsArray = Array.from({ length: 100 }, (_, index) => index.toString().padStart(2, '0'));
     const articles = {};
-    
     twoDigitsArray.forEach((digits) => {
         articles[digits] = price;
     });
-
-    const twoDigit = {
-        price: price,
+    return {
         articles: articles,
     };
-    return twoDigit
 }
-
 function initializeThreeDigit(price = 0) {
     const threeDigitsArray = Array.from({ length: 1000 }, (_, index) => index.toString().padStart(3, '0'));
     const articles = {};
-
     threeDigitsArray.forEach((digits) => {
         articles[digits] = price;
     });
-
-    const threeDigit = {
-        price: price,
+    return {
         articles: articles,
     };
-    return threeDigit
 }
-
 function initializeFourDigit(price = 0) {
     const fourDigitsArray = Array.from({ length: 10000 }, (_, index) => index.toString().padStart(4, '0'));
     const articles = {};
-
     fourDigitsArray.forEach((digits) => {
         articles[digits] = price;
     });
-
-    const fourDigit = {
-        price: price,
+    return {
         articles: articles,
     };
-    return fourDigit;
 }
 
 
-// Update a draw
-let updateDraw = (req, res) => {
+
+let updateDraw = async (req, res) => {
     let _id = req.params.id;
-    const { title, drawDate, drawTime, drawStatus, oneDigitFirst, oneDigitSecond, twoDigitFirst, twoDigitSecond, threeDigitFirst, threeDigitSecond, fourDigitFirst, fourDigitSecond, drawExpired } = req.body
 
-    let updates = {
-        title, drawDate, drawTime, drawStatus, oneDigitFirst:{price:oneDigitFirst.price}, oneDigitSecond:{price:oneDigitSecond.price}, twoDigitFirst:{price:twoDigitFirst.price}, twoDigitSecond:{price:twoDigitFirst.price}, threeDigitFirst:{price: threeDigitFirst.price}, threeDigitSecond:{price:threeDigitSecond.price}, fourDigitFirst:{price:fourDigitFirst.price}, fourDigitSecond:{price:fourDigitSecond.price}, drawExpired
-    };
+    try {
+        // Get the existing Draw document
+        const existingDraw = await Draw.findById(_id);
 
-    Draw.findOneAndUpdate({ _id }, updates, { new: true })
-        .then((updatedDraw) => {
-            if (!updatedDraw) {
-                return res.status(404).send({ message: "Draw not found" });
-            }
-            res.status(200).send({ message: "Draw updated", draw: updatedDraw });
-        })
-        .catch(err => {
-            res.status(500).send({ message: "Error", err });
-        });
+        if (!existingDraw) {
+            return res.status(404).send({ message: "Draw not found" });
+        }
+
+        // Apply updates to the existing data
+        let prevDraw = { ...existingDraw.toObject() }
+        const updatedDrawData = { ...existingDraw.toObject(), ...req.body };
+
+        // Update the Draw document
+        const updatedDraw = await Draw.findByIdAndUpdate(_id, updatedDrawData, { new: true });
+
+        // Update associated Digit models (dummy update)
+        updateAssociatedDigits(updatedDraw, prevDraw);
+
+        res.status(200).send({ message: "Draw updated", draw: updatedDraw });
+    } catch (err) {
+        res.status(500).send({ message: "Error", err });
+    }
 };
 
+// Function to trigger dummy update in associated Digit models
+const updateAssociatedDigits = async (updatedDraw, prevDraw) => {
+    try {
+        // Loop through each digit field and trigger a dummy update in the associated Digit model
+        for (const digitField of ['oneDigitFirst', 'oneDigitSecond', 'twoDigitFirst', 'twoDigitSecond', 'threeDigitFirst', 'threeDigitSecond', 'fourDigitFirst', 'fourDigitSecond']) {
+            if (updatedDraw[digitField] && updatedDraw[digitField].digit) {
+                if (updatedDraw[digitField].price !== prevDraw[digitField].price) {
+                    const digit = await Digit.findById(updatedDraw[digitField].digit);
+                    if (digit) {
+                        switch (digitField) {
+                            case 'oneDigitFirst':
+                                digit.articles = initializeOneDigit(updatedDraw[digitField].price)
+                                break;
+                            case 'oneDigitSecond':
+                                digit.articles = initializeOneDigit(updatedDraw[digitField].price)
+                                break;
+                            case 'twoDigitFirst':
+                                digit.articles = initializeTwoDigit(updatedDraw[digitField].price)
+                                break;
+                            case 'twoDigitSecond':
+                                digit.articles = initializeTwoDigit(updatedDraw[digitField].price)
+                                break;
+                            case 'threeDigitFirst':
+                                digit.articles = initializeThreeDigit(updatedDraw[digitField].price)
+                                break;
+                            case 'threeDigitSecond':
+                                digit.articles = initializeThreeDigit(updatedDraw[digitField].price)
+                                break;
+                            case 'fourDigitFirst':
+                                digit.articles = initializeFourDigit(updatedDraw[digitField].price)
+                                break;
+                            case 'fourDigitSecond':
+                                digit.articles = initializeFourDigit(updatedDraw[digitField].price)
+                                break;
+                            default:
+                        }
+                        await digit.save();
+                    }
+                }
+            }
+        }
+
+    } catch (err) {
+        console.error("Error triggering dummy update in associated digits:", err);
+    }
+};
 // Delete a draw
 let deleteDraw = (req, res) => {
     let _id = req.params.id;
@@ -136,10 +183,11 @@ function isDrawTimePassed(drawDate, drawTime) {
 // Get all draws with updated drawStatus and save the updates
 let getAllDraws = async (req, res) => {
     try {
-        // Fetch all draws
-        const draws = await Draw.find({}).select('-oneDigitFirst.articles -oneDigitSecond.articles -twoDigitFirst.articles -twoDigitSecond.articles -threeDigitFirst.articles -threeDigitSecond.articles -fourDigitFirst.articles -fourDigitSecond.articles');
+        const draws = await Draw.find({})
+        // const draws = await Draw.find({})
+        //     .populate('oneDigitFirst.digit oneDigitSecond.digit twoDigitFirst.digit twoDigitSecond.digit threeDigitFirst.digit threeDigitSecond.digit fourDigitFirst.digit fourDigitSecond.digit')
+        //     .exec();
 
-        // Update draw status for each draw
         const updates = draws.map(async draw => {
             const { drawDate, drawTime, drawExpired } = draw;
 
@@ -172,6 +220,7 @@ let getDrawById = (req, res) => {
     let drawId = req.params.id;
 
     Draw.findById(drawId)
+        .populate('oneDigitFirst.digit oneDigitSecond.digit twoDigitFirst.digit twoDigitSecond.digit threeDigitFirst.digit threeDigitSecond.digit fourDigitFirst.digit fourDigitSecond.digit')
         .then((draw) => {
             if (!draw) {
                 return res.status(404).send({ message: "Draw not found" });

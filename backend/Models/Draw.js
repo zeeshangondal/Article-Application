@@ -13,64 +13,88 @@ const DrawSchema = mongoose.Schema({
     drawStatus: {
         type: Boolean,
     },
-    drawExpired:{
-        type:Boolean,
-        default:false
+    drawExpired: {
+        type: Boolean,
+        default: false,
     },
     oneDigitFirst: {
-        price: { type: Number },
-        articles: {
-            type: Object, // Change from Map to Object
-            default: {},  // Default to an empty object
+        digit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        price: {
+            type: Number,
+            default: 0,
         },
     },
     oneDigitSecond: {
-        price: { type: Number },
-        articles: {
-            type: Object, // Change from Map to Object
-            default: {},  // Default to an empty object
+        digit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        price: {
+            type: Number,
+            default: 0,
         },
     },
     twoDigitFirst: {
-        price: { type: Number },
-        articles: {
-            type: Object, // Change from Map to Object
-            default: {},  // Default to an empty object
+        digit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        price: {
+            type: Number,
+            default: 0,
         },
     },
     twoDigitSecond: {
-        price: { type: Number },
-        articles: {
-            type: Object, // Change from Map to Object
-            default: {},  // Default to an empty object
+        digit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        price: {
+            type: Number,
+            default: 0,
         },
     },
     threeDigitFirst: {
-        price: { type: Number },
-        articles: {
-            type: Object, // Change from Map to Object
-            default: {},  // Default to an empty object
+        digit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        price: {
+            type: Number,
+            default: 0,
         },
     },
     threeDigitSecond: {
-        price: { type: Number },
-        articles: {
-            type: Object, // Change from Map to Object
-            default: {},  // Default to an empty object
+        digit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        price: {
+            type: Number,
+            default: 0,
         },
     },
     fourDigitFirst: {
-        price: { type: Number },
-        articles: {
-            type: Object, // Change from Map to Object
-            default: {},  // Default to an empty object
+        digit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        price: {
+            type: Number,
+            default: 0,
         },
     },
     fourDigitSecond: {
-        price: { type: Number },
-        articles: {
-            type: Object, // Change from Map to Object
-            default: {},  // Default to an empty object
+        digit: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        price: {
+            type: Number,
+            default: 0,
         },
     },
 }, { timestamps: true });
