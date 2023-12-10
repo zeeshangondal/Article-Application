@@ -5,14 +5,14 @@ const Digit = require("../Models/Digit");
 let createDraw = async (req, res) => {
     try {
         let drawData = { ...req.body }
-        const oneDigitFirst = await createDigit(initializeOneDigit(drawData.oneDigitFirst.price));
-        const oneDigitSecond = await createDigit(initializeOneDigit(drawData.oneDigitSecond.price));
-        const twoDigitFirst = await createDigit(initializeTwoDigit(drawData.twoDigitFirst.price));
-        const twoDigitSecond = await createDigit(initializeTwoDigit(drawData.twoDigitSecond.price));
-        const threeDigitFirst = await createDigit(initializeThreeDigit(drawData.threeDigitFirst.price));
-        const threeDigitSecond = await createDigit(initializeThreeDigit(drawData.threeDigitSecond.price));
-        const fourDigitFirst = await createDigit(initializeFourDigit(drawData.fourDigitFirst.price));
-        const fourDigitSecond = await createDigit(initializeFourDigit(drawData.fourDigitSecond.price));
+        const oneDigitFirst = await createDigit({articles: initializeOneDigit(drawData.oneDigitFirst.price)});
+        const oneDigitSecond = await createDigit({articles:initializeOneDigit(drawData.oneDigitSecond.price)});
+        const twoDigitFirst = await createDigit({articles:initializeTwoDigit(drawData.twoDigitFirst.price)});
+        const twoDigitSecond = await createDigit({articles:initializeTwoDigit(drawData.twoDigitSecond.price)});
+        const threeDigitFirst = await createDigit({articles:initializeThreeDigit(drawData.threeDigitFirst.price)});
+        const threeDigitSecond = await createDigit({articles:initializeThreeDigit(drawData.threeDigitSecond.price)});
+        const fourDigitFirst = await createDigit({articles:initializeFourDigit(drawData.fourDigitFirst.price)});
+        const fourDigitSecond = await createDigit({articles:initializeFourDigit(drawData.fourDigitSecond.price)});
 
         const draw = new Draw({
             ...drawData,
@@ -46,9 +46,7 @@ function initializeOneDigit(price = 0) {
     digitsArray.forEach((digit) => {
         articles[digit] = price;
     });
-    return {
-        articles: articles,
-    };
+    return articles
 }
 function initializeTwoDigit(price = 0) {
     const twoDigitsArray = Array.from({ length: 100 }, (_, index) => index.toString().padStart(2, '0'));
@@ -56,9 +54,7 @@ function initializeTwoDigit(price = 0) {
     twoDigitsArray.forEach((digits) => {
         articles[digits] = price;
     });
-    return {
-        articles: articles,
-    };
+    return articles
 }
 function initializeThreeDigit(price = 0) {
     const threeDigitsArray = Array.from({ length: 1000 }, (_, index) => index.toString().padStart(3, '0'));
@@ -66,9 +62,7 @@ function initializeThreeDigit(price = 0) {
     threeDigitsArray.forEach((digits) => {
         articles[digits] = price;
     });
-    return {
-        articles: articles,
-    };
+    return articles
 }
 function initializeFourDigit(price = 0) {
     const fourDigitsArray = Array.from({ length: 10000 }, (_, index) => index.toString().padStart(4, '0'));
@@ -76,9 +70,7 @@ function initializeFourDigit(price = 0) {
     fourDigitsArray.forEach((digits) => {
         articles[digits] = price;
     });
-    return {
-        articles: articles,
-    };
+    return articles
 }
 
 

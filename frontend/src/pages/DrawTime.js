@@ -151,6 +151,7 @@ export default function DrawTime() {
                     Create Draw
                 </Button>
             </div>
+            
             <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
                 <thead>
                     <tr>

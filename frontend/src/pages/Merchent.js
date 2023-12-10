@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import APIs from '../APIs/users';
+import articlesAPI from '../APIs/articles';
+
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { Button, Col, Form, Modal, Row, Table } from 'react-bootstrap';
-import { formatDate } from '../Utils/Utils';
 import { localStorageUtils } from '../APIs/localStorageUtils';
 import { useNavigate } from 'react-router-dom';
 import DrawAPIs from '../APIs/draws';
+import { formatDate, formatTime } from '../Utils/Utils';
+
 
 export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
     const [showModal, setShowModal] = useState(false);
     const [draws, setDraws] = useState([]);
+    const [currentDraw, setCurrentDraw] = useState(null)
+    const [savedPurchases, setSavedPurchases] = useState([]);
+    const [availableArticles, setAvailableArticles] = useState(null)
 
     const [form, setForm] = useState({
-        selectedOption: '',
+        selectedDraw: '',
         bundle: '',
         first: '',
         second: '',
@@ -25,12 +31,13 @@ export default function Merchent() {
         fetchDraws();
     }, []);
 
-    
+
     const fetchDraws = async () => {
         try {
             const response = await DrawAPIs.getAllDraws();
             let filteredDraws = response.draws.filter(draw => draw.drawStatus == true)
             setDraws(filteredDraws);
+            return filteredDraws
         } catch (error) {
             console.error("Error fetching draws", error);
         }
@@ -51,20 +58,46 @@ export default function Merchent() {
     };
 
     const handleCreateOrUpdateDraw = () => {
-        // Add logic for creating or updating draw
-        // You can access the updated state using newDrawData
-        // Add your logic here
-        // ...
-        // Close the modal
-        setShowModal(false);
+
+        // setShowModal(false);
     };
-    const handleBundleChange=(bundle)=>{
-        setForm({...form,bundle:bundle})
-        if(form.selectedOption.length>0){
-            console.log(form.selectedOption)
+    const handleBundleChange = async (bundle) => {
+        setForm({ ...form, bundle: bundle })
+        if (bundle.length > 0) {
+            let data = {
+                firstDigitId: "",
+                secondDigitId: "",
+                bundle
+            }
+            if (bundle.length == 1) {
+                data.firstDigitId = currentDraw.oneDigitFirst.digit
+                data.secondDigitId = currentDraw.oneDigitSecond.digit
+            } else if (bundle.length == 2) {
+                data.firstDigitId = currentDraw.twoDigitFirst.digit
+                data.secondDigitId = currentDraw.twoDigitSecond.digit
+            } else if (bundle.length == 3) {
+                data.firstDigitId = currentDraw.threeDigitFirst.digit
+                data.secondDigitId = currentDraw.threeDigitSecond.digit
+            } else if (bundle.length == 4) {
+                data.firstDigitId = currentDraw.fourDigitFirst.digit
+                data.secondDigitId = currentDraw.fourDigitSecond.digit
+            }
+            let response = await articlesAPI.getFirstAndSecond(data)
+            console.log("Response", response.data)
+            setAvailableArticles(response.data)
         }
+        setAvailableArticles(null)
     }
-    
+    const handleChangeDraw = async (value) => {
+        setForm({ ...form, selectedDraw: value })
+        if (value == '') {
+            setCurrentDraw(null)
+            return
+        }
+        let fetchedDraws = await fetchDraws()
+        setCurrentDraw(fetchedDraws.find(draw => draw._id == value))
+    }
+
     return (
         <div className='m-3'>
             <SearchDivBackgroundDiv>
@@ -89,10 +122,15 @@ export default function Merchent() {
                         <Row>
                             <Col>
                                 <Form.Group >
+                                    {currentDraw &&
+                                        <div className='d-flex justify-content-center'>
+                                            <h6 style={{ fontWeight: 'normal' }}>{`Expires at ${formatDate(currentDraw.drawDate)} ${formatTime(currentDraw.drawTime)}`}</h6>
+                                        </div>
+                                    }
                                     <Form.Control
                                         as='select'
-                                        value={form.selectedOption}
-                                        onChange={(e) => setForm({ ...form, selectedOption: e.target.value })}
+                                        value={form.selectedDraw}
+                                        onChange={(e) => handleChangeDraw(e.target.value)}
                                     >
                                         <option value=''>Select Draw</option>
                                         {draws.map((draw) => (
@@ -114,17 +152,20 @@ export default function Merchent() {
                                             placeholder=''
                                             value={form.bundle}
                                             onChange={(e) => handleBundleChange(e.target.value)}
+                                            disabled={currentDraw == null}
                                         />
                                     </Form.Group>
                                 </Col>
 
                                 <Col xs={3} md={3}>
+                                    <h6>45</h6>
                                     <Form.Group >
                                         <Form.Control
                                             type='text'
                                             placeholder=''
                                             value={form.first}
                                             onChange={(e) => setForm({ ...form, first: e.target.value })}
+                                            disabled={currentDraw == null}
                                         />
                                     </Form.Group>
                                 </Col>
@@ -135,6 +176,8 @@ export default function Merchent() {
                                             placeholder=''
                                             value={form.second}
                                             onChange={(e) => setForm({ ...form, second: e.target.value })}
+                                            disabled={currentDraw == null}
+
                                         />
                                     </Form.Group>
                                 </Col>
