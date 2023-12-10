@@ -18,11 +18,11 @@ export default function Merchent() {
     const [savedPurchases, setSavedPurchases] = useState([]);
     const [availableArticles, setAvailableArticles] = useState(null)
     const [notification, setNotification] = useState({
-        color:"",
-        message:"Success",
-        show:false,
+        color: "",
+        message: "Success",
+        show: false,
     })
-    
+
     const [form, setForm] = useState({
         selectedDraw: '',
         bundle: '',
@@ -52,15 +52,22 @@ export default function Merchent() {
             let tempUser = response.users.find(user => user._id == localStorageUtils.getLoggedInUser()._id);
             setCurrentLoggedInUser(tempUser);
             localStorageUtils.setLoggedInUser(JSON.stringify(tempUser));
+            if (form.selectedDraw.length > 0) {
+                getSavedPurchasesOfCurrentDraw(form.selectedDraw)
+            }
         } catch (error) {
             console.error('Error fetching users', error);
         }
     };
-
+    const getSavedPurchasesOfCurrentDraw = (selectedDraw) => {
+        let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
+        let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === selectedDraw)
+        setSavedPurchases([...purchasedDrawData.savedPurchases])
+    }
     const handleModalClose = () => {
         setShowModal(false);
     };
-    const udpateCurrentLoggedInUser = async () => {
+    const updateCurrentLoggedInUser = async () => {
         await APIs.updateUser(currentLoggedInUser)
         await fetchLoggedInUser()
     }
@@ -81,77 +88,112 @@ export default function Merchent() {
             }
             purchasedFromDrawData.push(purchasedDrawData)
         }
-        udpateCurrentLoggedInUser()
+        // firstDigitId, secondDigitId, bundle , purchaseFirst ,purchaseSecond, type
+        let data =getDataForBundle(bundle,currentDraw)
+        data= {
+            ...data,
+            purchaseFirst: first,
+            purchaseSecond: second,
+            type:"-"
+        }
+        articlesAPI.updateDigit(data)
+        updateCurrentLoggedInUser()
         successMessage("Purchased saved")
-        setForm({...form, first:'', second:''})
+        setForm({ ...form, first: '', second: '' })
         // setShowModal(false);
     };
-    function successMessage(msg){
-        setNotification({...notification, color: "", show:true, message:msg})
+    function successMessage(msg) {
+        setNotification({ ...notification, color: "", show: true, message: msg })
     }
-    function alertMessage(msg){
-        setNotification({...notification, color: "danger", show:true, message:msg})
+    function alertMessage(msg) {
+        setNotification({ ...notification, color: "danger", show: true, message: msg })
     }
-    
+
+    const handleRemovingSavedPurchase=async(_id)=>{
+        let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+        let purchases=purchasedData.savedPurchases
+        let target=purchases.find(purchase=> purchase._id===_id)
+        let updated =purchases.filter(purchase=> purchase._id!==_id)
+        purchasedData.savedPurchases=[...updated]
+        updateCurrentLoggedInUser()
+        let data =getDataForBundle(target.bundle,currentDraw)
+        data= {
+            ...data,
+            purchaseFirst: target.first,
+            purchaseSecond: target.second,
+            type:"+"
+        }
+        await articlesAPI.updateDigit(data)
+        handleBundleChange(target.bundle)
+    }
     function isValidBundle(inputString) {
-        // Check if the length is at most 4
         if (inputString.length > 4) {
             return false;
         }
         if (inputString.length == 0)
             return true
-        // Check if all characters are digits
         if (!/^\d+$/.test(inputString)) {
             return false;
         }
-
         return true;
     }
 
+    const getDataForBundle = (bundle, currentDraw) => {
+        let data = {
+            firstDigitId: "",
+            secondDigitId: "",
+            bundle
+        };
+
+        if (bundle.length > 0) {
+            if (bundle.length === 1) {
+                data.firstDigitId = currentDraw.oneDigitFirst.digit;
+                data.secondDigitId = currentDraw.oneDigitSecond.digit;
+            } else if (bundle.length === 2) {
+                data.firstDigitId = currentDraw.twoDigitFirst.digit;
+                data.secondDigitId = currentDraw.twoDigitSecond.digit;
+            } else if (bundle.length === 3) {
+                data.firstDigitId = currentDraw.threeDigitFirst.digit;
+                data.secondDigitId = currentDraw.threeDigitSecond.digit;
+            } else if (bundle.length === 4) {
+                data.firstDigitId = currentDraw.fourDigitFirst.digit;
+                data.secondDigitId = currentDraw.fourDigitSecond.digit;
+            }
+        }
+
+        return data;
+    };
+
     const handleBundleChange = async (bundle) => {
         if (isValidBundle(bundle)) {
-            setForm({ ...form, bundle: bundle })
-            if (bundle.length > 0) {
-                let data = {
-                    firstDigitId: "",
-                    secondDigitId: "",
-                    bundle
-                }
-                if (bundle.length == 1) {
-                    data.firstDigitId = currentDraw.oneDigitFirst.digit
-                    data.secondDigitId = currentDraw.oneDigitSecond.digit
-                } else if (bundle.length == 2) {
-                    data.firstDigitId = currentDraw.twoDigitFirst.digit
-                    data.secondDigitId = currentDraw.twoDigitSecond.digit
-                } else if (bundle.length == 3) {
-                    data.firstDigitId = currentDraw.threeDigitFirst.digit
-                    data.secondDigitId = currentDraw.threeDigitSecond.digit
-                } else if (bundle.length == 4) {
-                    data.firstDigitId = currentDraw.fourDigitFirst.digit
-                    data.secondDigitId = currentDraw.fourDigitSecond.digit
-                }
-                let response = await articlesAPI.getFirstAndSecond(data)
-                setAvailableArticles({ ...response.data })
-                return
-            }
-            setAvailableArticles(null)
+            setForm({ ...form, bundle: bundle });
 
+            if (bundle.length > 0) {
+                const data = getDataForBundle(bundle, currentDraw);
+                const response = await articlesAPI.getFirstAndSecond(data);
+                setAvailableArticles({ ...response.data });
+                return;
+            }
+
+            setAvailableArticles(null);
         }
-    }
+    };
 
     const handleChangeDraw = async (value) => {
         setForm({ ...form, selectedDraw: value })
         if (value == '') {
             setCurrentDraw(null)
+            setSavedPurchases([])
             return
         }
         let fetchedDraws = await fetchDraws()
         setCurrentDraw(fetchedDraws.find(draw => draw._id == value))
+        getSavedPurchasesOfCurrentDraw(value)
     }
 
     return (
         <div className='m-3'>
-            <CustomNotification notification={notification} setNotification={setNotification}/>
+            <CustomNotification notification={notification} setNotification={setNotification} />
             <SearchDivBackgroundDiv>
                 <h4 className='text-center'>{`${currentLoggedInUser.generalInfo.name} - ${currentLoggedInUser.username}`}</h4>
                 <hr />
@@ -159,10 +201,39 @@ export default function Merchent() {
                     <h6>Balance: {currentLoggedInUser.balance}</h6>
                 </div>
             </SearchDivBackgroundDiv>
-            <div className='d-flex justify-content-end'>
-                <Button variant='primary btn btn-sm' className='mt-3' onClick={() => setShowModal(true)}>
+            <div className='d-flex justify-content-end mt-3 container'>
+                {/* {currentDraw &&
+                    <h5>{`${currentDraw.title} Expires at ${formatDate(currentDraw.drawDate)} ${formatTime(currentDraw.drawTime)}`}</h5>
+                } */}
+                <Button variant='primary btn btn-sm' onClick={() => setShowModal(true)}>
                     Purchase
                 </Button>
+            </div>
+            <div className='container'>
+                <Table striped hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
+                    <thead>
+                        <tr>
+                            <th>Bundle</th>
+                            <th>First</th>
+                            <th>Second</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {savedPurchases.map(purchase => (
+                            <tr key={purchase._id} >
+                                <td>{purchase.bundle}</td>
+                                <td>{purchase.first}</td>
+                                <td>{purchase.second}</td>
+                                <td>
+                                    <div className='d-flex justify-content-between'>
+                                        <Button variant="primary btn btn-sm btn-danger" onClick={()=> handleRemovingSavedPurchase(purchase._id)}>Remove</Button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
             </div>
 
             <Modal show={showModal} onHide={handleModalClose}>
@@ -255,7 +326,6 @@ export default function Merchent() {
                         </div>
                     </Form>
                 </Modal.Body>
-
                 <Modal.Footer>
                 </Modal.Footer>
             </Modal>
