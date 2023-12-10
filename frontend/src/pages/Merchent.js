@@ -62,7 +62,11 @@ export default function Merchent() {
     const getSavedPurchasesOfCurrentDraw = (selectedDraw) => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === selectedDraw)
-        setSavedPurchases([...purchasedDrawData.savedPurchases])
+        try {
+            setSavedPurchases([...purchasedDrawData.savedPurchases])
+        } catch (e) {
+            setSavedPurchases([])
+        }
     }
     const handleModalClose = () => {
         setShowModal(false);
@@ -71,7 +75,7 @@ export default function Merchent() {
         await APIs.updateUser(currentLoggedInUser)
         await fetchLoggedInUser()
     }
-    const handlePurchaseOne = () => {
+    const handlePurchaseOne =async () => {
         let { bundle, first, second } = form
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
@@ -89,14 +93,16 @@ export default function Merchent() {
             purchasedFromDrawData.push(purchasedDrawData)
         }
         // firstDigitId, secondDigitId, bundle , purchaseFirst ,purchaseSecond, type
-        let data =getDataForBundle(bundle,currentDraw)
-        data= {
+        let data = getDataForBundle(bundle, currentDraw)
+        data = {
             ...data,
             purchaseFirst: first,
             purchaseSecond: second,
-            type:"-"
+            type: "-"
         }
-        articlesAPI.updateDigit(data)
+        await articlesAPI.updateDigit(data)
+        handleBundleChange(bundle)
+
         updateCurrentLoggedInUser()
         successMessage("Purchased saved")
         setForm({ ...form, first: '', second: '' })
@@ -109,19 +115,19 @@ export default function Merchent() {
         setNotification({ ...notification, color: "danger", show: true, message: msg })
     }
 
-    const handleRemovingSavedPurchase=async(_id)=>{
+    const handleRemovingSavedPurchase = async (_id) => {
         let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
-        let purchases=purchasedData.savedPurchases
-        let target=purchases.find(purchase=> purchase._id===_id)
-        let updated =purchases.filter(purchase=> purchase._id!==_id)
-        purchasedData.savedPurchases=[...updated]
+        let purchases = purchasedData.savedPurchases
+        let target = purchases.find(purchase => purchase._id === _id)
+        let updated = purchases.filter(purchase => purchase._id !== _id)
+        purchasedData.savedPurchases = [...updated]
         updateCurrentLoggedInUser()
-        let data =getDataForBundle(target.bundle,currentDraw)
-        data= {
+        let data = getDataForBundle(target.bundle, currentDraw)
+        data = {
             ...data,
             purchaseFirst: target.first,
             purchaseSecond: target.second,
-            type:"+"
+            type: "+"
         }
         await articlesAPI.updateDigit(data)
         handleBundleChange(target.bundle)
@@ -227,7 +233,7 @@ export default function Merchent() {
                                 <td>{purchase.second}</td>
                                 <td>
                                     <div className='d-flex justify-content-between'>
-                                        <Button variant="primary btn btn-sm btn-danger" onClick={()=> handleRemovingSavedPurchase(purchase._id)}>Remove</Button>
+                                        <Button variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingSavedPurchase(purchase._id)}>Remove</Button>
                                     </div>
                                 </td>
                             </tr>
