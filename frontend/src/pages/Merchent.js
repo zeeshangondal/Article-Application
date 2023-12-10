@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import APIs from '../APIs/users';
 import articlesAPI from '../APIs/articles';
 
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { Button, Col, Form, Modal, Row, Table } from 'react-bootstrap';
 import { localStorageUtils } from '../APIs/localStorageUtils';
-import { useNavigate } from 'react-router-dom';
 import DrawAPIs from '../APIs/draws';
 import { formatDate, formatTime } from '../Utils/Utils';
+import CustomNotification from '../components/CustomNotification';
 
 
 export default function Merchent() {
@@ -18,7 +17,12 @@ export default function Merchent() {
     const [currentDraw, setCurrentDraw] = useState(null)
     const [savedPurchases, setSavedPurchases] = useState([]);
     const [availableArticles, setAvailableArticles] = useState(null)
-
+    const [notification, setNotification] = useState({
+        color:"",
+        message:"Success",
+        show:false,
+    })
+    
     const [form, setForm] = useState({
         selectedDraw: '',
         bundle: '',
@@ -56,17 +60,45 @@ export default function Merchent() {
     const handleModalClose = () => {
         setShowModal(false);
     };
-
-    const handleCreateOrUpdateDraw = () => {
-
+    const udpateCurrentLoggedInUser = async () => {
+        await APIs.updateUser(currentLoggedInUser)
+        await fetchLoggedInUser()
+    }
+    const handlePurchaseOne = () => {
+        let { bundle, first, second } = form
+        let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
+        let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+        if (purchasedDrawData) {
+            purchasedDrawData.savedPurchases.push({
+                bundle, first, second
+            })
+        } else {
+            purchasedDrawData = {
+                drawId: form.selectedDraw,
+                savedPurchases: [{
+                    bundle, first, second
+                }]
+            }
+            purchasedFromDrawData.push(purchasedDrawData)
+        }
+        udpateCurrentLoggedInUser()
+        successMessage("Purchased saved")
+        setForm({...form, first:'', second:''})
         // setShowModal(false);
     };
+    function successMessage(msg){
+        setNotification({...notification, color: "", show:true, message:msg})
+    }
+    function alertMessage(msg){
+        setNotification({...notification, color: "danger", show:true, message:msg})
+    }
+    
     function isValidBundle(inputString) {
         // Check if the length is at most 4
         if (inputString.length > 4) {
             return false;
         }
-        if(inputString.length==0)
+        if (inputString.length == 0)
             return true
         // Check if all characters are digits
         if (!/^\d+$/.test(inputString)) {
@@ -119,6 +151,7 @@ export default function Merchent() {
 
     return (
         <div className='m-3'>
+            <CustomNotification notification={notification} setNotification={setNotification}/>
             <SearchDivBackgroundDiv>
                 <h4 className='text-center'>{`${currentLoggedInUser.generalInfo.name} - ${currentLoggedInUser.username}`}</h4>
                 <hr />
@@ -213,7 +246,7 @@ export default function Merchent() {
                                 </Col>
                                 <Col>
                                     <div xs={3} md={3}>
-                                        <Button variant='primary btn' >
+                                        <Button variant='primary btn' onClick={handlePurchaseOne} disabled={!form.bundle || !form.first || !form.second}>
                                             Add
                                         </Button>
                                     </div>

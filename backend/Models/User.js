@@ -95,6 +95,16 @@ const UserSchema = mongoose.Schema({
             type: String,
         },
     }],
+    purchasedFromDrawData:[{
+        drawId:{
+            type:String
+        },
+        savedPurchases:[{
+            bundle:{type:String},
+            first:{type:Number},
+            second:{type:Number}
+        }]
+    }]
 
 }, { timestamps: true });
 
