@@ -61,33 +61,52 @@ export default function Merchent() {
 
         // setShowModal(false);
     };
-    const handleBundleChange = async (bundle) => {
-        setForm({ ...form, bundle: bundle })
-        if (bundle.length > 0) {
-            let data = {
-                firstDigitId: "",
-                secondDigitId: "",
-                bundle
-            }
-            if (bundle.length == 1) {
-                data.firstDigitId = currentDraw.oneDigitFirst.digit
-                data.secondDigitId = currentDraw.oneDigitSecond.digit
-            } else if (bundle.length == 2) {
-                data.firstDigitId = currentDraw.twoDigitFirst.digit
-                data.secondDigitId = currentDraw.twoDigitSecond.digit
-            } else if (bundle.length == 3) {
-                data.firstDigitId = currentDraw.threeDigitFirst.digit
-                data.secondDigitId = currentDraw.threeDigitSecond.digit
-            } else if (bundle.length == 4) {
-                data.firstDigitId = currentDraw.fourDigitFirst.digit
-                data.secondDigitId = currentDraw.fourDigitSecond.digit
-            }
-            let response = await articlesAPI.getFirstAndSecond(data)
-            console.log("Response", response.data)
-            setAvailableArticles(response.data)
+    function isValidBundle(inputString) {
+        // Check if the length is at most 4
+        if (inputString.length > 4) {
+            return false;
         }
-        setAvailableArticles(null)
+        if(inputString.length==0)
+            return true
+        // Check if all characters are digits
+        if (!/^\d+$/.test(inputString)) {
+            return false;
+        }
+
+        return true;
     }
+
+    const handleBundleChange = async (bundle) => {
+        if (isValidBundle(bundle)) {
+            setForm({ ...form, bundle: bundle })
+            if (bundle.length > 0) {
+                let data = {
+                    firstDigitId: "",
+                    secondDigitId: "",
+                    bundle
+                }
+                if (bundle.length == 1) {
+                    data.firstDigitId = currentDraw.oneDigitFirst.digit
+                    data.secondDigitId = currentDraw.oneDigitSecond.digit
+                } else if (bundle.length == 2) {
+                    data.firstDigitId = currentDraw.twoDigitFirst.digit
+                    data.secondDigitId = currentDraw.twoDigitSecond.digit
+                } else if (bundle.length == 3) {
+                    data.firstDigitId = currentDraw.threeDigitFirst.digit
+                    data.secondDigitId = currentDraw.threeDigitSecond.digit
+                } else if (bundle.length == 4) {
+                    data.firstDigitId = currentDraw.fourDigitFirst.digit
+                    data.secondDigitId = currentDraw.fourDigitSecond.digit
+                }
+                let response = await articlesAPI.getFirstAndSecond(data)
+                setAvailableArticles({ ...response.data })
+                return
+            }
+            setAvailableArticles(null)
+
+        }
+    }
+
     const handleChangeDraw = async (value) => {
         setForm({ ...form, selectedDraw: value })
         if (value == '') {
@@ -143,7 +162,19 @@ export default function Merchent() {
                             </Col>
                         </Row>
                         <div className='mt-3'>
-                            <h6 style={{ fontWeight: 'normal' }}>Bundle</h6>
+                            <div >
+                                <Row>
+                                    <Col xs={3} md={3}>
+                                        <h6 className='text-center' style={{ fontWeight: 'normal' }}>Bundle</h6>
+                                    </Col>
+                                    <Col xs={3} md={3}>
+                                        <h6 className='text-center' style={{ fontWeight: 'normal' }}>{availableArticles ? availableArticles.firstPrice : ""}</h6>
+                                    </Col>
+                                    <Col xs={3} md={3}>
+                                        <h6 className='text-center' style={{ fontWeight: 'normal' }}>{availableArticles ? availableArticles.secondPrice : ""}</h6>
+                                    </Col>
+                                </Row>
+                            </div>
                             <Row>
                                 <Col xs={3} md={3}>
                                     <Form.Group >
@@ -158,11 +189,10 @@ export default function Merchent() {
                                 </Col>
 
                                 <Col xs={3} md={3}>
-                                    <h6>45</h6>
                                     <Form.Group >
                                         <Form.Control
-                                            type='text'
-                                            placeholder=''
+                                            type='Number'
+                                            placeholder='First'
                                             value={form.first}
                                             onChange={(e) => setForm({ ...form, first: e.target.value })}
                                             disabled={currentDraw == null}
@@ -172,8 +202,8 @@ export default function Merchent() {
                                 <Col xs={3} md={3}>
                                     <Form.Group >
                                         <Form.Control
-                                            type='text'
-                                            placeholder=''
+                                            type='Number'
+                                            placeholder='Second'
                                             value={form.second}
                                             onChange={(e) => setForm({ ...form, second: e.target.value })}
                                             disabled={currentDraw == null}
@@ -196,6 +226,7 @@ export default function Merchent() {
                 <Modal.Footer>
                 </Modal.Footer>
             </Modal>
+
         </div>
     );
 }

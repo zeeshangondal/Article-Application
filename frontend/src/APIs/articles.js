@@ -29,7 +29,6 @@ const getDigit = async (id) => {
 
 const getFirstAndSecond = async (data) => {
     try {
-        console.log("Sedning",data)
         const response = await axios.post(`${API_URL}/filtered`,data);
         return response.data;
     } catch (error) {

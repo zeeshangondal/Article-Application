@@ -108,8 +108,8 @@ const getFirstAndSecond = async (req, res) => {
         };
         res.status(200).send({ message: "Data retrieved successfully", data: combinedData });
     } catch (err) {
-        console.error("Error fetching digits:", err);
-        res.status(500).send({ message: "Error", err });
+        console.error("Error fetching digits:");
+        res.status(500).send({ message: "Error" });
     }
 };
 
