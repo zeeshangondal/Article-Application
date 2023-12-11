@@ -1,4 +1,5 @@
 const Digit = require("../Models/Digit");
+const User = require("../Models/User");
 
 // Create a new Digit
 const createDigit = async (req, res) => {
@@ -18,9 +19,9 @@ const createDigit = async (req, res) => {
 
 // Update an existing Digit
 const updateDigit = async (req, res) => {
-    let { firstDigitId, secondDigitId, bundle , purchaseFirst ,purchaseSecond, type } = req.body;
-    purchaseFirst=Number(purchaseFirst)
-    purchaseSecond=Number(purchaseSecond)
+    let { firstDigitId, secondDigitId, bundle, purchaseFirst, purchaseSecond, type } = req.body;
+    purchaseFirst = Number(purchaseFirst)
+    purchaseSecond = Number(purchaseSecond)
     try {
         const [firstDigit, secondDigit] = await Promise.all([
             Digit.findById(firstDigitId),
@@ -36,18 +37,18 @@ const updateDigit = async (req, res) => {
             }
             return res.status(404).send({ message: `Digits not found for IDs` });
         }
-        if(type==="+"){
-            firstDigit.articles[bundle]=firstDigit.articles[bundle]+purchaseFirst
-            secondDigit.articles[bundle]=secondDigit.articles[bundle]+purchaseSecond 
-        }else if(type==="-"){
-            firstDigit.articles[bundle]=firstDigit.articles[bundle]-purchaseFirst
-            secondDigit.articles[bundle]=secondDigit.articles[bundle]-purchaseSecond 
+        if (type === "+") {
+            firstDigit.articles[bundle] = firstDigit.articles[bundle] + purchaseFirst
+            secondDigit.articles[bundle] = secondDigit.articles[bundle] + purchaseSecond
+        } else if (type === "-") {
+            firstDigit.articles[bundle] = firstDigit.articles[bundle] - purchaseFirst
+            secondDigit.articles[bundle] = secondDigit.articles[bundle] - purchaseSecond
         }
         firstDigit.markModified('articles');
         secondDigit.markModified('articles');
         await firstDigit.save()
         await secondDigit.save()
-        res.status(200).send({ message: "Digit updated"});
+        res.status(200).send({ message: "Digit updated" });
     } catch (err) {
         console.error(err);
         res.status(500).send({ message: "Error", err });
@@ -96,10 +97,40 @@ const getDigitById = (req, res) => {
             res.status(500).send({ message: "Error", err });
         });
 };
+const getUserDataById = (allUsers, targetUserId) => {
+    const targetUser = allUsers.find(user => user._id.toString() === targetUserId);
+    // Return the found user or null if not found
+    return targetUser || null;
+};
+
+const getTheMainCreatorOfUser = async (_id) => {
+    try {
+        // Make sure to await the User.find() call
+        let allUsers = await User.find({});
+        let adminUser = allUsers.find(user => user.role === "admin");
+        adminUser = adminUser.toObject()
+        let adminId = adminUser._id.toString()
+        let mainCreator = {};
+        let askingUser = _id;
+        while (true) {
+            mainCreator = getUserDataById(allUsers, askingUser);
+            mainCreator = mainCreator.toObject()
+            if (mainCreator.creator.toString() === adminId) {
+                mainCreator = await User.findOne({ _id: mainCreator._id.toString() });
+                return mainCreator
+            }
+            askingUser=mainCreator.creator.toString()
+        }
+    } catch (e) {
+    }
+}
+
 
 const getFirstAndSecond = async (req, res) => {
     const { firstDigitId, secondDigitId, bundle, askingUser } = req.body;
     try {
+        let parent=await getTheMainCreatorOfUser(askingUser)
+        console.log(parent)
         // Use Promise.all to concurrently fetch data for both digit IDs
         const [firstDigit, secondDigit] = await Promise.all([
             Digit.findById(firstDigitId),
@@ -124,6 +155,7 @@ const getFirstAndSecond = async (req, res) => {
             secondPrice: secondDigit.articles[bundle],
             bundle
         };
+
 
         res.status(200).send({ message: "Data retrieved successfully", data: combinedData });
     } catch (err) {

@@ -9,18 +9,6 @@ import { localStorageUtils } from '../APIs/localStorageUtils';
 import { useNavigate } from 'react-router-dom';
 
 
-// {
-//     commission: { commision: 0, share: 0, pcPercentage: 0 },
-//     hadd: { hindsyKiHad1: 0, hindsyKiHad2: 0, akraKiHad1: 0, akraKiHad2: 0, firstTendolaKiHad: 0, secondTendolaKiHad: 0, firstPangodaKiHad: 0, secondPangodaKiHad: 0 },
-//     generalInfo: { name: '', username: '', address: '', contactNumber: '', active: false },
-//     rewardCommission: { firstA: 0, firstB: 0, firstC: 0, firstD: 0 },
-//     purchaseLimit: {
-//         purchaseLimitA1: 0, purchaseLimitA2: 0,
-//         purchaseLimitB1: 0, purchaseLimitB2: 0,
-//         purchaseLimitC1: 0, purchaseLimitC2: 0,
-//         purchaseLimitD1: 0, purchaseLimitD2: 0
-//     }
-// }
 let initialCreditTransaction = {
     description: '',
     txType: 1, // Default value, you can set it to the initial option value
@@ -101,6 +89,7 @@ const UserDetails = () => {
     const handleEditClick = () => {
         setEditMode(!editMode);
         setPaymentMode(false)
+        setEditModeN(1)
     };
     const handlePaymentClick = () => {
         setPaymentMode(!paymentMode);
