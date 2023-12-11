@@ -23,21 +23,18 @@ const updateDigit = async (req, res) => {
     purchaseFirst = Number(purchaseFirst)
     purchaseSecond = Number(purchaseSecond)
     try {
-        const [firstDigit, secondDigit] = await Promise.all([
+        let parentUser=await getTheMainCreatorOfUser(askingUser)
+        let data=getFirstAndSecondDigitRefs(bundle, parentUser.toObject())     
+
+        const [firstDigit, secondDigit, parentFirstDigit, parentSecondDigit] = await Promise.all([
             Digit.findById(firstDigitId),
-            Digit.findById(secondDigitId)
+            Digit.findById(secondDigitId),
+            Digit.findById(data.firstDigit),
+            Digit.findById(data.secondDigit)
         ]);
-        if (!firstDigit || !secondDigit) {
-            const notFoundDigits = [];
-            if (!firstDigit) {
-                notFoundDigits.push(firstDigitId);
-            }
-            if (!secondDigit) {
-                notFoundDigits.push(secondDigitId);
-            }
-            return res.status(404).send({ message: `Digits not found for IDs` });
-        }
+        
         if (type === "+") {
+            
             firstDigit.articles[bundle] = firstDigit.articles[bundle] + purchaseFirst
             secondDigit.articles[bundle] = secondDigit.articles[bundle] + purchaseSecond
         } else if (type === "-") {
@@ -125,34 +122,43 @@ const getTheMainCreatorOfUser = async (_id) => {
     }
 }
 
+const getFirstAndSecondDigitRefs=(bundle,user)=>{
+    let data={
+        firstDigit:'',
+        secondDigit:''
+    }
+    let purchaseLimit=user.purchaseLimit
+    if(bundle.length==1){
+        data.firstDigit=purchaseLimit.oneDigitFirst
+        data.secondDigit=purchaseLimit.oneDigitSecond        
+    }else if(bundle.length==2){
+        data.firstDigit=purchaseLimit.twoDigitFirst
+        data.secondDigit=purchaseLimit.twoDigitSecond        
+    }else if(bundle.length==3){
+        data.firstDigit=purchaseLimit.threeDigitFirst
+        data.secondDigit=purchaseLimit.threeDigitSecond        
+    }else if(bundle.length==4){
+        data.firstDigit=purchaseLimit.fourDigitFirst
+        data.secondDigit=purchaseLimit.fourDigitSecond        
+    }
+    return data
+}
 
 const getFirstAndSecond = async (req, res) => {
     const { firstDigitId, secondDigitId, bundle, askingUser } = req.body;
     try {
-        let parent=await getTheMainCreatorOfUser(askingUser)
-        console.log(parent)
-        // Use Promise.all to concurrently fetch data for both digit IDs
-        const [firstDigit, secondDigit] = await Promise.all([
+        let parentUser=await getTheMainCreatorOfUser(askingUser)
+        let data=getFirstAndSecondDigitRefs(bundle, parentUser.toObject())     
+        const [firstDigit, secondDigit, parentFirstDigit, parentSecondDigit] = await Promise.all([
             Digit.findById(firstDigitId),
-            Digit.findById(secondDigitId)
+            Digit.findById(secondDigitId),
+            Digit.findById(data.firstDigit),
+            Digit.findById(data.secondDigit)
         ]);
-
-        // Check if both digits are found
-        if (!firstDigit || !secondDigit) {
-            const notFoundDigits = [];
-
-            if (!firstDigit) {
-                notFoundDigits.push(firstDigitId);
-            }
-
-            if (!secondDigit) {
-                notFoundDigits.push(secondDigitId);
-            }
-            return res.status(404).send({ message: `Digits not found for IDs` });
-        }
+        
         const combinedData = {
-            firstPrice: firstDigit.articles[bundle],
-            secondPrice: secondDigit.articles[bundle],
+            firstPrice: Number(firstDigit.articles[bundle]) + Number(parentFirstDigit.articles[bundle]),
+            secondPrice: Number(secondDigit.articles[bundle])+ Number(parentSecondDigit.articles[bundle]),
             bundle
         };
 

@@ -98,7 +98,8 @@ export default function Merchent() {
             ...data,
             purchaseFirst: first,
             purchaseSecond: second,
-            type: "-"
+            type: "-",
+            askingUser: localStorageUtils.getLoggedInUser()._id
         }
         await articlesAPI.updateDigit(data)
         handleBundleChange(bundle)
