@@ -19,7 +19,7 @@ const createDigit = async (req, res) => {
 
 // Update an existing Digit
 const updateDigit = async (req, res) => {
-    let { firstDigitId, secondDigitId, bundle, purchaseFirst, purchaseSecond, type } = req.body;
+    let { firstDigitId, secondDigitId, bundle, purchaseFirst, purchaseSecond, type,askingUser } = req.body;
     purchaseFirst = Number(purchaseFirst)
     purchaseSecond = Number(purchaseSecond)
     try {
@@ -34,7 +34,7 @@ const updateDigit = async (req, res) => {
         ]);
         
         if (type === "+") {
-            
+
             firstDigit.articles[bundle] = firstDigit.articles[bundle] + purchaseFirst
             secondDigit.articles[bundle] = secondDigit.articles[bundle] + purchaseSecond
         } else if (type === "-") {
