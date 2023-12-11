@@ -1,5 +1,45 @@
+const Digit = require("../Models/Digit");
 const User = require("../Models/User");
 const jwt = require('jsonwebtoken');
+
+
+async function createDigit(data) {
+    const digit = new Digit(data);
+    return await digit.save();
+}
+
+function initializeOneDigit(price = 0) {
+    const digitsArray = Array.from({ length: 10 }, (_, index) => index.toString());
+    const articles = {};
+    digitsArray.forEach((digit) => {
+        articles[digit] = price;
+    });
+    return articles
+}
+function initializeTwoDigit(price = 0) {
+    const twoDigitsArray = Array.from({ length: 100 }, (_, index) => index.toString().padStart(2, '0'));
+    const articles = {};
+    twoDigitsArray.forEach((digits) => {
+        articles[digits] = price;
+    });
+    return articles
+}
+function initializeThreeDigit(price = 0) {
+    const threeDigitsArray = Array.from({ length: 1000 }, (_, index) => index.toString().padStart(3, '0'));
+    const articles = {};
+    threeDigitsArray.forEach((digits) => {
+        articles[digits] = price;
+    });
+    return articles
+}
+function initializeFourDigit(price = 0) {
+    const fourDigitsArray = Array.from({ length: 10000 }, (_, index) => index.toString().padStart(4, '0'));
+    const articles = {};
+    fourDigitsArray.forEach((digits) => {
+        articles[digits] = price;
+    });
+    return articles
+}
 
 
 let createUser = async (req, res) => {
@@ -23,6 +63,7 @@ let createUser = async (req, res) => {
             // Username already exists, send an error response
             return res.status(200).send({ message: "Username is already assigned to a client" });
         }
+
         let obj = {
             userId: nextUserId,
             password,
@@ -34,6 +75,32 @@ let createUser = async (req, res) => {
                 address,
                 contactNumber,
                 active
+            },
+        }
+        let admin = await User.findOne({ role: 'admin' });
+        admin = admin.toObject()
+        if (role === "distributor" && admin && creator === admin._id.toString()) {
+            const oneDigitFirst = await createDigit({ articles: initializeOneDigit(0) });
+            const oneDigitSecond = await createDigit({ articles: initializeOneDigit(0) });
+            const twoDigitFirst = await createDigit({ articles: initializeTwoDigit(0) });
+            const twoDigitSecond = await createDigit({ articles: initializeTwoDigit(0) });
+            const threeDigitFirst = await createDigit({ articles: initializeThreeDigit(0) });
+            const threeDigitSecond = await createDigit({ articles: initializeThreeDigit(0) });
+            const fourDigitFirst = await createDigit({ articles: initializeFourDigit(0) });
+            const fourDigitSecond = await createDigit({ articles: initializeFourDigit(0) });
+
+            obj = {
+                ...obj,
+                purchaseLimit: {
+                    oneDigitFirst: oneDigitFirst._id,
+                    oneDigitSecond: oneDigitSecond._id,
+                    twoDigitFirst: twoDigitFirst._id,
+                    twoDigitSecond: twoDigitSecond._id,
+                    threeDigitFirst: threeDigitFirst._id,
+                    threeDigitSecond: threeDigitSecond._id,
+                    fourDigitFirst: fourDigitFirst._id,
+                    fourDigitSecond: fourDigitSecond._id,
+                }
             }
         }
         // Username is unique, proceed to create a new user
@@ -57,7 +124,7 @@ let login = (req, res) => {
             return res.status(404).send({ message: "User not Found" })
         }
         else {
-            if (user.generalInfo.active===false) {
+            if (user.generalInfo.active === false) {
                 return res.status(201).send({ message: "This account has been deactivated" })
             }
             else {
@@ -75,12 +142,63 @@ let login = (req, res) => {
     })
 }
 
+const updateAssociatedLimits = async (updatedUser, prevUser) => {
+    let updatedLimits=updatedUser.purchaseLimit
+    let prevLimits=prevUser.purchaseLimit
+    try {
+        if(updatedLimits.purchaseLimitA1!=prevLimits.purchaseLimitA1){
+            const digit = await Digit.findById(updatedLimits.oneDigitFirst);
+            digit.articles = initializeOneDigit(updatedLimits.purchaseLimitA1)
+            digit.save();
+        }
+        if(updatedLimits.purchaseLimitA2!=prevLimits.purchaseLimitA2){
+            const digit = await Digit.findById(updatedLimits.oneDigitSecond);
+            digit.articles = initializeOneDigit(updatedLimits.purchaseLimitA2)
+            digit.save();            
+        }
+        if(updatedLimits.purchaseLimitB1!=prevLimits.purchaseLimitB1){
+            const digit = await Digit.findById(updatedLimits.twoDigitFirst);
+            digit.articles = initializeTwoDigit(updatedLimits.purchaseLimitB1)
+            digit.save();
+        }
+        if(updatedLimits.purchaseLimitB2!=prevLimits.purchaseLimitB2){
+            const digit = await Digit.findById(updatedLimits.twoDigitSecond);
+            digit.articles = initializeTwoDigit(updatedLimits.purchaseLimitB2)
+            digit.save();
+        }
+        if(updatedLimits.purchaseLimitC1!=prevLimits.purchaseLimitC1){
+            const digit = await Digit.findById(updatedLimits.threeDigitFirst);            
+            digit.articles = initializeThreeDigit(updatedLimits.purchaseLimitC1)
+            digit.save();
+        }
+        if(updatedLimits.purchaseLimitC2!=prevLimits.purchaseLimitC2){
+            const digit = await Digit.findById(updatedLimits.threeDigitSecond);
+            digit.articles = initializeThreeDigit(updatedLimits.purchaseLimitC2)
+            digit.save();
+        }
+        if(updatedLimits.purchaseLimitD1!=prevLimits.purchaseLimitD1){
+            const digit = await Digit.findById(updatedLimits.fourDigitFirst); 
+            digit.articles = initializeFourDigit(updatedLimits.purchaseLimitD1)
+            digit.save();
+        }
+        if(updatedLimits.purchaseLimitD2!=prevLimits.purchaseLimitD2){
+            const digit = await Digit.findById(updatedLimits.fourDigitSecond);
+            digit.articles = initializeFourDigit(updatedLimits.purchaseLimitD2)
+            digit.save();
+        }
+    } catch (err) {
+        console.error("Error triggering update in associated digits:", err);
+    }
+};
 const updateUser = async (req, res) => {
     const _id = req.params.id;
     const updates = req.body;
 
     try {
-        const updatedUser = await User.findOneAndUpdate({ _id }, updates, { new: true });
+        let oldUser = await User.findOne({ _id });
+        oldUser = { ...oldUser.toObject() }
+
+        let updatedUser = await User.findOneAndUpdate({ _id }, updates, { new: true });
 
         if (!updatedUser) {
             return res.status(404).send({ message: "User not found" });
@@ -90,6 +208,12 @@ const updateUser = async (req, res) => {
             // Update 'active' to false for all users recursively
             await updateRelatedUsers(_id);
         }
+        let admin = await User.findOne({ role: 'admin' });
+        admin = admin.toObject()
+        if (updates.role === "distributor" && admin && updates.creator._id === admin._id.toString()) {
+            updateAssociatedLimits(updates,oldUser)
+        }
+
 
         // Respond with success message
         res.status(200).send({ message: "User updated", user: updatedUser });

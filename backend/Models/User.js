@@ -70,6 +70,39 @@ const UserSchema = mongoose.Schema({
         purchaseLimitC2: { type: Number, default: 0 },
         purchaseLimitD1: { type: Number, default: 0 },
         purchaseLimitD2: { type: Number, default: 0 },
+
+        oneDigitFirst: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        oneDigitSecond: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        twoDigitFirst: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        twoDigitSecond: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        threeDigitFirst: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        threeDigitSecond: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        fourDigitFirst: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
+        fourDigitSecond: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Digit',
+        },
     },
     transactionHistory: [{
         description:{

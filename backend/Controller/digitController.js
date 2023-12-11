@@ -98,7 +98,7 @@ const getDigitById = (req, res) => {
 };
 
 const getFirstAndSecond = async (req, res) => {
-    const { firstDigitId, secondDigitId, bundle } = req.body;
+    const { firstDigitId, secondDigitId, bundle, askingUser } = req.body;
     try {
         // Use Promise.all to concurrently fetch data for both digit IDs
         const [firstDigit, secondDigit] = await Promise.all([

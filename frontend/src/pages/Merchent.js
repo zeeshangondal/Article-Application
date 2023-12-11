@@ -75,7 +75,7 @@ export default function Merchent() {
         await APIs.updateUser(currentLoggedInUser)
         await fetchLoggedInUser()
     }
-    const handlePurchaseOne =async () => {
+    const handlePurchaseOne = async () => {
         let { bundle, first, second } = form
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
@@ -116,21 +116,23 @@ export default function Merchent() {
     }
 
     const handleRemovingSavedPurchase = async (_id) => {
-        let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
-        let purchases = purchasedData.savedPurchases
-        let target = purchases.find(purchase => purchase._id === _id)
-        let updated = purchases.filter(purchase => purchase._id !== _id)
-        purchasedData.savedPurchases = [...updated]
-        updateCurrentLoggedInUser()
-        let data = getDataForBundle(target.bundle, currentDraw)
-        data = {
-            ...data,
-            purchaseFirst: target.first,
-            purchaseSecond: target.second,
-            type: "+"
-        }
-        await articlesAPI.updateDigit(data)
-        handleBundleChange(target.bundle)
+        try {
+            let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+            let purchases = purchasedData.savedPurchases
+            let target = purchases.find(purchase => purchase._id === _id)
+            let updated = purchases.filter(purchase => purchase._id !== _id)
+            purchasedData.savedPurchases = [...updated]
+            updateCurrentLoggedInUser()
+            let data = getDataForBundle(target.bundle, currentDraw)
+            data = {
+                ...data,
+                purchaseFirst: target.first,
+                purchaseSecond: target.second,
+                type: "+"
+            }
+            await articlesAPI.updateDigit(data)
+            handleBundleChange(target.bundle)
+        } catch (e) { }
     }
     function isValidBundle(inputString) {
         if (inputString.length > 4) {
@@ -148,7 +150,8 @@ export default function Merchent() {
         let data = {
             firstDigitId: "",
             secondDigitId: "",
-            bundle
+            bundle,
+            askingUser: localStorageUtils.getLoggedInUser()._id
         };
 
         if (bundle.length > 0) {
