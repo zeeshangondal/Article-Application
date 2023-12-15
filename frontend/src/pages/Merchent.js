@@ -39,7 +39,7 @@ export default function Merchent() {
     const fetchDraws = async () => {
         try {
             const response = await DrawAPIs.getAllDraws();
-            let filteredDraws = response.draws.filter(draw => draw.drawStatus == true)
+            let filteredDraws = response.draws.filter(draw => draw.drawStatus == true && !draw.drawExpired)
             setDraws(filteredDraws);
             return filteredDraws
         } catch (error) {

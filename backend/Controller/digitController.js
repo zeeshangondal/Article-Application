@@ -34,17 +34,50 @@ const updateDigit = async (req, res) => {
         ]);
         
         if (type === "+") {
-
-            firstDigit.articles[bundle] = firstDigit.articles[bundle] + purchaseFirst
-            secondDigit.articles[bundle] = secondDigit.articles[bundle] + purchaseSecond
+            firstDigit.articles[bundle] = Number(firstDigit.articles[bundle]) + Number(purchaseFirst)
+            secondDigit.articles[bundle] = Number(secondDigit.articles[bundle]) + Number(purchaseSecond)
         } else if (type === "-") {
-            firstDigit.articles[bundle] = firstDigit.articles[bundle] - purchaseFirst
-            secondDigit.articles[bundle] = secondDigit.articles[bundle] - purchaseSecond
+            if(parentFirstDigit.articles[bundle] >0 ){
+                if(parentFirstDigit.articles[bundle] >= purchaseFirst){
+                    parentFirstDigit.articles[bundle] = parentFirstDigit.articles[bundle] - purchaseFirst
+                    parentFirstDigit.markModified('articles');                    
+                    await parentFirstDigit.save()
+                }else{
+                    let remaingPurchaseFirst=purchaseFirst- parentFirstDigit.articles[bundle]
+                    parentFirstDigit.articles[bundle] =0
+                    parentFirstDigit.markModified('articles');
+                    await parentFirstDigit.save()             
+                    firstDigit.articles[bundle] = firstDigit.articles[bundle] - remaingPurchaseFirst
+                    firstDigit.markModified('articles');
+                    await firstDigit.save()
+                }
+            }else{
+                firstDigit.articles[bundle] = firstDigit.articles[bundle] - purchaseFirst
+                firstDigit.markModified('articles');
+                await firstDigit.save()
+            }
+            
+            //second digit
+            if(parentSecondDigit.articles[bundle] >0 ){
+                if(parentSecondDigit.articles[bundle] >= purchaseSecond){
+                    parentSecondDigit.articles[bundle] = parentSecondDigit.articles[bundle] - purchaseSecond
+                    parentSecondDigit.markModified('articles');                    
+                    await parentSecondDigit.save()
+                }else{
+                    let remaingPurchaseSecond=purchaseSecond- parentSecondDigit.articles[bundle]
+                    parentSecondDigit.articles[bundle] =0
+                    parentSecondDigit.markModified('articles');
+                    await parentSecondDigit.save()             
+                    secondDigit.articles[bundle] = secondDigit.articles[bundle] - remaingPurchaseSecond
+                    secondDigit.markModified('articles');
+                    await secondDigit.save()
+                }
+            }else{
+                secondDigit.articles[bundle] = secondDigit.articles[bundle] - purchaseSecond
+                secondDigit.markModified('articles');
+                await secondDigit.save()
+            }
         }
-        firstDigit.markModified('articles');
-        secondDigit.markModified('articles');
-        await firstDigit.save()
-        await secondDigit.save()
         res.status(200).send({ message: "Digit updated" });
     } catch (err) {
         console.error(err);
