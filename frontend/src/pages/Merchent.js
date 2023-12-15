@@ -152,22 +152,35 @@ export default function Merchent() {
             firstDigitId: "",
             secondDigitId: "",
             bundle,
-            askingUser: localStorageUtils.getLoggedInUser()._id
+            askingUser: localStorageUtils.getLoggedInUser()._id,
+            firstLimitOfDraw:0,
+            secondLimitOfDraw:0,
         };
 
         if (bundle.length > 0) {
             if (bundle.length === 1) {
                 data.firstDigitId = currentDraw.oneDigitFirst.digit;
                 data.secondDigitId = currentDraw.oneDigitSecond.digit;
+                data.firstLimitOfDraw=currentDraw.oneDigitFirst.price
+                data.secondLimitOfDraw=currentDraw.oneDigitSecond.price
             } else if (bundle.length === 2) {
                 data.firstDigitId = currentDraw.twoDigitFirst.digit;
                 data.secondDigitId = currentDraw.twoDigitSecond.digit;
+                data.firstLimitOfDraw=currentDraw.twoDigitFirst.price
+                data.secondLimitOfDraw=currentDraw.twoDigitSecond.price
+
             } else if (bundle.length === 3) {
                 data.firstDigitId = currentDraw.threeDigitFirst.digit;
                 data.secondDigitId = currentDraw.threeDigitSecond.digit;
+                data.firstLimitOfDraw=currentDraw.threeDigitFirst.price
+                data.secondLimitOfDraw=currentDraw.threeDigitSecond.price
+
             } else if (bundle.length === 4) {
                 data.firstDigitId = currentDraw.fourDigitFirst.digit;
                 data.secondDigitId = currentDraw.fourDigitSecond.digit;
+                data.firstLimitOfDraw=currentDraw.fourDigitFirst.price
+                data.secondLimitOfDraw=currentDraw.fourDigitSecond.price
+
             }
         }
 
