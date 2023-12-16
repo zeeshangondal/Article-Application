@@ -94,14 +94,14 @@ export default function Merchent() {
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         let overSaleFirst = 0
         let overSaleSecond = 0
-        if (first > availableArticles.firstPrice) {
-            overSaleFirst = first - Number(availableArticles.firstPrice)
-            first = Number(availableArticles.firstPrice)
-        }
-        if (second > availableArticles.secondPrice) {
-            overSaleSecond = second - Number(availableArticles.secondPrice)
-            second = Number(availableArticles.secondPrice)
-        }
+        // if (first > availableArticles.firstPrice) {
+        //     overSaleFirst = first - availableArticles.firstPrice
+        //     first = availableArticles.firstPrice
+        // }
+        // if (second > availableArticles.secondPrice) {
+        //     overSaleSecond = second - availableArticles.secondPrice
+        //     second = availableArticles.secondPrice
+        // }
 
         if (purchasedDrawData) {
             purchasedDrawData.savedPurchases.push({
@@ -153,26 +153,7 @@ export default function Merchent() {
         setNotification({ ...notification, color: "danger", show: true, message: msg })
     }
 
-    const handleRemovingSavedPurchase = async (_id) => {
-        try {
-            let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
-            let purchases = purchasedData.savedPurchases
-            let target = purchases.find(purchase => purchase._id === _id)
-            let updated = purchases.filter(purchase => purchase._id !== _id)
-            purchasedData.savedPurchases = [...updated]
-            updateCurrentLoggedInUser()
-            let data = getDataForBundle(target.bundle, currentDraw)
-            data = {
-                ...data,
-                purchaseFirst: target.first,
-                purchaseSecond: target.second,
-                type: "+"
-            }
-            handleBundleChange(target.bundle)
-            successMessage("Removed Successfully")
-            await articlesAPI.updateDigit(data)
-        } catch (e) { }
-    }
+
     function isValidBundle(inputString) {
         if (inputString.length > 4) {
             return false;
@@ -243,6 +224,7 @@ export default function Merchent() {
         if (value == '') {
             setCurrentDraw(null)
             setSavedPurchases([])
+            setOversales([])
             return
         }
         let fetchedDraws = await fetchDraws()
@@ -308,8 +290,9 @@ export default function Merchent() {
     }
     const handleMakeMessagePurchases = () => {
         let allDone = true
-        messagePurchases.forEach(purchase => {
+        messagePurchases.forEach(async(purchase) => {
             try {
+                // await handleBundleChange(purchase.bundle)
                 handlePurchaseOne(purchase.bundle, purchase.first, purchase.second)
             } catch (e) {
                 allDone = false
@@ -323,6 +306,36 @@ export default function Merchent() {
         successMessage("Purchases Added")
 
     }
+    const handleRemovingSavedPurchase = async (_id) => {
+        try {
+            let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+            let purchases = purchasedData.savedPurchases
+            let target = purchases.find(purchase => purchase._id === _id)
+            let updated = purchases.filter(purchase => purchase._id !== _id)
+            purchasedData.savedPurchases = [...updated]
+            updateCurrentLoggedInUser()
+            let data = getDataForBundle(target.bundle, currentDraw)
+            data = {
+                ...data,
+                purchaseFirst: target.first,
+                purchaseSecond: target.second,
+                type: "+"
+            }
+            handleBundleChange(target.bundle)
+            successMessage("Removed Successfully")
+            await articlesAPI.updateDigit(data)
+        } catch (e) { }
+    }
+    const handleRemovingOversalePurchase =  (_id) => {
+        try {
+            let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+            let oversales = purchasedData.savedOversales
+            let updated = oversales.filter(purchase => purchase._id !== _id)
+            purchasedData.savedOversales = [...updated]
+            updateCurrentLoggedInUser()
+            successMessage("Removed Successfully")
+        } catch (e) { }
+    }
     return (
         <div className='m-3'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -333,7 +346,23 @@ export default function Merchent() {
                     <h6>Balance: {currentLoggedInUser.balance}</h6>
                 </div>
             </SearchDivBackgroundDiv>
-            <div className='d-flex justify-content-end mt-3 container'>
+            <div className='d-flex justify-content-between mt-3 container'>
+                <div>
+                    <Form.Group >
+                        <Form.Control
+                            as='select'
+                            value={form.selectedDraw}
+                            onChange={(e) => handleChangeDraw(e.target.value)}
+                        >
+                            <option value=''>Select Draw</option>
+                            {draws.map((draw) => (
+                                <option key={draw._id} value={draw._id}>
+                                    {draw.title}
+                                </option>
+                            ))}
+                        </Form.Control>
+                    </Form.Group>
+                </div>
                 <div>
                     <Button variant={`${option == 1 ? "" : "outline-"}primary btn btn-sm`} style={{ marginRight: '1vh' }} onClick={() => setOption(1)} >
                         Oversales
@@ -343,21 +372,54 @@ export default function Merchent() {
                     </Button>
                 </div>
             </div>
+            {option == 2 &&
+                <div className='d-flex justify-content-between mt-3 container'>
+                    {window.innerWidth <= 600 ?
+                        <h5>Purchases</h5>
+                        :
+                        <h4>Purchases</h4>
+                    }
+                    <Button variant='primary btn btn-sm' onClick={() => setShowModal(true)}>
+                        Purchase
+                    </Button>
 
-            <div className='d-flex justify-content-end mt-3 container'>
-                {/* {currentDraw &&
-                    <h5>{`${currentDraw.title} Expires at ${formatDate(currentDraw.drawDate)} ${formatTime(currentDraw.drawTime)}`}</h5>
-                } */}
-                {option == 2 &&
+                </div>
+            }
+            {option == 1 ?
+                <div className="container mt-2">
                     <div>
-                        <Button variant='primary btn btn-sm' onClick={() => setShowModal(true)}>
-                            Purchase
-                        </Button>
+                        {window.innerWidth <= 600 ?
+                            <h5>Oversales</h5>
+                            :
+                            <h4>Oversales</h4>
+                        }
                     </div>
-                }
-
-            </div>
-            {option == 1 ? "" :
+                    <Table striped hover size="sm" className="" style={{ fontSize: '0.8rem' }}>
+                        <thead>
+                            <tr>
+                                <th>Bundle</th>
+                                <th>First</th>
+                                <th>Second</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {oversales.map(purchase => (
+                                <tr  >
+                                    <td>{purchase.bundle}</td>
+                                    <td>{purchase.first}</td>
+                                    <td>{purchase.second}</td>
+                                    <td>
+                                        <div className=''>
+                                            <Button variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                </div>
+                :
                 <div className='container'>
                     <div>
                         <div >
@@ -380,8 +442,8 @@ export default function Merchent() {
                                 </tbody>
                             </Table>
                         </div>
-                        <div className='d-flex justify-content-end mt-2'>
-                            <Button variant='primary btn btn-sm' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0}>
+                        <div className='d-flex justify-content-end mt-4'>
+                            <Button variant='primary btn btn-sm mt-2' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0}>
                                 Save
                             </Button>
                         </div>
@@ -589,6 +651,6 @@ export default function Merchent() {
                 </div>
             }
 
-        </div>
+        </div >
     );
 }
