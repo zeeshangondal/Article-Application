@@ -13,6 +13,9 @@ import CustomNotification from '../components/CustomNotification';
 export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
     const [showModal, setShowModal] = useState(false);
+    const [showSheetModal, setShowSheetModal] = useState(false);
+    const [sheetName, setSheetName] = useState('');
+
     const [draws, setDraws] = useState([]);
     const [currentDraw, setCurrentDraw] = useState(null)
     const [savedPurchases, setSavedPurchases] = useState([]);
@@ -71,6 +74,10 @@ export default function Merchent() {
     const handleModalClose = () => {
         setShowModal(false);
     };
+    const handleSheetModalClose = () => {
+        setShowSheetModal(false);
+    };
+
     const updateCurrentLoggedInUser = async () => {
         await APIs.updateUser(currentLoggedInUser)
         await fetchLoggedInUser()
@@ -132,6 +139,7 @@ export default function Merchent() {
                 type: "+"
             }
             await articlesAPI.updateDigit(data)
+            successMessage("Removed Successfully")
             handleBundleChange(target.bundle)
         } catch (e) { }
     }
@@ -153,33 +161,33 @@ export default function Merchent() {
             secondDigitId: "",
             bundle,
             askingUser: localStorageUtils.getLoggedInUser()._id,
-            firstLimitOfDraw:0,
-            secondLimitOfDraw:0,
+            firstLimitOfDraw: 0,
+            secondLimitOfDraw: 0,
         };
 
         if (bundle.length > 0) {
             if (bundle.length === 1) {
                 data.firstDigitId = currentDraw.oneDigitFirst.digit;
                 data.secondDigitId = currentDraw.oneDigitSecond.digit;
-                data.firstLimitOfDraw=currentDraw.oneDigitFirst.price
-                data.secondLimitOfDraw=currentDraw.oneDigitSecond.price
+                data.firstLimitOfDraw = currentDraw.oneDigitFirst.price
+                data.secondLimitOfDraw = currentDraw.oneDigitSecond.price
             } else if (bundle.length === 2) {
                 data.firstDigitId = currentDraw.twoDigitFirst.digit;
                 data.secondDigitId = currentDraw.twoDigitSecond.digit;
-                data.firstLimitOfDraw=currentDraw.twoDigitFirst.price
-                data.secondLimitOfDraw=currentDraw.twoDigitSecond.price
+                data.firstLimitOfDraw = currentDraw.twoDigitFirst.price
+                data.secondLimitOfDraw = currentDraw.twoDigitSecond.price
 
             } else if (bundle.length === 3) {
                 data.firstDigitId = currentDraw.threeDigitFirst.digit;
                 data.secondDigitId = currentDraw.threeDigitSecond.digit;
-                data.firstLimitOfDraw=currentDraw.threeDigitFirst.price
-                data.secondLimitOfDraw=currentDraw.threeDigitSecond.price
+                data.firstLimitOfDraw = currentDraw.threeDigitFirst.price
+                data.secondLimitOfDraw = currentDraw.threeDigitSecond.price
 
             } else if (bundle.length === 4) {
                 data.firstDigitId = currentDraw.fourDigitFirst.digit;
                 data.secondDigitId = currentDraw.fourDigitSecond.digit;
-                data.firstLimitOfDraw=currentDraw.fourDigitFirst.price
-                data.secondLimitOfDraw=currentDraw.fourDigitSecond.price
+                data.firstLimitOfDraw = currentDraw.fourDigitFirst.price
+                data.secondLimitOfDraw = currentDraw.fourDigitSecond.price
 
             }
         }
@@ -214,6 +222,39 @@ export default function Merchent() {
         getSavedPurchasesOfCurrentDraw(value)
     }
 
+    const getCount = () => {
+        return savedPurchases.length
+    }
+    const getTotalFirsts = () => {
+        let total = 0
+        savedPurchases.forEach((purchase) => {
+            total += Number(purchase.first)
+        })
+        return total
+    }
+    const getTotalSeconds = () => {
+        let total = 0
+        savedPurchases.forEach((purchase) => {
+            total += Number(purchase.second)
+        })
+        return total
+    }
+    const getTotalBoth = () => {
+        return (getTotalFirsts() + getTotalSeconds())
+    }
+
+    const handleConfirmSavePurchases=()=>{
+        let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
+        let savingPurchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+        currentLoggedInUser.purchasedFromDrawData= purchasedFromDrawData.filter(data => data.drawId != form.selectedDraw)
+        delete savingPurchasedDrawData._id
+        currentLoggedInUser.savedPurchasesFromDrawsData.push({...savingPurchasedDrawData, sheetName})
+        updateCurrentLoggedInUser()
+        successMessage("Sheet Saved Successfully")
+        setSheetName('')
+        setSavedPurchases([])
+        setShowSheetModal(false)
+    }
     return (
         <div className='m-3'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -232,32 +273,63 @@ export default function Merchent() {
                     Purchase
                 </Button>
             </div>
-            <div className='container'>
-                <Table striped hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
-                    <thead>
-                        <tr>
-                            <th>Bundle</th>
-                            <th>First</th>
-                            <th>Second</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {savedPurchases.map(purchase => (
-                            <tr key={purchase._id} >
-                                <td>{purchase.bundle}</td>
-                                <td>{purchase.first}</td>
-                                <td>{purchase.second}</td>
-                                <td>
-                                    <div className='d-flex justify-content-between'>
-                                        <Button variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingSavedPurchase(purchase._id)}>Remove</Button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
-            </div>
+
+            {savedPurchases.length > 0 &&
+                <div className='container'>
+                    <div >
+                        <Table bordered hover size="sm" className="mt-2" style={{ fontSize: '0.8rem' }}>
+                            <thead>
+                                <tr>
+                                    <th>Count</th>
+                                    <th>First</th>
+                                    <th>Second</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr >
+                                    <td>{getCount()}</td>
+                                    <td>{getTotalFirsts()}</td>
+                                    <td>{getTotalSeconds()}</td>
+                                    <td>{getTotalBoth()}</td>
+                                </tr>
+                            </tbody>
+                        </Table>
+                    </div>
+                    <div className='d-flex justify-content-end mt-2'>
+                        <Button variant='primary btn btn-sm' onClick={() => setShowSheetModal(true)}>
+                            Save
+                        </Button>
+                    </div>
+
+                    <div className=''>
+                        <Table striped hover size="sm" className="" style={{ fontSize: '0.8rem' }}>
+                            <thead>
+                                <tr>
+                                    <th>Bundle</th>
+                                    <th>First</th>
+                                    <th>Second</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {savedPurchases.map(purchase => (
+                                    <tr key={purchase._id} >
+                                        <td>{purchase.bundle}</td>
+                                        <td>{purchase.first}</td>
+                                        <td>{purchase.second}</td>
+                                        <td>
+                                            <div className=''>
+                                                <Button variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingSavedPurchase(purchase._id)}>Remove</Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    </div>
+                </div>
+            }
 
             <Modal show={showModal} onHide={handleModalClose}>
                 <Modal.Header closeButton>
@@ -350,6 +422,36 @@ export default function Merchent() {
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
+                </Modal.Footer>
+            </Modal>
+
+
+            <Modal show={showSheetModal} onHide={handleSheetModalClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Save Purchases</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form style={{ fontSize: '0.8rem' }}>
+                        <Row>
+                            <Col>
+                                <Form.Group >
+                                    <Form.Control
+                                        type='text'
+                                        placeholder='Sheet Name'
+                                        value={sheetName}
+                                        onChange={(e) => setSheetName(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                    <div className='d-flex justify-content-between'>
+                        <Button variant='primary btn' disabled={!sheetName} onClick={handleConfirmSavePurchases}>
+                            Save
+                        </Button>
+                    </div>
                 </Modal.Footer>
             </Modal>
 

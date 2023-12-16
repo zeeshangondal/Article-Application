@@ -59,6 +59,8 @@ const updateDigit = async (req, res) => {
     purchaseFirst = Number(purchaseFirst)
     purchaseSecond = Number(purchaseSecond)
     try {
+        let currentUser = await User.findOne({ _id: askingUser });
+
         let parentUser = await getTheMainCreatorOfUser(askingUser)
         let data = getFirstAndSecondDigitRefs(bundle, parentUser.toObject())
 
@@ -97,6 +99,10 @@ const updateDigit = async (req, res) => {
                 parentSecondDigit.markModified('articles');
                 await parentSecondDigit.save()    
             }    
+            // currentUser.balance = currentUser.balance - (Number(purchaseFirst) + Number(purchaseSecond))
+            // currentUser.markModified('balance');
+            // await currentUser.save()
+
         } else if (type === "-") {
             if (parentFirstDigit.articles[bundle] > 0) {
                 if (parentFirstDigit.articles[bundle] >= purchaseFirst) {
@@ -137,8 +143,9 @@ const updateDigit = async (req, res) => {
                 secondDigit.markModified('articles');
                 await secondDigit.save()
             }
-            parentUser.balance = parentUser.balance - (Number(purchaseFirst) + Number(purchaseSecond))
-            await parentUser.save()
+            // currentUser.balance = currentUser.balance + (Number(purchaseFirst) + Number(purchaseSecond))
+            // currentUser.markModified('balance');
+            // await currentUser.save()
         }
         res.status(200).send({ message: "Digit updated" });
     } catch (err) {

@@ -105,8 +105,8 @@ const UserSchema = mongoose.Schema({
         },
     },
     transactionHistory: [{
-        description:{
-            type:String,
+        description: {
+            type: String,
         },
         amount: {
             type: Number,
@@ -128,16 +128,31 @@ const UserSchema = mongoose.Schema({
             type: String,
         },
     }],
-    purchasedFromDrawData:[{
-        drawId:{
-            type:String
+    purchasedFromDrawData: [{
+        drawId: {
+            type: String
         },
-        savedPurchases:[{
-            bundle:{type:String},
-            first:{type:Number},
-            second:{type:Number}
+        savedPurchases: [{
+            bundle: { type: String },
+            first: { type: Number },
+            second: { type: Number }
         }]
-    }]
+    }],
+    savedPurchasesFromDrawsData: [{
+        drawId: {
+            type: String
+        },
+        sheetName:{
+            type: String,
+            default:""
+        },
+        savedPurchases: [{
+            bundle: { type: String },
+            first: { type: Number },
+            second: { type: Number }
+        }]
+    }],
+    
 
 }, { timestamps: true });
 
