@@ -94,14 +94,14 @@ export default function Merchent() {
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         let overSaleFirst = 0
         let overSaleSecond = 0
-        // if (first > availableArticles.firstPrice) {
-        //     overSaleFirst = first - availableArticles.firstPrice
-        //     first = availableArticles.firstPrice
-        // }
-        // if (second > availableArticles.secondPrice) {
-        //     overSaleSecond = second - availableArticles.secondPrice
-        //     second = availableArticles.secondPrice
-        // }
+        if (first > availableArticles.firstPrice) {
+            overSaleFirst = first - availableArticles.firstPrice
+            first = availableArticles.firstPrice
+        }
+        if (second > availableArticles.secondPrice) {
+            overSaleSecond = second - availableArticles.secondPrice
+            second = availableArticles.secondPrice
+        }
 
         if (purchasedDrawData) {
             purchasedDrawData.savedPurchases.push({
