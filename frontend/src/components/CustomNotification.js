@@ -21,7 +21,7 @@ const CustomNotification = ({ notification, setNotification }) => {
         top: '0px',
         right: '0px',
         zIndex: 9999,
-        width: '200px',
+        width: '50vh',
       }}
     >
       <div
@@ -37,7 +37,7 @@ const CustomNotification = ({ notification, setNotification }) => {
           transition: 'opacity 0.5s ease-in-out',
         }}
       >
-        <p style={{ fontSize: '16px', margin: '0' }}>{message}</p>
+        <p style={{ fontSize: '0.9rem', margin: '0' }}>{message}</p>
       </div>
     </div>
   );

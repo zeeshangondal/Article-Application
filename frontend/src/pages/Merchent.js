@@ -15,6 +15,8 @@ export default function Merchent() {
     const [showModal, setShowModal] = useState(false);
     const [showSheetModal, setShowSheetModal] = useState(false);
     const [sheetName, setSheetName] = useState('');
+    const [message, setMessage] = useState('');
+    const [messagePurchases, setMessagePurchases] = useState([]);
 
     const [draws, setDraws] = useState([]);
     const [currentDraw, setCurrentDraw] = useState(null)
@@ -80,10 +82,9 @@ export default function Merchent() {
 
     const updateCurrentLoggedInUser = async () => {
         await APIs.updateUser(currentLoggedInUser)
-        await fetchLoggedInUser()
+        fetchLoggedInUser()
     }
-    const handlePurchaseOne = async () => {
-        let { bundle, first, second } = form
+    const handlePurchaseOne = async (bundle, first, second) => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         if (purchasedDrawData) {
@@ -108,11 +109,11 @@ export default function Merchent() {
             type: "-",
             askingUser: localStorageUtils.getLoggedInUser()._id
         }
+        successMessage("Purcahse added successfuly")
         await articlesAPI.updateDigit(data)
         handleBundleChange(bundle)
 
         updateCurrentLoggedInUser()
-        successMessage("Purchased saved")
         setForm({ ...form, first: '', second: '' })
         // setShowModal(false);
     };
@@ -138,9 +139,9 @@ export default function Merchent() {
                 purchaseSecond: target.second,
                 type: "+"
             }
-            await articlesAPI.updateDigit(data)
-            successMessage("Removed Successfully")
             handleBundleChange(target.bundle)
+            successMessage("Removed Successfully")
+            await articlesAPI.updateDigit(data)
         } catch (e) { }
     }
     function isValidBundle(inputString) {
@@ -191,7 +192,6 @@ export default function Merchent() {
 
             }
         }
-
         return data;
     };
 
@@ -205,7 +205,6 @@ export default function Merchent() {
                 setAvailableArticles({ ...response.data });
                 return;
             }
-
             setAvailableArticles(null);
         }
     };
@@ -243,17 +242,57 @@ export default function Merchent() {
         return (getTotalFirsts() + getTotalSeconds())
     }
 
-    const handleConfirmSavePurchases=()=>{
+    const handleConfirmSavePurchases = () => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let savingPurchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
-        currentLoggedInUser.purchasedFromDrawData= purchasedFromDrawData.filter(data => data.drawId != form.selectedDraw)
+        currentLoggedInUser.purchasedFromDrawData = purchasedFromDrawData.filter(data => data.drawId != form.selectedDraw)
         delete savingPurchasedDrawData._id
-        currentLoggedInUser.savedPurchasesFromDrawsData.push({...savingPurchasedDrawData, sheetName})
+        currentLoggedInUser.savedPurchasesFromDrawsData.push({ ...savingPurchasedDrawData, sheetName })
         updateCurrentLoggedInUser()
         successMessage("Sheet Saved Successfully")
         setSheetName('')
         setSavedPurchases([])
         setShowSheetModal(false)
+    }
+
+    function parseInputMessage() {
+        if (message.length == 0) {
+            setMessagePurchases([])
+            return
+        }
+        try {
+            let tempMessagePurchases = []
+            let tempMessage = message.replace(/\s/g, '');
+            let lines = tempMessage.split(",")
+            lines.forEach(line => {
+                let lineSplits = line.split(".")
+                let second = Number((lineSplits[lineSplits.length - 1]).slice(1))
+                let first = Number((lineSplits[lineSplits.length - 2]).slice(1))
+                for (let i = 0; i < lineSplits.length - 2; i++) {
+                    tempMessagePurchases.push({ bundle: lineSplits[i], first, second })
+                }
+            })
+            setMessagePurchases([...tempMessagePurchases])
+        } catch (e) {
+            alert("Message format is invalid")
+        }
+    }
+    const handleMakeMessagePurchases=()=>{
+        let allDone=true
+        messagePurchases.forEach(purchase=>{
+            try{
+                handlePurchaseOne(purchase.bundle,purchase.first,purchase.second)
+            }catch(e){
+                allDone=false
+                let msg=`Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
+                alert(msg)
+            }
+        })
+        if(allDone){
+            setMessagePurchases([])
+        }
+        successMessage("Purchases Added")
+
     }
     return (
         <div className='m-3'>
@@ -274,7 +313,6 @@ export default function Merchent() {
                 </Button>
             </div>
 
-            {savedPurchases.length > 0 &&
                 <div className='container'>
                     <div >
                         <Table bordered hover size="sm" className="mt-2" style={{ fontSize: '0.8rem' }}>
@@ -329,8 +367,6 @@ export default function Merchent() {
                         </Table>
                     </div>
                 </div>
-            }
-
             <Modal show={showModal} onHide={handleModalClose}>
                 <Modal.Header closeButton>
                     <Modal.Title>Purchase</Modal.Title>
@@ -412,17 +448,67 @@ export default function Merchent() {
                                 </Col>
                                 <Col>
                                     <div xs={3} md={3}>
-                                        <Button variant='primary btn' onClick={handlePurchaseOne} disabled={!form.bundle || !form.first || !form.second}>
+                                        <Button variant='primary btn' onClick={()=>handlePurchaseOne(form.bundle, form.first, form.second)} disabled={!form.bundle || !form.first || !form.second}>
                                             Add
                                         </Button>
                                     </div>
                                 </Col>
                             </Row>
                         </div>
+                        <hr />
+                        <div className='mt-2'>
+                            <Row>
+                                <Form.Group >
+                                    <Form.Control
+                                        as='textarea'
+                                        placeholder='Message'
+                                        value={message}
+                                        onChange={(e) => setMessage(e.target.value)}
+                                        rows={4}
+                                        disabled={currentDraw == null}
+                                        autocomplete="off"
+                                        spellcheck="false"
+                                    />
+                                </Form.Group>
+                            </Row>
+                        </div>
+                        <div className='d-flex justify-content-end mt-2'>
+                            <Button variant='primary btn' onClick={parseInputMessage} >
+                                Process
+                            </Button>
+                        </div>
+                        {messagePurchases.length > 0 &&
+                            <div className=''>
+                                <Table striped hover size="sm" className="" style={{ fontSize: '0.7rem' }}>
+                                    <thead>
+                                        <tr>
+                                            <th>Bundle</th>
+                                            <th>First</th>
+                                            <th>Second</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {messagePurchases.map(purchase => (
+                                            <tr >
+                                                <td>{purchase.bundle}</td>
+                                                <td>{purchase.first}</td>
+                                                <td>{purchase.second}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                                <div className='d-flex justify-content-end mt-2'>
+                                    <Button variant='primary btn' onClick={handleMakeMessagePurchases} >
+                                        Buy Bulk
+                                    </Button>
+                                </div>
+                            </div>
+                        }
+
                     </Form>
                 </Modal.Body>
-                <Modal.Footer>
-                </Modal.Footer>
+                {/* <Modal.Footer>
+                </Modal.Footer> */}
             </Modal>
 
 
