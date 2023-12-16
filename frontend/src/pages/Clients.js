@@ -168,14 +168,29 @@ export default function Clients() {
     return (
         <div className='m-3'>
             <SearchDivBackgroundDiv>
-                <h3 className="text-center">{`${currentLoggedInUser.generalInfo.name} - ${currentLoggedInUser.username}`}</h3>
+                {window.innerWidth <= 600 ?
+                    <h6 className="text-center">{`${currentLoggedInUser.generalInfo.name} - ${currentLoggedInUser.username}`}</h6>
+                    :
+                    <h3 className="text-center">{`${currentLoggedInUser.generalInfo.name} - ${currentLoggedInUser.username}`}</h3>
+                }
                 <hr />
                 {localStorageUtils.getLoggedInUser().role != "admin" &&
-                    <div className='d-flex mb-2 justify-content-between'>
-                        <p>BALANCE: {currentLoggedInUser.balance}</p>
-                        <p>AVAILABLE BALANCE: {getAvailableBalance()}</p>
-                        <p>MERCHENT: {getMerchentsBalance()}</p>
-                        <p>DISTRIBUTERS: {getDistributorsBalance()}</p>
+                    <div>
+                        {window.innerWidth <= 600 ?
+                            <div className='d-flex mb-2 justify-content-between' style={{fontSize:'0.5rem'}}>
+                                <p>BALANCE: {currentLoggedInUser.balance}</p>
+                                <p>AVAILABLE BALANCE: {getAvailableBalance()}</p>
+                                <p>MERCHENT: {getMerchentsBalance()}</p>
+                                <p>DISTRIBUTERS: {getDistributorsBalance()}</p>
+                            </div>
+                            :
+                            <div className='d-flex mb-2 justify-content-between'>
+                                <p>BALANCE: {currentLoggedInUser.balance}</p>
+                                <p>AVAILABLE BALANCE: {getAvailableBalance()}</p>
+                                <p>MERCHENT: {getMerchentsBalance()}</p>
+                                <p>DISTRIBUTERS: {getDistributorsBalance()}</p>
+                            </div>
+                        }
                     </div>
                 }
                 <div className='d-flex justify-content-between'>

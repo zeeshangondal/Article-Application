@@ -136,8 +136,15 @@ const UserSchema = mongoose.Schema({
             bundle: { type: String },
             first: { type: Number },
             second: { type: Number }
+        }],
+        savedOversales: [{
+            bundle: { type: String },
+            first: { type: Number },
+            second: { type: Number }
         }]
     }],
+
+    //confirm saved
     savedPurchasesFromDrawsData: [{
         drawId: {
             type: String
@@ -147,6 +154,11 @@ const UserSchema = mongoose.Schema({
             default:""
         },
         savedPurchases: [{
+            bundle: { type: String },
+            first: { type: Number },
+            second: { type: Number }
+        }],
+        savedOversales: [{
             bundle: { type: String },
             first: { type: Number },
             second: { type: Number }

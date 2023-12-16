@@ -17,6 +17,9 @@ export default function Merchent() {
     const [sheetName, setSheetName] = useState('');
     const [message, setMessage] = useState('');
     const [messagePurchases, setMessagePurchases] = useState([]);
+    const [oversales, setOversales] = useState([]);
+    const [option, setOption] = useState(2);
+
 
     const [draws, setDraws] = useState([]);
     const [currentDraw, setCurrentDraw] = useState(null)
@@ -67,8 +70,10 @@ export default function Merchent() {
     const getSavedPurchasesOfCurrentDraw = (selectedDraw) => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === selectedDraw)
+
         try {
             setSavedPurchases([...purchasedDrawData.savedPurchases])
+            setOversales([...purchasedDrawData.savedOversales])
         } catch (e) {
             setSavedPurchases([])
         }
@@ -87,16 +92,40 @@ export default function Merchent() {
     const handlePurchaseOne = async (bundle, first, second) => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+        let overSaleFirst = 0
+        let overSaleSecond = 0
+        if (first > availableArticles.firstPrice) {
+            overSaleFirst = first - Number(availableArticles.firstPrice)
+            first = Number(availableArticles.firstPrice)
+        }
+        if (second > availableArticles.secondPrice) {
+            overSaleSecond = second - Number(availableArticles.secondPrice)
+            second = Number(availableArticles.secondPrice)
+        }
+
         if (purchasedDrawData) {
             purchasedDrawData.savedPurchases.push({
                 bundle, first, second
             })
+            if (overSaleFirst > 0 || overSaleSecond > 0) {
+                purchasedDrawData.savedOversales.push({
+                    bundle, first: overSaleFirst, second: overSaleSecond
+                })
+            }
         } else {
             purchasedDrawData = {
                 drawId: form.selectedDraw,
                 savedPurchases: [{
                     bundle, first, second
                 }]
+            }
+            if (overSaleFirst > 0 || overSaleSecond > 0) {
+                purchasedDrawData = {
+                    ...purchasedDrawData,
+                    savedOversales: [{
+                        bundle, first: overSaleFirst, second: overSaleSecond
+                    }]
+                }
             }
             purchasedFromDrawData.push(purchasedDrawData)
         }
@@ -277,18 +306,18 @@ export default function Merchent() {
             alert("Message format is invalid")
         }
     }
-    const handleMakeMessagePurchases=()=>{
-        let allDone=true
-        messagePurchases.forEach(purchase=>{
-            try{
-                handlePurchaseOne(purchase.bundle,purchase.first,purchase.second)
-            }catch(e){
-                allDone=false
-                let msg=`Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
+    const handleMakeMessagePurchases = () => {
+        let allDone = true
+        messagePurchases.forEach(purchase => {
+            try {
+                handlePurchaseOne(purchase.bundle, purchase.first, purchase.second)
+            } catch (e) {
+                allDone = false
+                let msg = `Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
                 alert(msg)
             }
         })
-        if(allDone){
+        if (allDone) {
             setMessagePurchases([])
         }
         successMessage("Purchases Added")
@@ -305,241 +334,260 @@ export default function Merchent() {
                 </div>
             </SearchDivBackgroundDiv>
             <div className='d-flex justify-content-end mt-3 container'>
+                <div>
+                    <Button variant={`${option == 1 ? "" : "outline-"}primary btn btn-sm`} style={{ marginRight: '1vh' }} onClick={() => setOption(1)} >
+                        Oversales
+                    </Button>
+                    <Button variant={`${option == 2 ? "" : "outline-"}primary btn btn-sm`} onClick={() => setOption(2)}>
+                        Purchases
+                    </Button>
+                </div>
+            </div>
+
+            <div className='d-flex justify-content-end mt-3 container'>
                 {/* {currentDraw &&
                     <h5>{`${currentDraw.title} Expires at ${formatDate(currentDraw.drawDate)} ${formatTime(currentDraw.drawTime)}`}</h5>
                 } */}
-                <Button variant='primary btn btn-sm' onClick={() => setShowModal(true)}>
-                    Purchase
-                </Button>
-            </div>
-
-                <div className='container'>
-                    <div >
-                        <Table bordered hover size="sm" className="mt-2" style={{ fontSize: '0.8rem' }}>
-                            <thead>
-                                <tr>
-                                    <th>Count</th>
-                                    <th>First</th>
-                                    <th>Second</th>
-                                    <th>Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr >
-                                    <td>{getCount()}</td>
-                                    <td>{getTotalFirsts()}</td>
-                                    <td>{getTotalSeconds()}</td>
-                                    <td>{getTotalBoth()}</td>
-                                </tr>
-                            </tbody>
-                        </Table>
-                    </div>
-                    <div className='d-flex justify-content-end mt-2'>
-                        <Button variant='primary btn btn-sm' onClick={() => setShowSheetModal(true)}>
-                            Save
+                {option == 2 &&
+                    <div>
+                        <Button variant='primary btn btn-sm' onClick={() => setShowModal(true)}>
+                            Purchase
                         </Button>
                     </div>
+                }
 
-                    <div className=''>
-                        <Table striped hover size="sm" className="" style={{ fontSize: '0.8rem' }}>
-                            <thead>
-                                <tr>
-                                    <th>Bundle</th>
-                                    <th>First</th>
-                                    <th>Second</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {savedPurchases.map(purchase => (
-                                    <tr key={purchase._id} >
-                                        <td>{purchase.bundle}</td>
-                                        <td>{purchase.first}</td>
-                                        <td>{purchase.second}</td>
-                                        <td>
-                                            <div className=''>
-                                                <Button variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingSavedPurchase(purchase._id)}>Remove</Button>
-                                            </div>
-                                        </td>
+            </div>
+            {option == 1 ? "" :
+                <div className='container'>
+                    <div>
+                        <div >
+                            <Table bordered hover size="sm" className="mt-2" style={{ fontSize: '0.8rem' }}>
+                                <thead>
+                                    <tr>
+                                        <th>Count</th>
+                                        <th>First</th>
+                                        <th>Second</th>
+                                        <th>Total</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-                    </div>
-                </div>
-            <Modal show={showModal} onHide={handleModalClose}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Purchase</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form style={{ fontSize: '0.8rem' }}>
-                        <Row>
-                            <Col>
-                                <Form.Group >
-                                    {currentDraw &&
-                                        <div className='d-flex justify-content-center'>
-                                            <h6 style={{ fontWeight: 'normal' }}>{`Expires at ${formatDate(currentDraw.drawDate)} ${formatTime(currentDraw.drawTime)}`}</h6>
-                                        </div>
-                                    }
-                                    <Form.Control
-                                        as='select'
-                                        value={form.selectedDraw}
-                                        onChange={(e) => handleChangeDraw(e.target.value)}
-                                    >
-                                        <option value=''>Select Draw</option>
-                                        {draws.map((draw) => (
-                                            <option key={draw._id} value={draw._id}>
-                                                {draw.title}
-                                            </option>
-                                        ))}
-                                    </Form.Control>
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        <div className='mt-3'>
-                            <div >
-                                <Row>
-                                    <Col xs={3} md={3}>
-                                        <h6 className='text-center' style={{ fontWeight: 'normal' }}>Bundle</h6>
-                                    </Col>
-                                    <Col xs={3} md={3}>
-                                        <h6 className='text-center' style={{ fontWeight: 'normal' }}>{availableArticles ? availableArticles.firstPrice : ""}</h6>
-                                    </Col>
-                                    <Col xs={3} md={3}>
-                                        <h6 className='text-center' style={{ fontWeight: 'normal' }}>{availableArticles ? availableArticles.secondPrice : ""}</h6>
-                                    </Col>
-                                </Row>
-                            </div>
-                            <Row>
-                                <Col xs={3} md={3}>
-                                    <Form.Group >
-                                        <Form.Control
-                                            type='text'
-                                            placeholder=''
-                                            value={form.bundle}
-                                            onChange={(e) => handleBundleChange(e.target.value)}
-                                            disabled={currentDraw == null}
-                                        />
-                                    </Form.Group>
-                                </Col>
-
-                                <Col xs={3} md={3}>
-                                    <Form.Group >
-                                        <Form.Control
-                                            type='Number'
-                                            placeholder='First'
-                                            value={form.first}
-                                            onChange={(e) => setForm({ ...form, first: e.target.value })}
-                                            disabled={currentDraw == null}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col xs={3} md={3}>
-                                    <Form.Group >
-                                        <Form.Control
-                                            type='Number'
-                                            placeholder='Second'
-                                            value={form.second}
-                                            onChange={(e) => setForm({ ...form, second: e.target.value })}
-                                            disabled={currentDraw == null}
-
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col>
-                                    <div xs={3} md={3}>
-                                        <Button variant='primary btn' onClick={()=>handlePurchaseOne(form.bundle, form.first, form.second)} disabled={!form.bundle || !form.first || !form.second}>
-                                            Add
-                                        </Button>
-                                    </div>
-                                </Col>
-                            </Row>
-                        </div>
-                        <hr />
-                        <div className='mt-2'>
-                            <Row>
-                                <Form.Group >
-                                    <Form.Control
-                                        as='textarea'
-                                        placeholder='Message'
-                                        value={message}
-                                        onChange={(e) => setMessage(e.target.value)}
-                                        rows={4}
-                                        disabled={currentDraw == null}
-                                        autocomplete="off"
-                                        spellcheck="false"
-                                    />
-                                </Form.Group>
-                            </Row>
+                                </thead>
+                                <tbody>
+                                    <tr >
+                                        <td>{getCount()}</td>
+                                        <td>{getTotalFirsts()}</td>
+                                        <td>{getTotalSeconds()}</td>
+                                        <td>{getTotalBoth()}</td>
+                                    </tr>
+                                </tbody>
+                            </Table>
                         </div>
                         <div className='d-flex justify-content-end mt-2'>
-                            <Button variant='primary btn' onClick={parseInputMessage} >
-                                Process
+                            <Button variant='primary btn btn-sm' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0}>
+                                Save
                             </Button>
                         </div>
-                        {messagePurchases.length > 0 &&
-                            <div className=''>
-                                <Table striped hover size="sm" className="" style={{ fontSize: '0.7rem' }}>
-                                    <thead>
-                                        <tr>
-                                            <th>Bundle</th>
-                                            <th>First</th>
-                                            <th>Second</th>
+
+                        <div className=''>
+                            <Table striped hover size="sm" className="" style={{ fontSize: '0.8rem' }}>
+                                <thead>
+                                    <tr>
+                                        <th>Bundle</th>
+                                        <th>First</th>
+                                        <th>Second</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {savedPurchases.map(purchase => (
+                                        <tr key={purchase._id} >
+                                            <td>{purchase.bundle}</td>
+                                            <td>{purchase.first}</td>
+                                            <td>{purchase.second}</td>
+                                            <td>
+                                                <div className=''>
+                                                    <Button variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingSavedPurchase(purchase._id)}>Remove</Button>
+                                                </div>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {messagePurchases.map(purchase => (
-                                            <tr >
-                                                <td>{purchase.bundle}</td>
-                                                <td>{purchase.first}</td>
-                                                <td>{purchase.second}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </div>
+                    </div>
+                    <Modal show={showModal} onHide={handleModalClose}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Purchase</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form style={{ fontSize: '0.8rem' }}>
+                                <Row>
+                                    <Col>
+                                        <Form.Group >
+                                            {currentDraw &&
+                                                <div className='d-flex justify-content-center'>
+                                                    <h6 style={{ fontWeight: 'normal' }}>{`Expires at ${formatDate(currentDraw.drawDate)} ${formatTime(currentDraw.drawTime)}`}</h6>
+                                                </div>
+                                            }
+                                            <Form.Control
+                                                as='select'
+                                                value={form.selectedDraw}
+                                                onChange={(e) => handleChangeDraw(e.target.value)}
+                                            >
+                                                <option value=''>Select Draw</option>
+                                                {draws.map((draw) => (
+                                                    <option key={draw._id} value={draw._id}>
+                                                        {draw.title}
+                                                    </option>
+                                                ))}
+                                            </Form.Control>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <div className='mt-3'>
+                                    <div >
+                                        <Row>
+                                            <Col xs={3} md={3}>
+                                                <h6 className='text-center' style={{ fontWeight: 'normal' }}>Bundle</h6>
+                                            </Col>
+                                            <Col xs={3} md={3}>
+                                                <h6 className='text-center' style={{ fontWeight: 'normal' }}>{availableArticles ? availableArticles.firstPrice : ""}</h6>
+                                            </Col>
+                                            <Col xs={3} md={3}>
+                                                <h6 className='text-center' style={{ fontWeight: 'normal' }}>{availableArticles ? availableArticles.secondPrice : ""}</h6>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                    <Row>
+                                        <Col xs={3} md={3}>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    type='text'
+                                                    placeholder=''
+                                                    value={form.bundle}
+                                                    onChange={(e) => handleBundleChange(e.target.value)}
+                                                    disabled={currentDraw == null}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+
+                                        <Col xs={3} md={3}>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    type='Number'
+                                                    placeholder='First'
+                                                    value={form.first}
+                                                    onChange={(e) => setForm({ ...form, first: e.target.value })}
+                                                    disabled={currentDraw == null}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col xs={3} md={3}>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    type='Number'
+                                                    placeholder='Second'
+                                                    value={form.second}
+                                                    onChange={(e) => setForm({ ...form, second: e.target.value })}
+                                                    disabled={currentDraw == null}
+
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col>
+                                            <div xs={3} md={3}>
+                                                <Button variant='primary btn' onClick={() => handlePurchaseOne(form.bundle, form.first, form.second)} disabled={!form.bundle || !form.first || !form.second}>
+                                                    Add
+                                                </Button>
+                                            </div>
+                                        </Col>
+                                    </Row>
+                                </div>
+                                <hr />
+                                <div className='mt-2'>
+                                    <Row>
+                                        <Form.Group >
+                                            <Form.Control
+                                                as='textarea'
+                                                placeholder='Message'
+                                                value={message}
+                                                onChange={(e) => setMessage(e.target.value)}
+                                                rows={4}
+                                                disabled={currentDraw == null}
+                                                autocomplete="off"
+                                                spellcheck="false"
+                                            />
+                                        </Form.Group>
+                                    </Row>
+                                </div>
                                 <div className='d-flex justify-content-end mt-2'>
-                                    <Button variant='primary btn' onClick={handleMakeMessagePurchases} >
-                                        Buy Bulk
+                                    <Button variant='primary btn' onClick={parseInputMessage} >
+                                        Process
                                     </Button>
                                 </div>
+                                {messagePurchases.length > 0 &&
+                                    <div className=''>
+                                        <Table striped hover size="sm" className="" style={{ fontSize: '0.7rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th>Bundle</th>
+                                                    <th>First</th>
+                                                    <th>Second</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {messagePurchases.map(purchase => (
+                                                    <tr >
+                                                        <td>{purchase.bundle}</td>
+                                                        <td>{purchase.first}</td>
+                                                        <td>{purchase.second}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                        <div className='d-flex justify-content-end mt-2'>
+                                            <Button variant='primary btn' onClick={handleMakeMessagePurchases} >
+                                                Buy Bulk
+                                            </Button>
+                                        </div>
+                                    </div>
+                                }
+
+                            </Form>
+                        </Modal.Body>
+                        {/* <Modal.Footer>
+            </Modal.Footer> */}
+                    </Modal>
+
+
+                    <Modal show={showSheetModal} onHide={handleSheetModalClose}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Save Purchases</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form style={{ fontSize: '0.8rem' }}>
+                                <Row>
+                                    <Col>
+                                        <Form.Group >
+                                            <Form.Control
+                                                type='text'
+                                                placeholder='Sheet Name'
+                                                value={sheetName}
+                                                onChange={(e) => setSheetName(e.target.value)}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Form>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <div className='d-flex justify-content-between'>
+                                <Button variant='primary btn' disabled={!sheetName} onClick={handleConfirmSavePurchases}>
+                                    Save
+                                </Button>
                             </div>
-                        }
-
-                    </Form>
-                </Modal.Body>
-                {/* <Modal.Footer>
-                </Modal.Footer> */}
-            </Modal>
-
-
-            <Modal show={showSheetModal} onHide={handleSheetModalClose}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Save Purchases</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form style={{ fontSize: '0.8rem' }}>
-                        <Row>
-                            <Col>
-                                <Form.Group >
-                                    <Form.Control
-                                        type='text'
-                                        placeholder='Sheet Name'
-                                        value={sheetName}
-                                        onChange={(e) => setSheetName(e.target.value)}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <div className='d-flex justify-content-between'>
-                        <Button variant='primary btn' disabled={!sheetName} onClick={handleConfirmSavePurchases}>
-                            Save
-                        </Button>
-                    </div>
-                </Modal.Footer>
-            </Modal>
+                        </Modal.Footer>
+                    </Modal>
+                </div>
+            }
 
         </div>
     );
