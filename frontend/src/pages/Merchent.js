@@ -14,6 +14,8 @@ export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
     const [showModal, setShowModal] = useState(false);
     const [showSheetModal, setShowSheetModal] = useState(false);
+    const [showOversaleEditModal, setShowOversaleEditModal] = useState(false);
+
     const [sheetName, setSheetName] = useState('');
     const [message, setMessage] = useState('');
     const [messagePurchases, setMessagePurchases] = useState([]);
@@ -37,7 +39,17 @@ export default function Merchent() {
         first: '',
         second: '',
     });
-
+    const [oversaleForm, setOversaleForm] = useState({
+        bundle: '',
+        first: '',
+        second: '',
+    });
+    const [oversaleEditForm, setOversaleEditForm] = useState({
+        bundle: '',
+        first: '',
+        second: '',
+        _id:''
+    });
     useEffect(() => {
         fetchLoggedInUser();
         fetchDraws();
@@ -84,12 +96,15 @@ export default function Merchent() {
     const handleSheetModalClose = () => {
         setShowSheetModal(false);
     };
+    const handleOversaleEditModalClose = () => {
+        setShowOversaleEditModal(false);
+    };
 
     const updateCurrentLoggedInUser = async () => {
         await APIs.updateUser(currentLoggedInUser)
         fetchLoggedInUser()
     }
-    const handlePurchaseOne = async (bundle, first, second,availableFirstPrice,availableSecondPrice ) => {
+    const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice) => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         let overSaleFirst = 0
@@ -288,16 +303,16 @@ export default function Merchent() {
             alert("Message format is invalid")
         }
     }
-    const handleMakeMessagePurchases = async() => {
+    const handleMakeMessagePurchases = async () => {
         let allDone = true
-        messagePurchases.forEach(async(purchase) => {
+        messagePurchases.forEach(async (purchase) => {
             try {
                 // await handleBundleChange(purchase.bundle)
                 const data = getDataForBundle(purchase.bundle, currentDraw);
                 const response = await articlesAPI.getFirstAndSecond(data);
-                let availableFirstPrice=response.data.firstPrice
-                let availableSecondPrice=response.data.secondPrice                
-                handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice,availableSecondPrice)
+                let availableFirstPrice = response.data.firstPrice
+                let availableSecondPrice = response.data.secondPrice
+                handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice)
             } catch (e) {
                 allDone = false
                 let msg = `Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
@@ -330,7 +345,7 @@ export default function Merchent() {
             await articlesAPI.updateDigit(data)
         } catch (e) { }
     }
-    const handleRemovingOversalePurchase =  (_id) => {
+    const handleRemovingOversalePurchase = (_id) => {
         try {
             let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
             let oversales = purchasedData.savedOversales
@@ -340,6 +355,52 @@ export default function Merchent() {
             successMessage("Removed Successfully")
         } catch (e) { }
     }
+
+    const handleAddNewOversale = async () => {
+        let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
+        let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+        let overSaleFirst = oversaleForm.first
+        let overSaleSecond = oversaleForm.second
+        let bundle = oversaleForm.bundle
+        if (purchasedDrawData) {
+            purchasedDrawData.savedOversales.push({
+                bundle, first: overSaleFirst, second: overSaleSecond
+            })
+        } else {
+            purchasedDrawData = {
+                drawId: form.selectedDraw,
+                savedOversales: [{
+                    bundle, first: overSaleFirst, second: overSaleSecond
+                }]
+            }
+            purchasedFromDrawData.push(purchasedDrawData)
+        }
+        successMessage("Oversale added successfuly")
+        updateCurrentLoggedInUser()
+        // setOversales([...purchasedDrawData.savedOversales])
+    };
+
+    function successMessage(msg) {
+        setNotification({ ...notification, color: "", show: true, message: msg })
+    }
+    function alertMessage(msg) {
+        setNotification({ ...notification, color: "danger", show: true, message: msg })
+    }
+
+    const handleEditOversale=()=>{
+        let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
+        let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+        let overSaleFirst = oversaleEditForm.first
+        let overSaleSecond = oversaleEditForm.second
+        let bundle = oversaleEditForm.bundle
+        let oldOverSale=purchasedDrawData.savedOversales.find(oversale=>oversale._id==oversaleEditForm._id)
+        oldOverSale.bundle=bundle
+        oldOverSale.first=overSaleFirst
+        oldOverSale.second=overSaleSecond                
+        successMessage("Oversale added successfuly")
+        updateCurrentLoggedInUser()
+    }
+
     return (
         <div className='m-3'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -414,14 +475,111 @@ export default function Merchent() {
                                     <td>{purchase.first}</td>
                                     <td>{purchase.second}</td>
                                     <td>
-                                        <div className=''>
-                                            <Button variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
+                                        <div className='d-flex justify-content-start' >
+                                            <div className=''  >
+                                                <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-info" onClick={() => { setShowOversaleEditModal(true); setOversaleEditForm({ _id:purchase._id, bundle: purchase.bundle, first: purchase.first, second: purchase.second }) }}>Edit</Button>
+                                            </div>
+                                            <div className=''>
+                                                <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
+                                            </div>
+
                                         </div>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </Table>
+                    <div>
+                        <Modal show={showOversaleEditModal} onHide={()=>setShowOversaleEditModal(false)}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Edit Oversale</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <Form>
+                                    <Row>
+                                        <Col>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    type='text'
+                                                    placeholder='Bundle'
+                                                    value={oversaleEditForm.bundle}
+                                                    onChange={(e) => isValidBundle(e.target.value) && setOversaleEditForm({ ...oversaleEditForm, bundle: e.target.value })}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    type='number'
+                                                    placeholder='First'
+                                                    value={oversaleEditForm.first}
+                                                    onChange={(e) => setOversaleEditForm({ ...oversaleEditForm, first: e.target.value })}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    type='number'
+                                                    placeholder='Second'
+                                                    value={oversaleEditForm.second}
+                                                    onChange={(e) => setOversaleEditForm({ ...oversaleEditForm, second: e.target.value })}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                        <Col>
+                                            <Button variant='primary btn ' onClick={handleEditOversale} disabled={!oversaleEditForm.first || !oversaleEditForm.second || !oversaleEditForm.bundle}>
+                                                Save
+                                            </Button>
+                                        </Col>
+                                    </Row>
+                                </Form>
+
+                            </Modal.Body>
+                        </Modal>
+
+                    </div>
+                    <div>
+                        <Form>
+                            <Row>
+                                <Col>
+                                    <Form.Group >
+                                        <Form.Control
+                                            type='text'
+                                            placeholder='Bundle'
+                                            value={oversaleForm.bundle}
+                                            onChange={(e) => isValidBundle(e.target.value) && setOversaleForm({ ...oversaleForm, bundle: e.target.value })}
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col>
+                                    <Form.Group >
+                                        <Form.Control
+                                            type='number'
+                                            placeholder='First'
+                                            value={oversaleForm.first}
+                                            onChange={(e) => setOversaleForm({ ...oversaleForm, first: e.target.value })}
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col>
+                                    <Form.Group >
+                                        <Form.Control
+                                            type='number'
+                                            placeholder='Second'
+                                            value={oversaleForm.second}
+                                            onChange={(e) => setOversaleForm({ ...oversaleForm, second: e.target.value })}
+                                        />
+                                    </Form.Group>
+                                </Col>
+                                <Col>
+                                    <Button variant='primary btn ' onClick={handleAddNewOversale} disabled={!oversaleForm.first || !oversaleForm.second || !oversaleForm.bundle}>
+                                        Add
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </Form>
+                    </div>
                 </div>
                 :
                 <div className='container'>
@@ -560,7 +718,7 @@ export default function Merchent() {
                                         </Col>
                                         <Col>
                                             <div xs={3} md={3}>
-                                                <Button variant='primary btn' onClick={() => handlePurchaseOne(form.bundle, form.first, form.second,availableArticles.firstPrice, availableArticles.secondPrice)} disabled={!form.bundle || !form.first || !form.second}>
+                                                <Button variant='primary btn' onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} disabled={!form.bundle || !form.first || !form.second}>
                                                     Add
                                                 </Button>
                                             </div>
