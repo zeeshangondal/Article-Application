@@ -15,6 +15,7 @@ export default function Merchent() {
     const [showModal, setShowModal] = useState(false);
     const [showSheetModal, setShowSheetModal] = useState(false);
     const [showOversaleEditModal, setShowOversaleEditModal] = useState(false);
+    const [checkedSavedPurchases, setCheckedSavedPurchases] = useState([])
 
     const [sheetName, setSheetName] = useState('');
     const [message, setMessage] = useState('');
@@ -118,7 +119,7 @@ export default function Merchent() {
             second = availableSecondPrice
         }
 
-        if((Number(first)+Number(second))> currentLoggedInUser.availableBalance){
+        if ((Number(first) + Number(second)) > currentLoggedInUser.availableBalance) {
             alert("You dont have enough balance for this purchase.")
             return
         }
@@ -161,9 +162,9 @@ export default function Merchent() {
         }
         successMessage("Purcahse added successfuly")
         await articlesAPI.updateDigit(data)
-        currentLoggedInUser.availableBalance=currentLoggedInUser.availableBalance- (Number(first)+Number(second))
+        currentLoggedInUser.availableBalance = currentLoggedInUser.availableBalance - (Number(first) + Number(second))
         updateCurrentLoggedInUser()
-        setForm({ ...form,bundle:'', first: '', second: '' })
+        setForm({ ...form, bundle: '', first: '', second: '' })
         // handleBundleChange(bundle)
         // setShowModal(false);
     };
@@ -337,7 +338,7 @@ export default function Merchent() {
             let target = purchases.find(purchase => purchase._id === _id)
             let updated = purchases.filter(purchase => purchase._id !== _id)
             purchasedData.savedPurchases = [...updated]
-            currentLoggedInUser.availableBalance=currentLoggedInUser.availableBalance+ (Number(target.first)+Number(target.second))
+            currentLoggedInUser.availableBalance = currentLoggedInUser.availableBalance + (Number(target.first) + Number(target.second))
             updateCurrentLoggedInUser()
             let data = getDataForBundle(target.bundle, currentDraw)
             data = {
@@ -407,6 +408,22 @@ export default function Merchent() {
         updateCurrentLoggedInUser()
     }
 
+    function handleCheckedPurchases(purchase, checked) {
+        if (checked) {
+            setCheckedSavedPurchases([...checkedSavedPurchases, purchase])
+        } else {
+            setCheckedSavedPurchases([...checkedSavedPurchases.filter(p => p._id != purchase._id)])
+        }
+    }
+    const handleMultipleSavedPurchaseDelete=()=>{
+        try{
+            checkedSavedPurchases.forEach(async purchase=>{
+                await handleRemovingSavedPurchase(purchase._id)
+            })
+            setCheckedSavedPurchases([])
+        }catch(e){
+        }
+    }
     return (
         <div className='m-3'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -614,6 +631,14 @@ export default function Merchent() {
                             </Table>
                         </div>
                         <div className='d-flex justify-content-end mt-4'>
+                            { checkedSavedPurchases.length > 0 &&
+                                <Button variant='danger btn btn-sm mt-2' onClick={handleMultipleSavedPurchaseDelete} style={{ marginRight: '1vh' }} disabled={checkedSavedPurchases.length <= 0}>
+                                    Delete Selected
+                                </Button>
+                            }
+                            <Button variant='primary btn btn-sm mt-2' onClick={()=>setCheckedSavedPurchases([...savedPurchases])} style={{ marginRight: '1vh' }} disabled={savedPurchases.length <= 0}>
+                                Select All
+                            </Button>
                             <Button variant='primary btn btn-sm mt-2' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0}>
                                 Save
                             </Button>
@@ -627,6 +652,7 @@ export default function Merchent() {
                                         <th>First</th>
                                         <th>Second</th>
                                         <th></th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -639,6 +665,13 @@ export default function Merchent() {
                                                 <div className=''>
                                                     <Button variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingSavedPurchase(purchase._id)}>Remove</Button>
                                                 </div>
+                                            </td>
+                                            <td>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={checkedSavedPurchases.find(p=> p._id==purchase._id)}
+                                                    onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
+                                                />
                                             </td>
                                         </tr>
                                     ))}
@@ -742,7 +775,7 @@ export default function Merchent() {
                                                 as='textarea'
                                                 placeholder='Message'
                                                 value={message}
-                                                onChange={(e) => {setMessage(e.target.value); parseInputMessage(e.target.value) }}
+                                                onChange={(e) => { setMessage(e.target.value); parseInputMessage(e.target.value) }}
                                                 rows={4}
                                                 disabled={currentDraw == null}
                                                 autocomplete="off"
