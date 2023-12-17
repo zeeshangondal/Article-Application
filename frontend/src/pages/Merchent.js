@@ -89,18 +89,18 @@ export default function Merchent() {
         await APIs.updateUser(currentLoggedInUser)
         fetchLoggedInUser()
     }
-    const handlePurchaseOne = async (bundle, first, second) => {
+    const handlePurchaseOne = async (bundle, first, second,availableFirstPrice,availableSecondPrice ) => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         let overSaleFirst = 0
         let overSaleSecond = 0
-        if (first > availableArticles.firstPrice) {
-            overSaleFirst = first - availableArticles.firstPrice
-            first = availableArticles.firstPrice
+        if (first > availableFirstPrice) {
+            overSaleFirst = first - availableFirstPrice
+            first = availableFirstPrice
         }
-        if (second > availableArticles.secondPrice) {
-            overSaleSecond = second - availableArticles.secondPrice
-            second = availableArticles.secondPrice
+        if (second > availableSecondPrice) {
+            overSaleSecond = second - availableSecondPrice
+            second = availableSecondPrice
         }
 
         if (purchasedDrawData) {
@@ -288,12 +288,16 @@ export default function Merchent() {
             alert("Message format is invalid")
         }
     }
-    const handleMakeMessagePurchases = () => {
+    const handleMakeMessagePurchases = async() => {
         let allDone = true
         messagePurchases.forEach(async(purchase) => {
             try {
                 // await handleBundleChange(purchase.bundle)
-                handlePurchaseOne(purchase.bundle, purchase.first, purchase.second)
+                const data = getDataForBundle(purchase.bundle, currentDraw);
+                const response = await articlesAPI.getFirstAndSecond(data);
+                let availableFirstPrice=response.data.firstPrice
+                let availableSecondPrice=response.data.secondPrice                
+                handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice,availableSecondPrice)
             } catch (e) {
                 allDone = false
                 let msg = `Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
@@ -556,7 +560,7 @@ export default function Merchent() {
                                         </Col>
                                         <Col>
                                             <div xs={3} md={3}>
-                                                <Button variant='primary btn' onClick={() => handlePurchaseOne(form.bundle, form.first, form.second)} disabled={!form.bundle || !form.first || !form.second}>
+                                                <Button variant='primary btn' onClick={() => handlePurchaseOne(form.bundle, form.first, form.second,availableArticles.firstPrice, availableArticles.secondPrice)} disabled={!form.bundle || !form.first || !form.second}>
                                                     Add
                                                 </Button>
                                             </div>
