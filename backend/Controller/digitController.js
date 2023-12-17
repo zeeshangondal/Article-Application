@@ -71,6 +71,7 @@ const updateDigit = async (req, res) => {
             Digit.findById(data.secondDigit)
         ]);
 
+
         if (type === "+") {
             let remaingForParent=(Number(firstDigit.articles[bundle])+Number(purchaseFirst)) - firstLimitOfDraw
             let forFirstDigit=  purchaseFirst
@@ -99,11 +100,9 @@ const updateDigit = async (req, res) => {
                 parentSecondDigit.markModified('articles');
                 await parentSecondDigit.save()    
             }    
-            // currentUser.balance = currentUser.balance - (Number(purchaseFirst) + Number(purchaseSecond))
-            // currentUser.markModified('balance');
-            // await currentUser.save()
 
         } else if (type === "-") {
+
             if (parentFirstDigit.articles[bundle] > 0) {
                 if (parentFirstDigit.articles[bundle] >= purchaseFirst) {
                     parentFirstDigit.articles[bundle] = parentFirstDigit.articles[bundle] - purchaseFirst
@@ -143,9 +142,6 @@ const updateDigit = async (req, res) => {
                 secondDigit.markModified('articles');
                 await secondDigit.save()
             }
-            // currentUser.balance = currentUser.balance + (Number(purchaseFirst) + Number(purchaseSecond))
-            // currentUser.markModified('balance');
-            // await currentUser.save()
         }
         res.status(200).send({ message: "Digit updated" });
     } catch (err) {

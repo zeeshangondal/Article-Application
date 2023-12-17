@@ -48,7 +48,7 @@ export default function Merchent() {
         bundle: '',
         first: '',
         second: '',
-        _id:''
+        _id: ''
     });
     useEffect(() => {
         fetchLoggedInUser();
@@ -118,6 +118,11 @@ export default function Merchent() {
             second = availableSecondPrice
         }
 
+        if((Number(first)+Number(second))> currentLoggedInUser.availableBalance){
+            alert("You dont have enough balance for this purchase.")
+            return
+        }
+
         if (purchasedDrawData) {
             purchasedDrawData.savedPurchases.push({
                 bundle, first, second
@@ -143,6 +148,7 @@ export default function Merchent() {
                 }
             }
             purchasedFromDrawData.push(purchasedDrawData)
+
         }
         // firstDigitId, secondDigitId, bundle , purchaseFirst ,purchaseSecond, type
         let data = getDataForBundle(bundle, currentDraw)
@@ -155,10 +161,10 @@ export default function Merchent() {
         }
         successMessage("Purcahse added successfuly")
         await articlesAPI.updateDigit(data)
-        handleBundleChange(bundle)
-
+        currentLoggedInUser.availableBalance=currentLoggedInUser.availableBalance- (Number(first)+Number(second))
         updateCurrentLoggedInUser()
-        setForm({ ...form, first: '', second: '' })
+        setForm({ ...form,bundle:'', first: '', second: '' })
+        // handleBundleChange(bundle)
         // setShowModal(false);
     };
     function successMessage(msg) {
@@ -332,6 +338,7 @@ export default function Merchent() {
             let target = purchases.find(purchase => purchase._id === _id)
             let updated = purchases.filter(purchase => purchase._id !== _id)
             purchasedData.savedPurchases = [...updated]
+            currentLoggedInUser.availableBalance=currentLoggedInUser.availableBalance+ (Number(target.first)+Number(target.second))
             updateCurrentLoggedInUser()
             let data = getDataForBundle(target.bundle, currentDraw)
             data = {
@@ -387,16 +394,16 @@ export default function Merchent() {
         setNotification({ ...notification, color: "danger", show: true, message: msg })
     }
 
-    const handleEditOversale=()=>{
+    const handleEditOversale = () => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         let overSaleFirst = oversaleEditForm.first
         let overSaleSecond = oversaleEditForm.second
         let bundle = oversaleEditForm.bundle
-        let oldOverSale=purchasedDrawData.savedOversales.find(oversale=>oversale._id==oversaleEditForm._id)
-        oldOverSale.bundle=bundle
-        oldOverSale.first=overSaleFirst
-        oldOverSale.second=overSaleSecond                
+        let oldOverSale = purchasedDrawData.savedOversales.find(oversale => oversale._id == oversaleEditForm._id)
+        oldOverSale.bundle = bundle
+        oldOverSale.first = overSaleFirst
+        oldOverSale.second = overSaleSecond
         successMessage("Oversale added successfuly")
         updateCurrentLoggedInUser()
     }
@@ -407,8 +414,11 @@ export default function Merchent() {
             <SearchDivBackgroundDiv>
                 <h4 className='text-center'>{`${currentLoggedInUser.generalInfo.name} - ${currentLoggedInUser.username}`}</h4>
                 <hr />
-                <div className='d-flex justify-content-end'>
-                    <h6>Balance: {currentLoggedInUser.balance}</h6>
+                <div className=''>
+                    <div className='d-flex justify-content-between'>
+                        <h6>Balance: {currentLoggedInUser.balance}</h6>
+                        <h6>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6>
+                    </div>
                 </div>
             </SearchDivBackgroundDiv>
             <div className='d-flex justify-content-between mt-3 container'>
@@ -477,7 +487,7 @@ export default function Merchent() {
                                     <td>
                                         <div className='d-flex justify-content-start' >
                                             <div className=''  >
-                                                <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-info" onClick={() => { setShowOversaleEditModal(true); setOversaleEditForm({ _id:purchase._id, bundle: purchase.bundle, first: purchase.first, second: purchase.second }) }}>Edit</Button>
+                                                <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-info" onClick={() => { setShowOversaleEditModal(true); setOversaleEditForm({ _id: purchase._id, bundle: purchase.bundle, first: purchase.first, second: purchase.second }) }}>Edit</Button>
                                             </div>
                                             <div className=''>
                                                 <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
@@ -490,7 +500,7 @@ export default function Merchent() {
                         </tbody>
                     </Table>
                     <div>
-                        <Modal show={showOversaleEditModal} onHide={()=>setShowOversaleEditModal(false)}>
+                        <Modal show={showOversaleEditModal} onHide={() => setShowOversaleEditModal(false)}>
                             <Modal.Header closeButton>
                                 <Modal.Title>Edit Oversale</Modal.Title>
                             </Modal.Header>

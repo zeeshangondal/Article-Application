@@ -236,6 +236,7 @@ const UserDetails = () => {
                 ...obj,
                 credit: obj.credit + Number(creditTransaction.amount),
                 balance: obj.balance + Number(creditTransaction.amount),
+                availableBalance: obj.availableBalance + Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
         } else if (creditTransaction.txType == 2) {
@@ -251,6 +252,7 @@ const UserDetails = () => {
                 ...obj,
                 credit: obj.credit - Number(creditTransaction.amount),
                 balance: obj.balance - Number(creditTransaction.amount),
+                availableBalance: obj.availableBalance - Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
         }
@@ -296,6 +298,8 @@ const UserDetails = () => {
                     debit: obj.debit - Number(debitTransaction.amount),
                     balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
                     balance: obj.balance - Number(debitTransaction.amount),
+                    availableBalance: obj.availableBalance - Number(debitTransaction.amount),
+                    
                     transactionHistory: [...obj.transactionHistory, transaction]
                 }
             } else {
@@ -400,6 +404,8 @@ const UserDetails = () => {
                                     <th>CREDIT</th>
                                     <th>BALANCE</th>
                                     <th>BALANCE UPLINE</th>
+                                    <th>AVAILABLE BALANCE</th>
+                                    
                                 </tr>
                             </thead>
                             <tbody>
@@ -408,6 +414,8 @@ const UserDetails = () => {
                                     <td>{userDetails.credit}</td>
                                     <td style={{ color: (userDetails.balance > 0 ? 'green' : 'red') }} >{userDetails.balance}</td>
                                     <td style={{ color: (userDetails.balanceUpline > 0 ? 'green' : 'red') }}>{userDetails.balanceUpline}</td>
+                                    <td style={{ color: (userDetails.availableBalance > 0 ? 'green' : 'red') }} >{userDetails.availableBalance}</td>
+                                    
                                 </tr>
                             </tbody>
                         </Table>

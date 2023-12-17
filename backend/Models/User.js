@@ -30,6 +30,10 @@ const UserSchema = mongoose.Schema({
         type: Number,
         default: 0
     },
+    availableBalance: {
+        type: Number,
+        default: 0
+    },
     balanceUpline: {
         type: Number,
         default: 0
