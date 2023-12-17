@@ -287,7 +287,7 @@ export default function Merchent() {
         setShowSheetModal(false)
     }
 
-    function parseInputMessage() {
+    function parseInputMessage(message) {
         if (message.length == 0) {
             setMessagePurchases([])
             return
@@ -306,7 +306,6 @@ export default function Merchent() {
             })
             setMessagePurchases([...tempMessagePurchases])
         } catch (e) {
-            alert("Message format is invalid")
         }
     }
     const handleMakeMessagePurchases = async () => {
@@ -743,7 +742,7 @@ export default function Merchent() {
                                                 as='textarea'
                                                 placeholder='Message'
                                                 value={message}
-                                                onChange={(e) => setMessage(e.target.value)}
+                                                onChange={(e) => {setMessage(e.target.value); parseInputMessage(e.target.value) }}
                                                 rows={4}
                                                 disabled={currentDraw == null}
                                                 autocomplete="off"
@@ -752,13 +751,13 @@ export default function Merchent() {
                                         </Form.Group>
                                     </Row>
                                 </div>
-                                <div className='d-flex justify-content-end mt-2'>
+                                {/* <div className='d-flex justify-content-end mt-2'>
                                     <Button variant='primary btn' onClick={parseInputMessage} >
                                         Process
                                     </Button>
-                                </div>
+                                </div> */}
                                 {messagePurchases.length > 0 &&
-                                    <div className=''>
+                                    <div className='mt-1'>
                                         <Table striped hover size="sm" className="" style={{ fontSize: '0.7rem' }}>
                                             <thead>
                                                 <tr>
