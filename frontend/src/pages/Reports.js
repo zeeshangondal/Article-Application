@@ -7,6 +7,7 @@ import { Link, Route, Routes, useParams, useNavigate } from 'react-router-dom';
 import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { savePdfOnBackend } from '../APIs/utils';
 
 const Reports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSheetSale");
@@ -111,29 +112,30 @@ const Reports = () => {
     }
 
 
-    const generateTotalSheetSaleInvoice = () => {
+
+    const generateTotalSheetSaleInvoice = async () => {
         let drawData = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo);
         let savedPurchases = drawData.savedPurchases;
-    
+
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
         let dividedArrays = [];
-    
+
         for (let i = 0; i < savedPurchases.length; i += chunkSize) {
             dividedArrays.push(savedPurchases.slice(i, i + chunkSize));
         }
-    
+
         const pdfDoc = new jsPDF();
-    
+
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
-    
+
         pdfDoc.setFontSize(20);
         // Two centered headings
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
-    
+
         let newData = [];
-        let totalFirst=0,totalSecond=0, total=0;
+        let totalFirst = 0, totalSecond = 0, total = 0;
         for (let i = 0; i < savedPurchases.length / 4; i++) {
             let row = [];
             dividedArrays.forEach(array => {
@@ -141,21 +143,21 @@ const Reports = () => {
                     row.push(array[i].bundle)
                     row.push(array[i].first)
                     row.push(array[i].second)
-                    totalFirst+=array[i].first
-                    totalSecond+=array[i].second
+                    totalFirst += array[i].first
+                    totalSecond += array[i].second
                 }
             });
             newData.push(row);
         }
-        total=totalFirst+totalSecond    
+        total = totalFirst + totalSecond
         // Convert the data to a format compatible with jsPDF autoTable
         let bodyData = newData;
-    
+
         pdfDoc.setFontSize(10);
         pdfDoc.text("Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
-    
+
         // Add a table to the PDF
         pdfDoc.autoTable({
             head: [columns],
@@ -172,31 +174,31 @@ const Reports = () => {
 
         pdfDoc.setFontSize(10);
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total Second: "+ totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total: "+total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
-        
+        pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+
         // Add a new page for the Oversales content
         pdfDoc.addPage();
-    
+
         let savedOversales = drawData.savedOversales;
-    
+
         chunkSize = Math.ceil(savedPurchases.length / parts);
         dividedArrays = [];
-    
+
         for (let i = 0; i < savedOversales.length; i += chunkSize) {
             dividedArrays.push(savedOversales.slice(i, i + chunkSize));
         }
-    
+
         // Move the cursor down to leave space for the Oversales headings and table
         pdfDoc.setFontSize(15);
-    
+
         // Two centered headings for Oversales
-        pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });    
+        pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         newData = [];
 
-        totalFirst=0;
-        totalSecond=0;
-        total=0;
+        totalFirst = 0;
+        totalSecond = 0;
+        total = 0;
         for (let i = 0; i < savedOversales.length / 4; i++) {
             let row = [];
             dividedArrays.forEach(array => {
@@ -204,14 +206,14 @@ const Reports = () => {
                     row.push(array[i].bundle)
                     row.push(array[i].first)
                     row.push(array[i].second)
-                    totalFirst+=array[i].first
-                    totalSecond+=array[i].second                    
+                    totalFirst += array[i].first
+                    totalSecond += array[i].second
                 }
             });
             newData.push(row);
         }
-        total=totalFirst+totalSecond
-    
+        total = totalFirst + totalSecond
+
         // Convert the data to a format compatible with jsPDF autoTable
         bodyData = newData;
         // Add a table to the PDF
@@ -229,12 +231,20 @@ const Reports = () => {
         });
         pdfDoc.setFontSize(10);
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total Second: "+ totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total: "+total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
         const filename = 'sample.pdf';
-        pdfDoc.save(filename);
+        // pdfDoc.save(filename);
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+        } catch (error) {
+        }
     };
-    
+
+
     return (
         <div className='container mt-4'>
             <CustomNotification notification={notification} setNotification={setNotification} />

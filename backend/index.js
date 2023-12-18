@@ -1,5 +1,11 @@
 const express = require("express");
 const mongoose = require("mongoose")
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+
+
 const app = express();
 
 app.use(express.json())
@@ -22,6 +28,39 @@ app.use('/article', digitRouter)
 // app.get('*', (req, res) => {
 //     res.sendFile(path.join(__dirname, 'public', 'index.html'))
 // })
+
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+app.post('/savePdf', upload.single('pdfContent'), (req, res) => {
+    try {
+        const pdfContent = req.file.buffer;
+        const uniqueKey = uuidv4(); // Generate a unique key
+        const pdfFileName = `pdf_${uniqueKey}.pdf`;
+        const saveDirectory = '/uploads'; 
+        const filePath = path.join(__dirname, saveDirectory, pdfFileName);
+        fs.writeFileSync(filePath, pdfContent);
+        const pdfLink = `http://localhost:3005/reports/${pdfFileName}`;
+        res.json({ pdfLink });
+    } catch (error) {
+        console.error('Error saving the PDF:', error.message);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.get('/reports/:fileName', (req, res) => {
+    const fileName = req.params.fileName;
+    const filePath = path.join(__dirname, 'uploads', fileName);
+
+    // Send the file back as a response without triggering a download
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error('Error sending the PDF:', err.message);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    });
+});
 
 app.listen(process.env.PORT || 3005, () => {
     console.log(`App Listning at Port 3005`)
