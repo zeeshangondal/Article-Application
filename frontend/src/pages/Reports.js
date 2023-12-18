@@ -112,95 +112,129 @@ const Reports = () => {
 
 
     const generateTotalSheetSaleInvoice = () => {
-        let savedPurchases = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo).savedPurchases;
-        console.log(savedPurchases)
-
-        const parts = 4;
-        const chunkSize = Math.ceil(savedPurchases.length / parts);
-        const dividedArrays = [];
-        
+        let drawData = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo);
+        let savedPurchases = drawData.savedPurchases;
+    
+        let parts = 4;
+        let chunkSize = Math.ceil(savedPurchases.length / parts);
+        let dividedArrays = [];
+    
         for (let i = 0; i < savedPurchases.length; i += chunkSize) {
-          dividedArrays.push(savedPurchases.slice(i, i + chunkSize));
+            dividedArrays.push(savedPurchases.slice(i, i + chunkSize));
         }
-
+    
         const pdfDoc = new jsPDF();
-
-        const columns = ['Bundle', 'First', 'Second', 'Bundle', 'First', 'Second', 'Bundle', 'First', 'Second', 'Bundle', 'First', 'Second'];
-
-        const data = [
-            { name: 'John Doe', age: 30, city: 'New York' },
-            { name: 'Jane Doe', age: 25, city: 'San Francisco' },
-            { name: 'Bob Smith', age: 35, city: 'Los Angeles' },
-            { name: 'Alice Johnson', age: 28, city: 'Chicago' },
-        ];
-        const newData=[]
-        for (let i = 0; i < savedPurchases.length/4; i++) {
-            let row=[]
-            dividedArrays.forEach(array=>{
-                if(array[i]){
+    
+        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+    
+        pdfDoc.setFontSize(20);
+        // Two centered headings
+        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+    
+        let newData = [];
+        let totalFirst=0,totalSecond=0, total=0;
+        for (let i = 0; i < savedPurchases.length / 4; i++) {
+            let row = [];
+            dividedArrays.forEach(array => {
+                if (array[i]) {
                     row.push(array[i].bundle)
                     row.push(array[i].first)
-                    row.push(array[i].second)    
+                    row.push(array[i].second)
+                    totalFirst+=array[i].first
+                    totalSecond+=array[i].second
                 }
-            })
-            newData.push(row)
-          }
-  
-
-
+            });
+            newData.push(row);
+        }
+        total=totalFirst+totalSecond    
         // Convert the data to a format compatible with jsPDF autoTable
-        const bodyData = newData
-
+        let bodyData = newData;
+    
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Sheet: " + drawData.sheetName, 15, 30);
+        // Text above the table on the right with adjusted font size
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
+    
         // Add a table to the PDF
         pdfDoc.autoTable({
             head: [columns],
             body: bodyData,
             theme: 'striped',
-            margin: { top: 10 },
+            margin: { top: 34 }, // Adjusted top margin to leave space for the headings and texts
+            columnStyles: {
+                0: { fillColor: [192, 192, 192] },
+                3: { fillColor: [192, 192, 192] },
+                6: { fillColor: [192, 192, 192] },
+                9: { fillColor: [192, 192, 192] }
+            },
         });
 
-        // Save the PDF
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Second: "+ totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: "+total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        
+        // Add a new page for the Oversales content
+        pdfDoc.addPage();
+    
+        let savedOversales = drawData.savedOversales;
+    
+        chunkSize = Math.ceil(savedPurchases.length / parts);
+        dividedArrays = [];
+    
+        for (let i = 0; i < savedOversales.length; i += chunkSize) {
+            dividedArrays.push(savedOversales.slice(i, i + chunkSize));
+        }
+    
+        // Move the cursor down to leave space for the Oversales headings and table
+        pdfDoc.setFontSize(15);
+    
+        // Two centered headings for Oversales
+        pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });    
+        newData = [];
+
+        totalFirst=0;
+        totalSecond=0;
+        total=0;
+        for (let i = 0; i < savedOversales.length / 4; i++) {
+            let row = [];
+            dividedArrays.forEach(array => {
+                if (array[i]) {
+                    row.push(array[i].bundle)
+                    row.push(array[i].first)
+                    row.push(array[i].second)
+                    totalFirst+=array[i].first
+                    totalSecond+=array[i].second                    
+                }
+            });
+            newData.push(row);
+        }
+        total=totalFirst+totalSecond
+    
+        // Convert the data to a format compatible with jsPDF autoTable
+        bodyData = newData;
+        // Add a table to the PDF
+        pdfDoc.autoTable({
+            head: [columns],
+            body: bodyData,
+            theme: 'striped',
+            margin: { top: 15 }, // Adjusted top margin to leave space for the headings and texts
+            columnStyles: {
+                0: { fillColor: [192, 192, 192] },
+                3: { fillColor: [192, 192, 192] },
+                6: { fillColor: [192, 192, 192] },
+                9: { fillColor: [192, 192, 192] }
+            },
+        });
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Second: "+ totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: "+total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
         const filename = 'sample.pdf';
         pdfDoc.save(filename);
     };
-
-    const generateTotalSheetSaleInvoicess = () => {
-        let savedPurchases = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo).savedPurchases;
-
-        const pdfDoc = new jsPDF();
-
-        const columns = ['Bundle', 'First', 'Second', 'Bundle', 'First', 'Second', 'Bundle', 'First', 'Second', 'Bundle', 'First', 'Second'];
-
-        const numRows = savedPurchases.length;
-        const parts = 4;
-        const rowsPerPart = Math.ceil(numRows / parts);
-
-        const createTable = (start, end, startY) => {
-            const bodyData = savedPurchases.slice(start, end).map(row => [row.bundle, row.first, row.second]);
-            pdfDoc.autoTable({
-                body: bodyData,
-                columns: columns.map((col, index) => ({ header: col, dataKey: index })),
-                startY: startY,
-                theme: 'striped',
-                margin: { top: 10 },
-            });
-        };
-
-        let startY = 20;
-        for (let part = 0; part < parts; part++) {
-            const start = part * rowsPerPart;
-            const end = Math.min((part + 1) * rowsPerPart, numRows);
-            createTable(start, end, startY);
-
-            if (part < parts - 1) {
-                startY = pdfDoc.autoTable.previous.finalY + 10; // Add some space between tables
-            }
-        }
-
-        const filename = 'totalSheetSaleInvoice.pdf';
-        pdfDoc.save(filename);
-    };
-
+    
     return (
         <div className='container mt-4'>
             <CustomNotification notification={notification} setNotification={setNotification} />
