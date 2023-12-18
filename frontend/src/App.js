@@ -8,6 +8,7 @@ import Clients from './pages/Clients';
 import Client from './pages/Client';
 import DrawTime from './pages/DrawTime';
 import Merchent from './pages/Merchent';
+import Reports from './pages/Reports';
 
 
 function App() {
@@ -25,6 +26,8 @@ function App() {
                     <Route exact path="/draw" element={<DrawTime />} />
                     <Route path="/users/:_id" element={<Client />} />
                     <Route exact path="/merchent" element={<Merchent />} />
+                    <Route exact path="/reports" element={<Reports />} />
+                    
                 </Routes>
             </Router>
         </div>

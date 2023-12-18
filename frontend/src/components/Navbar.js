@@ -28,7 +28,7 @@ function AppNavbar() {
                                 <Nav.Link as={Link} to="/draw-result" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Draw Result</Nav.Link>
                             </>
                         }
-                        <Nav.Link as={Link} to="/report" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Reports</Nav.Link>
+                        <Nav.Link as={Link} to="/reports" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Reports</Nav.Link>
 
                     </Nav>
                     <Nav>

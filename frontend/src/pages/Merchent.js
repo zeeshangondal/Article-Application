@@ -80,6 +80,7 @@ export default function Merchent() {
             console.error('Error fetching users', error);
         }
     };
+
     const getSavedPurchasesOfCurrentDraw = (selectedDraw) => {
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === selectedDraw)
@@ -318,7 +319,7 @@ export default function Merchent() {
                 const response = await articlesAPI.getFirstAndSecond(data);
                 let availableFirstPrice = response.data.firstPrice
                 let availableSecondPrice = response.data.secondPrice
-                handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice)
+                await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice)
             } catch (e) {
                 allDone = false
                 let msg = `Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
