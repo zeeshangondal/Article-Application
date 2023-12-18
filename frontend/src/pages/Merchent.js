@@ -319,6 +319,10 @@ export default function Merchent() {
                 const response = await articlesAPI.getFirstAndSecond(data);
                 let availableFirstPrice = response.data.firstPrice
                 let availableSecondPrice = response.data.secondPrice
+                if(currentLoggedInUser.balance< (Number(purchase.first) + Number(purchase.second))){
+                    alertMessage("Insuffiecent balance for purchase")
+                    return
+                }
                 await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice)
             } catch (e) {
                 allDone = false

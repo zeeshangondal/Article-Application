@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Row, Col, Nav, Form, FormGroup, Button, Card } from 'react-bootstrap';
+import {  Row, Col, Nav, Form, FormGroup, Button, Card } from 'react-bootstrap';
 import DrawAPIs from '../APIs/draws';
 import APIs from '../APIs/users';
 import { localStorageUtils } from '../APIs/localStorageUtils';
-import { Link, Route, Routes, useParams, useNavigate } from 'react-router-dom';
+import {  useNavigate } from 'react-router-dom';
 import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -18,15 +18,13 @@ const Reports = () => {
     const [totalSheetSaleForm, setTotalSheetSaleForm] = useState({
         date: '',
         sheetNo: '',
-        reportType: '',
+        reportType: 'withoutGroup',
     });
     const [notification, setNotification] = useState({
         color: "",
         message: "Success",
         show: false,
     })
-
-
     const navigate = useNavigate();
 
     if (!localStorageUtils.hasToken()) {
@@ -112,14 +110,18 @@ const Reports = () => {
     }
 
 
-
-    const generateTotalSheetSaleInvoice = async () => {
+    const generateTotalSheetSaleGroupWiseInvoice = async ({sorted=false}) => {
         let drawData = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo);
-        let savedPurchases = drawData.savedPurchases;
+        let savedPurchases = [...drawData.savedPurchases];
 
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
         let dividedArrays = [];
+        if(sorted){
+            savedPurchases=savedPurchases.sort((a, b) => {
+                return Number('1'+a.bundle) - Number('1'+b.bundle);
+            } );
+        }
 
         for (let i = 0; i < savedPurchases.length; i += chunkSize) {
             dividedArrays.push(savedPurchases.slice(i, i + chunkSize));
@@ -136,6 +138,7 @@ const Reports = () => {
 
         let newData = [];
         let totalFirst = 0, totalSecond = 0, total = 0;
+
         for (let i = 0; i < savedPurchases.length / 4; i++) {
             let row = [];
             dividedArrays.forEach(array => {
@@ -182,9 +185,14 @@ const Reports = () => {
 
         let savedOversales = drawData.savedOversales;
 
-        chunkSize = Math.ceil(savedPurchases.length / parts);
+        chunkSize = Math.ceil(savedOversales.length / parts);
         dividedArrays = [];
 
+        if(sorted){
+            savedOversales=savedOversales.sort((a, b) => {
+                return Number('1'+a.bundle) - Number('1'+b.bundle);
+            } );
+        }
         for (let i = 0; i < savedOversales.length; i += chunkSize) {
             dividedArrays.push(savedOversales.slice(i, i + chunkSize));
         }
@@ -240,11 +248,158 @@ const Reports = () => {
         formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
         try {
             await savePdfOnBackend(formData);
-        } catch (error) {
+            // successMessage("Report generated successfully")            
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
         }
     };
 
+    
+    const generateTotalSheetSaleWihtoutGroupInvoice = async ({sorted=false}) => {
+        let drawData = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo);
+        let savedPurchases = [...drawData.savedPurchases];
 
+        let parts = 4;
+        let chunkSize = Math.ceil(savedPurchases.length / parts);
+        let dividedArrays = [];
+        if(sorted){
+            savedPurchases=savedPurchases.sort((a, b) => {
+                return Number('1'+a.bundle) - Number('1'+b.bundle);
+            } );
+        }
+
+        for (let i = 0; i < savedPurchases.length; i += chunkSize) {
+            dividedArrays.push(savedPurchases.slice(i, i + chunkSize));
+        }
+
+        const pdfDoc = new jsPDF();
+
+        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+
+        pdfDoc.setFontSize(20);
+        // Two centered headings
+        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+
+        let newData = [];
+        let totalFirst = 0, totalSecond = 0, total = 0;
+
+        for (let i = 0; i < savedPurchases.length / 4; i++) {
+            let row = [];
+            dividedArrays.forEach(array => {
+                if (array[i]) {
+                    row.push(array[i].bundle)
+                    row.push(array[i].first)
+                    row.push(array[i].second)
+                    totalFirst += array[i].first
+                    totalSecond += array[i].second
+                }
+            });
+            newData.push(row);
+        }
+        total = totalFirst + totalSecond
+        // Convert the data to a format compatible with jsPDF autoTable
+        let bodyData = newData;
+
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Sheet: " + drawData.sheetName, 15, 30);
+        // Text above the table on the right with adjusted font size
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
+
+        // Add a table to the PDF
+        pdfDoc.autoTable({
+            head: [columns],
+            body: bodyData,
+            theme: 'striped',
+            margin: { top: 34 }, // Adjusted top margin to leave space for the headings and texts
+            columnStyles: {
+                0: { fillColor: [192, 192, 192] },
+                3: { fillColor: [192, 192, 192] },
+                6: { fillColor: [192, 192, 192] },
+                9: { fillColor: [192, 192, 192] }
+            },
+        });
+
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+
+        // Add a new page for the Oversales content
+        pdfDoc.addPage();
+
+        let savedOversales = drawData.savedOversales;
+
+        chunkSize = Math.ceil(savedOversales.length / parts);
+        dividedArrays = [];
+
+        if(sorted){
+            savedOversales=savedOversales.sort((a, b) => {
+                return Number('1'+a.bundle) - Number('1'+b.bundle);
+            } );
+        }
+        for (let i = 0; i < savedOversales.length; i += chunkSize) {
+            dividedArrays.push(savedOversales.slice(i, i + chunkSize));
+        }
+
+        // Move the cursor down to leave space for the Oversales headings and table
+        pdfDoc.setFontSize(15);
+
+        // Two centered headings for Oversales
+        pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        newData = [];
+
+        totalFirst = 0;
+        totalSecond = 0;
+        total = 0;
+        for (let i = 0; i < savedOversales.length / 4; i++) {
+            let row = [];
+            dividedArrays.forEach(array => {
+                if (array[i]) {
+                    row.push(array[i].bundle)
+                    row.push(array[i].first)
+                    row.push(array[i].second)
+                    totalFirst += array[i].first
+                    totalSecond += array[i].second
+                }
+            });
+            newData.push(row);
+        }
+        total = totalFirst + totalSecond
+
+        // Convert the data to a format compatible with jsPDF autoTable
+        bodyData = newData;
+        // Add a table to the PDF
+        pdfDoc.autoTable({
+            head: [columns],
+            body: bodyData,
+            theme: 'striped',
+            margin: { top: 15 }, // Adjusted top margin to leave space for the headings and texts
+            columnStyles: {
+                0: { fillColor: [192, 192, 192] },
+                3: { fillColor: [192, 192, 192] },
+                6: { fillColor: [192, 192, 192] },
+                9: { fillColor: [192, 192, 192] }
+            },
+        });
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        const filename = 'sample.pdf';
+        // pdfDoc.save(filename);
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            // successMessage("Report generated successfully")            
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    };
+
+    
     return (
         <div className='container mt-4'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -323,9 +478,8 @@ const Reports = () => {
                                                 value={totalSheetSaleForm.reportType}
                                                 onChange={handleTotalSheetSaleChange}
                                             >
-                                                <option value="">-</option>
                                                 <option value="withoutGroup">Without Group</option>
-                                                <option value="group">Group-Wise</option>
+                                                <option value="groupWise">Group-Wise</option>
                                             </Form.Control>
                                         </Col>
                                     </Row>
@@ -335,8 +489,8 @@ const Reports = () => {
                         {selectedOption === 'totalSheetSale' && (
                             <Card.Footer>
                                 <div className="d-flex flex-wrap justify-content-start">
-                                    <Button variant="primary btn btn-sm m-1" onClick={generateTotalSheetSaleInvoice}>Invoice Report</Button>
-                                    <Button variant="primary btn btn-sm m-1">Report</Button>
+                                    <Button variant="primary btn btn-sm m-1" onClick={()=>(totalSheetSaleForm.reportType=="withoutGroup" ? generateTotalSheetSaleWihtoutGroupInvoice({sorted:false}) : generateTotalSheetSaleGroupWiseInvoice({sorted:false})   ) }>Invoice Report</Button>
+                                    <Button variant="primary btn btn-sm m-1" onClick={()=>(totalSheetSaleForm.reportType=="withoutGroup" ? generateTotalSheetSaleWihtoutGroupInvoice({sorted:true}) : generateTotalSheetSaleGroupWiseInvoice({sorted:true})) }>Report</Button>
                                 </div>
                             </Card.Footer>
                         )}
