@@ -111,6 +111,8 @@ const Reports = () => {
 
 
     function processAndAddTablesInPDF(pdfDoc, savedPurchases, drawData, selectedDraw, sorted = false) {
+        savedPurchases=savedPurchases.filter(purchase=>  purchase.first!=0 || purchase.second!=0)
+
         function dividePurchasesIntoArrays(purchases, parts) {
             const chunkSize = Math.ceil(purchases.length / parts);
             let dividedArrays = [];
@@ -128,11 +130,11 @@ const Reports = () => {
             return dividedArrays;
         }
 
-        function generateTableData(dividedArrays, totalFirst, totalSecond) {
+        function generateTableData(purchases, dividedArrays, totalFirst, totalSecond) {
             let tableData = [];
             let total = 0;
 
-            for (let i = 0; i < dividedArrays.length / 4; i++) {
+            for (let i = 0; i < purchases.length / 4; i++) {
                 let row = [];
                 dividedArrays.forEach(array => {
                     if (array[i]) {
@@ -155,7 +157,7 @@ const Reports = () => {
 
         function generateSectionReport(purchases, dividedArrays, totalFirst, totalSecond) {
             if (purchases.length > 0) {
-                let sectionTableData = generateTableData(dividedArrays, totalFirst, totalSecond);
+                let sectionTableData = generateTableData(purchases, dividedArrays, totalFirst, totalSecond);
                 bodyData = sectionTableData.tableData;
 
                 pdfDoc.setFontSize(10);
@@ -182,8 +184,6 @@ const Reports = () => {
         let oneDigitPurchases = savedPurchases.filter(purchase => purchase.bundle.length === 1)
         if (oneDigitPurchases.length > 0) {
             let oneDigitDividedArrays = dividePurchasesIntoArrays(oneDigitPurchases, 4);
-            console.log("One digit purchases", oneDigitPurchases)
-            console.log("One digit divided purchases", oneDigitDividedArrays)
             generateSectionReport(oneDigitPurchases, oneDigitDividedArrays, 0, 0);
         }
 
@@ -247,6 +247,7 @@ const Reports = () => {
     const generateTotalSheetSaleWihtoutGroupInvoice = async ({ sorted = false }) => {
         let drawData = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo);
         let savedPurchases = [...drawData.savedPurchases];
+        savedPurchases=savedPurchases.filter(purchase=>  purchase.first!=0 || purchase.second!=0)
 
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
@@ -315,6 +316,8 @@ const Reports = () => {
         pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
 
         let savedOversales = drawData.savedOversales;
+        savedOversales=savedOversales.filter(purchase=>  purchase.first!=0 || purchase.second!=0)
+
         if (savedOversales.length > 0) {
             // Add a new page for the Oversales content
             pdfDoc.addPage();
