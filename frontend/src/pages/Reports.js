@@ -268,7 +268,7 @@ const Reports = () => {
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         pdfDoc.setFontSize(10);
-        pdfDoc.text("Draw: " + selectedDraw.title, 15, 30);
+        pdfDoc.text(selectedDraw.title+ " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
 
@@ -347,7 +347,7 @@ const Reports = () => {
         let bodyData = newData;
 
         pdfDoc.setFontSize(10);
-        pdfDoc.text("Sheet: " + drawData.sheetName, 15, 30);
+        pdfDoc.text(selectedDraw.title+ " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
 
