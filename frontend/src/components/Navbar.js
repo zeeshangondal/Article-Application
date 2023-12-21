@@ -13,7 +13,7 @@ function AppNavbar() {
         }
     };
 
-    const loggedInUser = localStorageUtils.getLoggedInUser();
+    let loggedInUser = localStorageUtils.getLoggedInUser();
     return (
         <div style={{ fontWeight: 'bold' }}>
             <Navbar bg="light" expand="md">

@@ -8,13 +8,25 @@ import Clients from './pages/Clients';
 import Client from './pages/Client';
 import DrawTime from './pages/DrawTime';
 import Merchent from './pages/Merchent';
-import Reports from './pages/Reports';
+import MerchentReports from './pages/MerchentReports';
 
 
 function App() {
     const [refresh,setRefresh]= useState(false)
     const handleRefresh=()=>{
         setRefresh(true)
+    }
+
+    function getReportsPageForLoggedInUser(){
+        try{
+            let loggedInUser = localStorageUtils.getLoggedInUser();
+            if(loggedInUser.role=="merchent"){
+                return <MerchentReports />
+            }
+    
+        }catch(e){
+            
+        }
     }
     return (
         <div>
@@ -26,7 +38,7 @@ function App() {
                     <Route exact path="/draw" element={<DrawTime />} />
                     <Route path="/users/:_id" element={<Client />} />
                     <Route exact path="/merchent" element={<Merchent />} />
-                    <Route exact path="/reports" element={<Reports />} />
+                    <Route exact path="/reports" element={getReportsPageForLoggedInUser()} />
                     
                 </Routes>
             </Router>

@@ -9,7 +9,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
 
-const Reports = () => {
+const MerchentReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
     const [draws, setDraws] = useState([]);
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({});
@@ -716,7 +716,7 @@ const Reports = () => {
                 head: [columns],
                 body: bodyData,
                 theme: 'striped',
-                margin: { top: 34 }, // Adjusted top margin to leave space for the headings and texts
+                margin: { top: 32 }, // Adjusted top margin to leave space for the headings and texts
                 columnStyles: {
                     0: { fillColor: [192, 192, 192] },
                     3: { fillColor: [192, 192, 192] },
@@ -783,7 +783,7 @@ const Reports = () => {
                     head: [columns],
                     body: bodyData,
                     theme: 'striped',
-                    margin: { top: totalSaleForm.category == "combined" ? 15 : 34 }, // Adjusted top margin to leave space for the headings and texts
+                    margin: { top: totalSaleForm.category == "combined" ? 15 : 32 }, // Adjusted top margin to leave space for the headings and texts
                     columnStyles: {
                         0: { fillColor: [192, 192, 192] },
                         3: { fillColor: [192, 192, 192] },
@@ -1007,4 +1007,4 @@ const Reports = () => {
     );
 };
 
-export default Reports;
+export default MerchentReports;
