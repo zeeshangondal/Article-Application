@@ -254,45 +254,70 @@ const Reports = () => {
             pdfDoc.text("Total First: " + wtotalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total Second: " + wtotalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total: " + wtotal, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
-
         }
+        return wtotal;
     }
 
+    function getAllTotal({ savedPurchases, savedOversales, purchases, oversales }) {
+        let total = 0
+        if (purchases) {
+            savedPurchases.forEach(purchase => (total += Number(purchase.first) + Number(purchase.second)))
+        }
+        if (oversales) {
+            savedOversales.forEach(purchase => (total += Number(purchase.first) + Number(purchase.second)))
+        }
+        return total;
+    }
 
 
     const generateTotalSheetSaleGroupWiseInvoice = async ({ sorted = false }) => {
         let drawData = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo);
         let savedPurchases = [...drawData.savedPurchases];
+        let savedOversales = [...drawData.savedOversales];
+        savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
+        savedOversales = savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
+
+
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        let allTotal = 0;
+        if (totalSheetSaleForm.category == "combined") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: true, oversales: true })
+        } else if (totalSheetSaleForm.category == "general") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: true, oversales: false })
+        } else if (totalSheetSaleForm.category == "oversale") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: false, oversales: true })
+        }
 
-        if(totalSheetSaleForm.category=="combined" || totalSheetSaleForm.category=="general"){
+
+        if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
             pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
-            
-        }else{
+
+        } else {
             pdfDoc.text("Total Sheet Oversale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
         pdfDoc.setFontSize(10);
         pdfDoc.text(selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
-        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
+        pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
 
 
-        if(totalSheetSaleForm.category=="combined" || totalSheetSaleForm.category=="general"){
-            processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted, 32)            
+        if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
+            processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted, 32)
+
         }
 
-        let savedOversales = [...drawData.savedOversales];
-        if (savedOversales.length > 0 && (totalSheetSaleForm.category=="combined" || totalSheetSaleForm.category=="oversale")) {
+        if (savedOversales.length > 0 && (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "oversale")) {
             // Add a new page for the Oversales content
-            if(totalSheetSaleForm.category=="combined"){
+            if (totalSheetSaleForm.category == "combined") {
                 pdfDoc.addPage();
                 pdfDoc.setFontSize(20);
-                pdfDoc.text("OverSales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });    
+                pdfDoc.text("OverSales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
                 processAndAddTablesInPDF(pdfDoc, savedOversales, sorted, 15)
             }
-            else{
+            else {
                 processAndAddTablesInPDF(pdfDoc, savedOversales, sorted, 32)
             }
             //pdfDoc,savedPurchases, drawData, selectedDraw, sorted = false
@@ -316,6 +341,17 @@ const Reports = () => {
         let drawData = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo);
         let savedPurchases = [...drawData.savedPurchases];
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
+        let savedOversales = drawData.savedOversales;
+        savedOversales = savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
+
+        let allTotal = 0;
+        if (totalSheetSaleForm.category == "combined") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: true, oversales: true })
+        } else if (totalSheetSaleForm.category == "general") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: true, oversales: false })
+        } else if (totalSheetSaleForm.category == "oversale") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: false, oversales: true })
+        }
 
         const pdfDoc = new jsPDF();
 
@@ -331,6 +367,7 @@ const Reports = () => {
         else {
             pdfDoc.text("Total Sheet Oversale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
+
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
         let dividedArrays = [];
@@ -368,7 +405,10 @@ const Reports = () => {
         pdfDoc.setFontSize(10);
         pdfDoc.text(selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
-        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
+        pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+
+
 
         if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
             // Add a table to the PDF
@@ -391,8 +431,6 @@ const Reports = () => {
         pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
 
-        let savedOversales = drawData.savedOversales;
-        savedOversales = savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
         if (savedOversales.length > 0 && (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "oversale")) {
             // Add a new page for the Oversales content
@@ -483,10 +521,7 @@ const Reports = () => {
             pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
 
-        pdfDoc.setFontSize(10);
-        pdfDoc.text("Draw: " + selectedDraw.title, 15, 30);
-        // Text above the table on the right with adjusted font size
-        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
+
 
         let groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedPurchases)
             .reduce((acc, purchase) => {
@@ -506,11 +541,6 @@ const Reports = () => {
         let savedPurchases = Object.values(groupedByBundle);
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
-        if (totalSaleForm.category == "combined" || totalSaleForm.category == "general") {
-            processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted, 32)
-        }
-
-
         groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedOversales)
             .reduce((acc, purchase) => {
                 const bundle = purchase.bundle;
@@ -528,6 +558,28 @@ const Reports = () => {
         // Convert the grouped object back to an array
         let savedOversales = Object.values(groupedByBundle);
         savedOversales = savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
+
+
+        let allTotal = 0;
+        if (totalSaleForm.category == "combined") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: true, oversales: true })
+        } else if (totalSaleForm.category == "general") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: true, oversales: false })
+        } else if (totalSaleForm.category == "oversale") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: false, oversales: true })
+        }
+
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Draw: " + selectedDraw.title, 15, 30);
+        // Text above the table on the right with adjusted font size
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
+        pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+
+        if (totalSaleForm.category == "combined" || totalSaleForm.category == "general") {
+            processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted, 32)
+        }
+
+
 
         if (savedOversales.length > 0) {
             if (totalSaleForm.category == "combined" || totalSaleForm.category == "oversale") {
@@ -570,10 +622,6 @@ const Reports = () => {
             pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
 
-        pdfDoc.setFontSize(10);
-        pdfDoc.text("Draw: " + selectedDraw.title, 15, 30);
-        // Text above the table on the right with adjusted font size
-        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
 
 
         let groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedPurchases)
@@ -595,6 +643,38 @@ const Reports = () => {
 
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
+        groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedOversales)
+            .reduce((acc, purchase) => {
+                const bundle = purchase.bundle;
+
+                if (!acc[bundle]) {
+                    acc[bundle] = { bundle, first: 0, second: 0 };
+                }
+
+                acc[bundle].first += purchase.first;
+                acc[bundle].second += purchase.second;
+
+                return acc;
+            }, {});
+
+        // Convert the grouped object back to an array
+        let savedOversales = Object.values(groupedByBundle);
+        savedOversales = savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
+
+        let allTotal = 0;
+        if (totalSaleForm.category == "combined") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: true, oversales: true })
+        } else if (totalSaleForm.category == "general") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: true, oversales: false })
+        } else if (totalSaleForm.category == "oversale") {
+            allTotal = getAllTotal({ savedPurchases, savedOversales, purchases: false, oversales: true })
+        }
+
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Draw: " + selectedDraw.title, 15, 30);
+        // Text above the table on the right with adjusted font size
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
+        pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
 
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
@@ -651,25 +731,6 @@ const Reports = () => {
             pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
 
         }
-
-
-        groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedOversales)
-            .reduce((acc, purchase) => {
-                const bundle = purchase.bundle;
-
-                if (!acc[bundle]) {
-                    acc[bundle] = { bundle, first: 0, second: 0 };
-                }
-
-                acc[bundle].first += purchase.first;
-                acc[bundle].second += purchase.second;
-
-                return acc;
-            }, {});
-
-        // Convert the grouped object back to an array
-        let savedOversales = Object.values(groupedByBundle);
-        savedOversales = savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
         if (savedOversales.length > 0) {
             // Add a new page for the Oversales content
