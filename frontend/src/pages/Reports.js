@@ -10,7 +10,7 @@ import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
 
 const Reports = () => {
-    const [selectedOption, setSelectedOption] = useState("totalSheetSale");
+    const [selectedOption, setSelectedOption] = useState("totalSale");
     const [draws, setDraws] = useState([]);
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({});
     const [selectedDraw, setSelectedDraw] = useState(null)
@@ -18,6 +18,7 @@ const Reports = () => {
     const [totalSheetSaleForm, setTotalSheetSaleForm] = useState({
         date: '',
         sheetNo: '',
+        category: 'combined',
         reportType: 'withoutGroup',
     });
     const [totalSaleForm, setTotalSaleForm] = useState({
@@ -69,6 +70,7 @@ const Reports = () => {
             setTotalSheetSaleForm({
                 date: '',
                 sheetNo: '',
+                category: 'combined',
                 reportType: 'withoutGroup',
             })
             setTotalSaleForm({
@@ -144,7 +146,7 @@ const Reports = () => {
     }
 
 
-    function processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted = false,marginTop=34) {
+    function processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted = false, marginTop = 34) {
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
         function dividePurchasesIntoArrays(purchases, parts) {
@@ -188,16 +190,16 @@ const Reports = () => {
 
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
         let bodyData = [];
-        var wtotalFirst=0,wtotalSecond=0,wtotal=0;
+        var wtotalFirst = 0, wtotalSecond = 0, wtotal = 0;
 
         function generateSectionReport(purchases, dividedArrays, totalFirst, totalSecond) {
             if (purchases.length > 0) {
                 let sectionTableData = generateTableData(purchases, dividedArrays, totalFirst, totalSecond);
                 bodyData = sectionTableData.tableData;
-                wtotalFirst+=sectionTableData.totalFirst
-                wtotalSecond+=sectionTableData.totalSecond
-                wtotal+=sectionTableData.total
-                
+                wtotalFirst += sectionTableData.totalFirst
+                wtotalSecond += sectionTableData.totalSecond
+                wtotal += sectionTableData.total
+
                 pdfDoc.setFontSize(10);
                 pdfDoc.autoTable({
                     head: [columns],
@@ -219,7 +221,7 @@ const Reports = () => {
             }
         }
 
-        let count=0
+        let count = 0
         let oneDigitPurchases = savedPurchases.filter(purchase => purchase.bundle.length === 1)
         if (oneDigitPurchases.length > 0) {
             let oneDigitDividedArrays = dividePurchasesIntoArrays(oneDigitPurchases, 4);
@@ -247,7 +249,7 @@ const Reports = () => {
             generateSectionReport(fourDigitPurchases, fourDigitDividedArrays, 0, 0);
             count++;
         }
-        if(count>1){
+        if (count > 1) {
             pdfDoc.setFontSize(12);
             pdfDoc.text("Total First: " + wtotalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total Second: " + wtotalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
@@ -262,27 +264,38 @@ const Reports = () => {
         let drawData = savedPurchasesInDraw.find(data => data._id === totalSheetSaleForm.sheetNo);
         let savedPurchases = [...drawData.savedPurchases];
         const pdfDoc = new jsPDF();
-
         pdfDoc.setFontSize(20);
-        // Two centered headings
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+
+        if(totalSheetSaleForm.category=="combined" || totalSheetSaleForm.category=="general"){
+            pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+            
+        }else{
+            pdfDoc.text("Total Sheet Oversale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        }
         pdfDoc.setFontSize(10);
-        pdfDoc.text(selectedDraw.title+ " - Sheet: " + drawData.sheetName, 15, 30);
+        pdfDoc.text(selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
 
 
-        processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted,32)
+        if(totalSheetSaleForm.category=="combined" || totalSheetSaleForm.category=="general"){
+            processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted, 32)            
+        }
 
         let savedOversales = [...drawData.savedOversales];
-        if (savedOversales.length > 0) {
+        if (savedOversales.length > 0 && (totalSheetSaleForm.category=="combined" || totalSheetSaleForm.category=="oversale")) {
             // Add a new page for the Oversales content
-            pdfDoc.addPage();
-            pdfDoc.setFontSize(20);
-            pdfDoc.text("OverSales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+            if(totalSheetSaleForm.category=="combined"){
+                pdfDoc.addPage();
+                pdfDoc.setFontSize(20);
+                pdfDoc.text("OverSales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });    
+                processAndAddTablesInPDF(pdfDoc, savedOversales, sorted, 15)
+            }
+            else{
+                processAndAddTablesInPDF(pdfDoc, savedOversales, sorted, 32)
+            }
             //pdfDoc,savedPurchases, drawData, selectedDraw, sorted = false
-            processAndAddTablesInPDF(pdfDoc, savedOversales, sorted,15)
         }
 
         const filename = 'sample.pdf';
@@ -304,6 +317,20 @@ const Reports = () => {
         let savedPurchases = [...drawData.savedPurchases];
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
+        const pdfDoc = new jsPDF();
+
+        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+
+        pdfDoc.setFontSize(20);
+        // Two centered headings
+        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+
+        if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
+            pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        }
+        else {
+            pdfDoc.text("Total Sheet Oversale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        }
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
         let dividedArrays = [];
@@ -317,14 +344,6 @@ const Reports = () => {
             dividedArrays.push(savedPurchases.slice(i, i + chunkSize));
         }
 
-        const pdfDoc = new jsPDF();
-
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
-
-        pdfDoc.setFontSize(20);
-        // Two centered headings
-        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
 
         let newData = [];
         let totalFirst = 0, totalSecond = 0, total = 0;
@@ -347,23 +366,25 @@ const Reports = () => {
         let bodyData = newData;
 
         pdfDoc.setFontSize(10);
-        pdfDoc.text(selectedDraw.title+ " - Sheet: " + drawData.sheetName, 15, 30);
+        pdfDoc.text(selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 15, 30, { align: 'right' });
 
-        // Add a table to the PDF
-        pdfDoc.autoTable({
-            head: [columns],
-            body: bodyData,
-            theme: 'striped',
-            margin: { top: 34 }, // Adjusted top margin to leave space for the headings and texts
-            columnStyles: {
-                0: { fillColor: [192, 192, 192] },
-                3: { fillColor: [192, 192, 192] },
-                6: { fillColor: [192, 192, 192] },
-                9: { fillColor: [192, 192, 192] }
-            },
-        });
+        if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
+            // Add a table to the PDF
+            pdfDoc.autoTable({
+                head: [columns],
+                body: bodyData,
+                theme: 'striped',
+                margin: { top: 32 }, // Adjusted top margin to leave space for the headings and texts
+                columnStyles: {
+                    0: { fillColor: [192, 192, 192] },
+                    3: { fillColor: [192, 192, 192] },
+                    6: { fillColor: [192, 192, 192] },
+                    9: { fillColor: [192, 192, 192] }
+                },
+            });
+        }
 
         pdfDoc.setFontSize(10);
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
@@ -373,9 +394,13 @@ const Reports = () => {
         let savedOversales = drawData.savedOversales;
         savedOversales = savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
-        if (savedOversales.length > 0) {
+        if (savedOversales.length > 0 && (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "oversale")) {
             // Add a new page for the Oversales content
-            pdfDoc.addPage();
+            if (totalSheetSaleForm.category == "combined") {
+                pdfDoc.addPage();
+                pdfDoc.setFontSize(20);
+                pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+            }
 
             chunkSize = Math.ceil(savedOversales.length / parts);
             dividedArrays = [];
@@ -390,10 +415,6 @@ const Reports = () => {
             }
 
             // Move the cursor down to leave space for the Oversales headings and table
-            pdfDoc.setFontSize(20);
-
-            // Two centered headings for Oversales
-            pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
             newData = [];
 
             totalFirst = 0;
@@ -421,7 +442,7 @@ const Reports = () => {
                 head: [columns],
                 body: bodyData,
                 theme: 'striped',
-                margin: { top: 15 }, // Adjusted top margin to leave space for the headings and texts
+                margin: { top: totalSheetSaleForm.category == "oversale" ? 32 : 15 }, // Adjusted top margin to leave space for the headings and texts
                 columnStyles: {
                     0: { fillColor: [192, 192, 192] },
                     3: { fillColor: [192, 192, 192] },
@@ -461,7 +482,7 @@ const Reports = () => {
         else {
             pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
-        
+
         pdfDoc.setFontSize(10);
         pdfDoc.text("Draw: " + selectedDraw.title, 15, 30);
         // Text above the table on the right with adjusted font size
@@ -486,7 +507,7 @@ const Reports = () => {
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
         if (totalSaleForm.category == "combined" || totalSaleForm.category == "general") {
-            processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted,32)
+            processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted, 32)
         }
 
 
@@ -511,13 +532,13 @@ const Reports = () => {
         if (savedOversales.length > 0) {
             if (totalSaleForm.category == "combined" || totalSaleForm.category == "oversale") {
                 // Add a new page for the Oversales content
-                if(totalSaleForm.category == "combined"){
+                if (totalSaleForm.category == "combined") {
                     pdfDoc.addPage();
                     pdfDoc.setFontSize(20);
-                    pdfDoc.text("OverSales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });    
+                    pdfDoc.text("OverSales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
                 }
                 //pdfDoc,savedPurchases, drawData, selectedDraw, sorted = false
-                processAndAddTablesInPDF(pdfDoc, savedOversales, sorted , totalSaleForm.category == "oversale" ? 32 :15)
+                processAndAddTablesInPDF(pdfDoc, savedOversales, sorted, totalSaleForm.category == "oversale" ? 32 : 15)
 
             }
         }
@@ -837,6 +858,24 @@ const Reports = () => {
                                                 {getSheetNames().map(data => (
                                                     <option value={data._id}>{data.sheetName}</option>
                                                 ))}
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Category</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="category"
+                                                value={totalSheetSaleForm.category}
+                                                onChange={handleTotalSheetSaleChange}
+                                            >
+                                                <option value="combined">Combined</option>
+                                                <option value="general">General</option>
+                                                <option value="oversale">Oversale</option>
                                             </Form.Control>
                                         </Col>
                                     </Row>

@@ -449,6 +449,7 @@ export default function Merchent() {
                             as='select'
                             value={form.selectedDraw}
                             onChange={(e) => handleChangeDraw(e.target.value)}
+                            disabled={!currentLoggedInUser._id}
                         >
                             <option value=''>Select Draw</option>
                             {draws.map((draw) => (
