@@ -9,6 +9,7 @@ import Client from './pages/Client';
 import DrawTime from './pages/DrawTime';
 import Merchent from './pages/Merchent';
 import MerchentReports from './pages/MerchentReports';
+import DistributorReports from './pages/DistributorReports';
 
 
 function App() {
@@ -23,9 +24,11 @@ function App() {
             if(loggedInUser.role=="merchent"){
                 return <MerchentReports />
             }
-    
+            if(loggedInUser.role=="distributor"){
+                return <DistributorReports />
+            }
         }catch(e){
-            
+
         }
     }
     return (

@@ -97,7 +97,7 @@ const MerchentReports = () => {
                 return
             }
             setSelectedDraw(tempDraw)
-            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw => tempDraw._id)
+            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw => draw.drawId==tempDraw._id)
             if (!targets) {
                 alertMessage("You haven't purchased anything from this Draw")
                 return
@@ -132,8 +132,8 @@ const MerchentReports = () => {
     };
 
     const getTitle = () => {
-        if (selectedOption === 'totalSale') return 'Total Sale';
-        if (selectedOption === 'totalSheetSale') return 'Total Sheet Sale';
+        if (selectedOption === 'totalSale') return 'Total Sale Report';
+        if (selectedOption === 'totalSheetSale') return 'Total Sheet Sale Report';
         return '';
     };
     const getSheetNames = () => {
@@ -298,7 +298,7 @@ const MerchentReports = () => {
             pdfDoc.text("Total Sheet Oversale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
         pdfDoc.setFontSize(10);
-        pdfDoc.text(selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
+        pdfDoc.text(currentLoggedInUser.username+", "+selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
@@ -403,7 +403,7 @@ const MerchentReports = () => {
         let bodyData = newData;
 
         pdfDoc.setFontSize(10);
-        pdfDoc.text(selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
+        pdfDoc.text(currentLoggedInUser.username+", "+selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
@@ -570,7 +570,7 @@ const MerchentReports = () => {
         }
 
         pdfDoc.setFontSize(10);
-        pdfDoc.text("Draw: " + selectedDraw.title, 15, 30);
+        pdfDoc.text(currentLoggedInUser.username+", "+"Draw: " + selectedDraw.title, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
@@ -671,7 +671,7 @@ const MerchentReports = () => {
         }
 
         pdfDoc.setFontSize(10);
-        pdfDoc.text("Draw: " + selectedDraw.title, 15, 30);
+        pdfDoc.text(currentLoggedInUser.username+", "+"Draw: " + selectedDraw.title, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
