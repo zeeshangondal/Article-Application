@@ -142,12 +142,149 @@ const DistributorReports = () => {
         return []
     }
 
+    function processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted = false, marginTop = 34) {
+        savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
+
+        function dividePurchasesIntoArrays(purchases, parts) {
+            const chunkSize = Math.ceil(purchases.length / parts);
+            let dividedArrays = [];
+
+            if (sorted) {
+                purchases = purchases.sort((a, b) => {
+                    return Number('1' + a.bundle) - Number('1' + b.bundle);
+                });
+            }
+
+            for (let i = 0; i < purchases.length; i += chunkSize) {
+                dividedArrays.push(purchases.slice(i, i + chunkSize));
+            }
+
+            return dividedArrays;
+        }
+
+        function generateTableData(purchases, dividedArrays, totalFirst, totalSecond) {
+            let tableData = [];
+            let total = 0;
+
+            for (let i = 0; i < purchases.length / 4; i++) {
+                let row = [];
+                dividedArrays.forEach(array => {
+                    if (array[i]) {
+                        row.push(array[i].bundle);
+                        row.push(array[i].first);
+                        row.push(array[i].second);
+                        totalFirst += array[i].first;
+                        totalSecond += array[i].second;
+                    }
+                });
+                tableData.push(row);
+            }
+
+            total = totalFirst + totalSecond;
+            return { tableData, total, totalFirst, totalSecond };
+        }
+
+        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        let bodyData = [];
+        var wtotalFirst = 0, wtotalSecond = 0, wtotal = 0;
+
+        function generateSectionReport(purchases, dividedArrays, totalFirst, totalSecond) {
+            if (purchases.length > 0) {
+                let sectionTableData = generateTableData(purchases, dividedArrays, totalFirst, totalSecond);
+                bodyData = sectionTableData.tableData;
+                wtotalFirst += sectionTableData.totalFirst
+                wtotalSecond += sectionTableData.totalSecond
+                wtotal += sectionTableData.total
+
+                pdfDoc.setFontSize(10);
+                pdfDoc.autoTable({
+                    head: [columns],
+                    body: bodyData,
+                    theme: 'striped',
+                    margin: { top: marginTop },
+                    columnStyles: {
+                        0: { fillColor: [192, 192, 192] },
+                        3: { fillColor: [192, 192, 192] },
+                        6: { fillColor: [192, 192, 192] },
+                        9: { fillColor: [192, 192, 192] }
+                    },
+                });
+
+                pdfDoc.setFontSize(10);
+                pdfDoc.text("Total First: " + sectionTableData.totalFirst, 15, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.text("Total Second: " + sectionTableData.totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.text("Total: " + sectionTableData.total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 5);
+            }
+        }
+
+        let count = 0
+        let oneDigitPurchases = savedPurchases.filter(purchase => purchase.bundle.length === 1)
+        if (oneDigitPurchases.length > 0) {
+            let oneDigitDividedArrays = dividePurchasesIntoArrays(oneDigitPurchases, 4);
+            generateSectionReport(oneDigitPurchases, oneDigitDividedArrays, 0, 0);
+            count++;
+        }
+
+        let twoDigitPurchases = savedPurchases.filter(purchase => purchase.bundle.length === 2)
+        if (twoDigitPurchases.length > 0) {
+            let twoDigitDividedArrays = dividePurchasesIntoArrays(twoDigitPurchases, 4);
+            generateSectionReport(twoDigitPurchases, twoDigitDividedArrays, 0, 0);
+            count++;
+        }
+
+        let threeDigitPurchases = savedPurchases.filter(purchase => purchase.bundle.length === 3)
+        if (threeDigitPurchases.length > 0) {
+            let threeDigitDividedArrays = dividePurchasesIntoArrays(threeDigitPurchases, 4);
+            generateSectionReport(threeDigitPurchases, threeDigitDividedArrays, 0, 0);
+            count++;
+        }
+
+        let fourDigitPurchases = savedPurchases.filter(purchase => purchase.bundle.length === 4)
+        if (fourDigitPurchases.length > 0) {
+            let fourDigitDividedArrays = dividePurchasesIntoArrays(fourDigitPurchases, 4);
+            generateSectionReport(fourDigitPurchases, fourDigitDividedArrays, 0, 0);
+            count++;
+        }
+        if (count > 1) {
+            pdfDoc.setFontSize(12);
+            pdfDoc.text("Total First: " + wtotalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.text("Total Second: " + wtotalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.text("Total: " + wtotal, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        }
+        return wtotal;
+    }
+
+
     const generateTotalSaleWihtoutGroup = () => {
-
+        let savedPurchases = getTotalOfDistributorFromDraw(currentLoggedInUser.username)
+        generateDealSaleVoucherWithoutGroup(savedPurchases, currentLoggedInUser)
     }
-    const generateTotalSaleGroupWise = () => {
 
+    const generateTotalSaleGroupWise =async () => {
+        let savedPurchases = getTotalOfDistributorFromDraw(currentLoggedInUser.username)
+        const pdfDoc = new jsPDF();
+        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Client: " + currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
+        processAndAddTablesInPDF(pdfDoc, savedPurchases, true, 32)
+        const filename = 'sample.pdf';
+        // pdfDoc.save(filename);
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
     }
+
     const getAUser = (username) => {
         return allUsers.find(user => user.username == username)
     }
@@ -278,11 +415,11 @@ const DistributorReports = () => {
                 targetsMerchents.push(user)
             }
         })
-        
+
         let drawDataArray = []
         targetsMerchents.forEach(merchent => {
             let merchentsDrawDataArray = merchent.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
-            drawDataArray = [...drawDataArray,...merchentsDrawDataArray]
+            drawDataArray = [...drawDataArray, ...merchentsDrawDataArray]
         })
 
         let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)
@@ -306,8 +443,8 @@ const DistributorReports = () => {
 
     const generateDealerSaleVoucherWihtoutGroup = () => {
         let targetUser = getAUser(dealerSaleVoucherForm.dealer)
-        if(dealerSaleVoucherForm.dealer=="allDealers"){
-            let savedPurchases=getTotalOfDistributorFromDraw(currentLoggedInUser.username)
+        if (dealerSaleVoucherForm.dealer == "allDealers") {
+            let savedPurchases = getTotalOfDistributorFromDraw(currentLoggedInUser.username)
             generateDealSaleVoucherWithoutGroup(savedPurchases, currentLoggedInUser)
             return;
         }
@@ -316,7 +453,7 @@ const DistributorReports = () => {
             generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser)
             return
         } else {
-            let savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
+            let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
             generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser)
         }
     }

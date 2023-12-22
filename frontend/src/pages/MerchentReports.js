@@ -118,7 +118,7 @@ const MerchentReports = () => {
                 return
             }
             setSelectedDraw(tempDraw)
-            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw => tempDraw._id)
+            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw =>draw.drawId== tempDraw._id)
             if (!targets) {
                 alertMessage("You haven't purchased anything from this Draw")
                 return
