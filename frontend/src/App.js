@@ -10,6 +10,7 @@ import DrawTime from './pages/DrawTime';
 import Merchent from './pages/Merchent';
 import MerchentReports from './pages/MerchentReports';
 import DistributorReports from './pages/DistributorReports';
+import AdminReports from './pages/AdminReports';
 
 
 function App() {

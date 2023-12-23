@@ -9,7 +9,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
 
-const DistributorReports = () => {
+const AdminReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
     const [draws, setDraws] = useState([]);
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({});
@@ -260,7 +260,7 @@ const DistributorReports = () => {
         generateDealSaleVoucherWithoutGroup(savedPurchases, currentLoggedInUser)
     }
 
-    const generateTotalSaleGroupWise = async () => {
+    const generateTotalSaleGroupWise =async () => {
         let savedPurchases = getTotalOfDistributorFromDraw(currentLoggedInUser.username)
         const pdfDoc = new jsPDF();
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
@@ -270,7 +270,7 @@ const DistributorReports = () => {
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
         pdfDoc.setFontSize(10);
         pdfDoc.text("Client: " + currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
-        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         processAndAddTablesInPDF(pdfDoc, savedPurchases, true, 32)
         const filename = 'sample.pdf';
         // pdfDoc.save(filename);
@@ -310,72 +310,6 @@ const DistributorReports = () => {
         return savedPurchases
     }
 
-    const addOneTableForDitributor=(pdfDoc,targetUser, savedPurchases,tableMarginTop,isFirst)=> {
-
-        // Set font size and display client information
-        pdfDoc.setFontSize(10);
-        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, tableMarginTop==32? 30:10);
-        if(isFirst){
-            pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, tableMarginTop==32? 30:10, { align: 'right' });
-        }
-
-        // Divide savedPurchases into parts
-        let parts = 4;
-        let chunkSize = Math.ceil(savedPurchases.length / parts);
-        let dividedArrays = [];
-
-        savedPurchases = savedPurchases.sort((a, b) => {
-            return Number('1' + a.bundle) - Number('1' + b.bundle);
-        });
-
-        for (let i = 0; i < savedPurchases.length; i += chunkSize) {
-            dividedArrays.push(savedPurchases.slice(i, i + chunkSize));
-        }
-
-        // Process data and calculate totals
-        let newData = [];
-        let totalFirst = 0, totalSecond = 0, total = 0;
-
-        for (let i = 0; i < savedPurchases.length / 4; i++) {
-            let row = [];
-            dividedArrays.forEach(array => {
-                if (array[i]) {
-                    row.push(array[i].bundle)
-                    row.push(array[i].first)
-                    row.push(array[i].second)
-                    totalFirst += array[i].first
-                    totalSecond += array[i].second
-                }
-            });
-            newData.push(row);
-        }
-        total = totalFirst + totalSecond;
-
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
-
-        // Convert the data to a format compatible with jsPDF autoTable
-        let bodyData = newData;
-        pdfDoc.autoTable({
-            head: [columns],
-            body: bodyData,
-            theme: 'striped',
-            margin: { top: tableMarginTop }, // Adjusted top margin to leave space for the headings and texts
-            columnStyles: {
-                0: { fillColor: [192, 192, 192] },
-                3: { fillColor: [192, 192, 192] },
-                6: { fillColor: [192, 192, 192] },
-                9: { fillColor: [192, 192, 192] }
-            },
-        });
-
-        // Display totals
-        pdfDoc.setFontSize(10);
-        pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
-
-    }
-
     const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser) => {
         const pdfDoc = new jsPDF();
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
@@ -388,7 +322,7 @@ const DistributorReports = () => {
 
         pdfDoc.setFontSize(10);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
-        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
 
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
@@ -502,68 +436,16 @@ const DistributorReports = () => {
                 return acc;
             }, {});
         let savedPurchases = Object.values(groupedByBundle);
+        console.log(savedPurchases)
         return savedPurchases
 
     }
-    const generateDealSaleVoucherForAllDealersWithoutGroup=async()=>{
-        const pdfDoc = new jsPDF();
-        pdfDoc.setFontSize(20);
-        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text("Total Sale Report All Dealers", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
-        let added=false
-        let first=true;
 
-        subUsers.forEach(user=>{
-            if(user.role=="merchent"){
-                let savedPurchases = getTotalOfMerchentFromDraw(user.username)
-                if(savedPurchases.length>0){
-                    if(added){
-                        pdfDoc.addPage()
-                    }
-                    if(first){
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true)
-                        first=false;
-                    }else{
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false)
-                    }
-                    added=true
-                }
-            }
-            else if(user.role=="distributor"){
-                let savedPurchases = getTotalOfDistributorFromDraw(user.username)
-                if(savedPurchases.length>0){
-                    if(added){
-                        pdfDoc.addPage()
-                    }
-                    if(first){
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true)
-                        first=false;
-                    }else{
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false)
-                    }
-                    added=true
-                }
-            }
-            
-        })
-        const filename = 'sample.pdf';
-        // pdfDoc.save(filename);
-        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
-        const formData = new FormData();
-        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
-        try {
-            await savePdfOnBackend(formData);
-            successMessage("Report generated successfully")
-        } catch (e) {
-            alertMessage("Due to an error could not make report")
-        }
-    }
     const generateDealerSaleVoucherWihtoutGroup = () => {
         let targetUser = getAUser(dealerSaleVoucherForm.dealer)
         if (dealerSaleVoucherForm.dealer == "allDealers") {
             let savedPurchases = getTotalOfDistributorFromDraw(currentLoggedInUser.username)
-            // generateDealSaleVoucherWithoutGroup(savedPurchases, currentLoggedInUser)
-            generateDealSaleVoucherForAllDealersWithoutGroup()
+            generateDealSaleVoucherWithoutGroup(savedPurchases, currentLoggedInUser)
             return;
         }
         if (targetUser.role == "merchent") {
@@ -709,4 +591,4 @@ const DistributorReports = () => {
     );
 };
 
-export default DistributorReports;
+export default AdminReports;
