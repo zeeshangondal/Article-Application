@@ -24,6 +24,11 @@ const AdminReports = () => {
         date: '',
         dealer: 'allDealers',
     });
+    const [totalLimitSaleForm, setTotalLimitSaleForm] = useState({
+        date: '',
+        reportType: 'withoutGroup',
+        dealer: 'allDealersCombined',
+    });
 
     const [notification, setNotification] = useState({
         color: "",
@@ -84,6 +89,12 @@ const AdminReports = () => {
                 date: '',
                 reportType: 'withoutGroup',
             })
+            setTotalLimitSaleForm({
+                date: '',
+                reportType: 'withoutGroup',
+                dealer: 'allDealersCombined',
+            })
+
         }
     };
 
@@ -109,6 +120,21 @@ const AdminReports = () => {
             [name]: value,
         }));
     };
+    const handleTotalLimitSaleChange = (e) => {
+        const { name, value } = e.target;
+        if (name == "date") {
+            let tempDraw = draws.find(draw => draw.drawDate == value)
+            if (!tempDraw) {
+                alertMessage("No Record of Draw")
+                return
+            }
+            setSelectedDraw(tempDraw)
+        }
+        setTotalLimitSaleForm((prevForm) => ({
+            ...prevForm,
+            [name]: value,
+        }));
+    };
     const handleDealerSaleVoucherChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
@@ -128,6 +154,8 @@ const AdminReports = () => {
     const getTitle = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'dealerSaleVoucher') return 'Distributors Sale Voucher Report';
+        if (selectedOption === 'totalLimitSale') return 'Total Limit Sale Report';
+
         return '';
     };
     const getSubUserusernames = () => {
@@ -143,7 +171,7 @@ const AdminReports = () => {
     }
 
     function processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted = false, marginTop = 34) {
-        savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
+        // savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
         function dividePurchasesIntoArrays(purchases, parts) {
             const chunkSize = Math.ceil(purchases.length / parts);
@@ -267,7 +295,7 @@ const AdminReports = () => {
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
-        savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
+        // savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
         pdfDoc.setFontSize(10);
         pdfDoc.text("Client: " + currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
@@ -310,15 +338,15 @@ const AdminReports = () => {
         return savedPurchases
     }
 
-    const addOneTableForDitributor=(pdfDoc,targetUser, savedPurchases,tableMarginTop,isFirst,AllTotal)=> {
+    const addOneTableForDitributor = (pdfDoc, targetUser, savedPurchases, tableMarginTop, isFirst, AllTotal) => {
 
         // Set font size and display client information
         pdfDoc.setFontSize(10);
-        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, tableMarginTop==32? 30:10);
-        if(isFirst){
-            pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, tableMarginTop==32? 30:10, { align: 'right' });
-            pdfDoc.text("All total " + AllTotal, pdfDoc.internal.pageSize.width - 20, tableMarginTop==32? 30:10, { align: 'right' });
-            
+        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, tableMarginTop == 32 ? 30 : 10);
+        if (isFirst) {
+            pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, tableMarginTop == 32 ? 30 : 10, { align: 'right' });
+            pdfDoc.text("All total " + AllTotal, pdfDoc.internal.pageSize.width - 20, tableMarginTop == 32 ? 30 : 10, { align: 'right' });
+
         }
 
         // Divide savedPurchases into parts
@@ -378,14 +406,14 @@ const AdminReports = () => {
 
     }
 
-    const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser) => {
+    const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser, heading = "Distributor Sale Report") => {
         const pdfDoc = new jsPDF();
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text("Distributo Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.text(heading, pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
 
-        savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
+        // savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
 
 
         pdfDoc.setFontSize(10);
@@ -507,39 +535,39 @@ const AdminReports = () => {
         return savedPurchases
 
     }
-    const generateDealSaleVoucherForAllDealersWithoutGroup=async()=>{
+    const generateDealSaleVoucherForAllDealersWithoutGroup = async () => {
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text( dealerSaleVoucherForm.dealer=="allDealers" ? "All Distributors Sale Voucher" :"Distributor Sale Voucher", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
-        let added=false
-        let first=true;
+        pdfDoc.text(dealerSaleVoucherForm.dealer == "allDealers" ? "All Distributors Sale Voucher" : "Distributor Sale Voucher", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        let added = false
+        let first = true;
 
-        let firstTotal=0,secondTotal=0,total=0;
-        subUsers.forEach(user=>{
+        let firstTotal = 0, secondTotal = 0, total = 0;
+        subUsers.forEach(user => {
             let savedPurchases = getTotalOfDistributorFromDraw(user.username)
-            savedPurchases.forEach(purchase=>{
-                firstTotal+=Number(purchase.first)
-                secondTotal+=Number(purchase.second)
+            savedPurchases.forEach(purchase => {
+                firstTotal += Number(purchase.first)
+                secondTotal += Number(purchase.second)
             })
         })
-        total+=firstTotal+secondTotal
-        subUsers.forEach(user=>{
-            if(user.role=="distributor"){
+        total += firstTotal + secondTotal
+        subUsers.forEach(user => {
+            if (user.role == "distributor") {
                 let savedPurchases = getTotalOfDistributorFromDraw(user.username)
-                if(savedPurchases.length>0){
-                    if(added){
+                if (savedPurchases.length > 0) {
+                    if (added) {
                         pdfDoc.addPage()
                     }
-                    if(first){
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true,total)
-                        first=false;
-                    }else{
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false,total)
+                    if (first) {
+                        addOneTableForDitributor(pdfDoc, user, savedPurchases, 32, true, total)
+                        first = false;
+                    } else {
+                        addOneTableForDitributor(pdfDoc, user, savedPurchases, 12, false, total)
                     }
-                    added=true
+                    added = true
                 }
-            }  
+            }
         })
         const filename = 'sample.pdf';
         // pdfDoc.save(filename);
@@ -559,12 +587,144 @@ const AdminReports = () => {
             generateDealSaleVoucherForAllDealersWithoutGroup()
             return;
         }
-        else{
+        else {
             let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
             generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser)
         }
     }
+    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser) => {
+        let hadd = {};
+        if (targetUser.username == "admin") {
+            hadd = { hindsyKiHad1: 0, hindsyKiHad2: 0, akraKiHad1: 0, akraKiHad2: 0, firstTendolaKiHad: 0, secondTendolaKiHad: 0, firstPangodaKiHad: 0, secondPangodaKiHad: 0 };
+            subUsers.forEach(user => {
+                hadd.hindsyKiHad1 += user.hadd.hindsyKiHad1;
+                hadd.hindsyKiHad2 += user.hadd.hindsyKiHad2;
+                hadd.akraKiHad1 += user.hadd.akraKiHad1;
+                hadd.akraKiHad2 += user.hadd.akraKiHad2;
+                hadd.firstTendolaKiHad += user.hadd.firstTendolaKiHad;
+                hadd.secondTendolaKiHad += user.hadd.secondTendolaKiHad;
+                hadd.firstPangodaKiHad += user.hadd.firstPangodaKiHad;
+                hadd.secondPangodaKiHad += user.hadd.secondPangodaKiHad;
 
+            })
+        } else {
+            hadd = targetUser.hadd;
+        }
+        let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+        let updatedSavedPurchases = savedPurchases.map(purchase => {
+            let newData = { ...purchase }
+            if (purchase.bundle.length == 1) {
+                newData.first = Number(newData.first) - Number(hadd.hindsyKiHad1);
+                newData.second = Number(newData.second) - Number(hadd.hindsyKiHad2);
+            } else if (purchase.bundle.length == 2) {
+                newData.first = Number(newData.first) - Number(hadd.akraKiHad1);
+                newData.second = Number(newData.second) - Number(hadd.akraKiHad2);
+            } else if (purchase.bundle.length == 3) {
+                newData.first = Number(newData.first) - Number(hadd.firstTendolaKiHad);
+                newData.second = Number(newData.second) - Number(hadd.secondTendolaKiHad);
+            } else if (purchase.bundle.length == 4) {
+                newData.first = Number(newData.first) - Number(hadd.firstPangodaKiHad);
+                newData.second = Number(newData.second) - Number(hadd.secondPangodaKiHad);
+            }
+            return newData
+        })
+        return updatedSavedPurchases;
+    }
+    const generateTotalLimitSaleForAllDealersSeparateWithoutGroup = async () => {
+        const pdfDoc = new jsPDF();
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Sale Limit", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        let added = false
+        let first = true;
+
+        let firstTotal = 0, secondTotal = 0, total = 0;
+        subUsers.forEach(user => {
+            let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(getAUser(user.username));
+            savedPurchases.forEach(purchase => {
+                firstTotal += Number(purchase.first)
+                secondTotal += Number(purchase.second)
+            })
+        })
+        total += firstTotal + secondTotal
+        subUsers.forEach(user => {
+            if (user.role == "distributor") {
+                let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(getAUser(user.username));
+                if (savedPurchases.length > 0) {
+                    if (added) {
+                        pdfDoc.addPage()
+                    }
+                    if (first) {
+                        addOneTableForDitributor(pdfDoc, user, savedPurchases, 32, true, total)
+                        first = false;
+                    } else {
+                        addOneTableForDitributor(pdfDoc, user, savedPurchases, 12, false, total)
+                    }
+                    added = true
+                }
+            }
+        })
+        const filename = 'sample.pdf';
+        // pdfDoc.save(filename);
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
+    const generateTotalLimitSaleWihtoutGroup = () => {
+        let targetUser = {}
+        if (totalLimitSaleForm.dealer == "allDealersCombined") {
+            targetUser = getAUser("admin")
+        }else if(totalLimitSaleForm.dealer == "allDealersSeparate"){
+            generateTotalLimitSaleForAllDealersSeparateWithoutGroup()
+            return
+        }
+         else {
+            targetUser = getAUser(totalLimitSaleForm.dealer)
+        }
+        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
+        generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser, totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Limit Sale")
+    }
+
+    const generateTotalLimitSaleGroupWise = async () => {
+
+        let targetUser = {}
+        if(totalLimitSaleForm.dealer=="allDealersSeparate")
+            return
+        if (totalLimitSaleForm.dealer == "allDealersCombined") {
+            targetUser = getAUser("admin")
+        } else {
+            targetUser = getAUser(totalLimitSaleForm.dealer)
+        }
+        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
+
+        const pdfDoc = new jsPDF();
+        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text(totalLimitSaleForm.dealer == "allDealers" ? "All Distributors Limit Sale" : "Distributor Limit Sale", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        // savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        processAndAddTablesInPDF(pdfDoc, savedPurchases, true, 32)
+        const filename = 'sample.pdf';
+        // pdfDoc.save(filename);
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
 
     return (
         <div className='container mt-4'>
@@ -580,6 +740,8 @@ const AdminReports = () => {
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Distributors Sale Voucher</Nav.Link>
+                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Limit Sale</Nav.Link>
+
                             </Nav>
                         </Card.Body>
                     </Card>
@@ -623,6 +785,61 @@ const AdminReports = () => {
                                     </Row>
                                 </Form>
                             )}
+                            {selectedOption === 'totalLimitSale' && (
+                                <Form>
+                                    <Row>
+                                        <Col>
+                                            <Form.Label>Date</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="date"
+                                                name="date"
+                                                value={totalLimitSaleForm.date}
+                                                onChange={handleTotalLimitSaleChange}
+                                            />
+                                        </Col>
+                                    </Row>
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Dealer</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="dealer"
+                                                value={totalLimitSaleForm.dealer}
+                                                onChange={handleTotalLimitSaleChange}
+                                            >
+                                                <option value="allDealersCombined">All Distributors Combined</option>
+                                                <option value="allDealersSeparate">All Distributors Separate</option>
+                                                {getSubUserusernames().map(user => {
+                                                    return (
+                                                        <option value={user.username} >{user.username}</option>
+                                                    )
+                                                })}
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Report</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="reportType"
+                                                value={totalLimitSaleForm.reportType}
+                                                onChange={handleTotalLimitSaleChange}
+                                            >
+                                                <option value="withoutGroup">Without Group</option>
+                                                <option value="groupWise">Group-Wise</option>
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+                                </Form>
+                            )}
 
                             {selectedOption === 'dealerSaleVoucher' && (
                                 <Form>
@@ -639,8 +856,6 @@ const AdminReports = () => {
                                             />
                                         </Col>
                                     </Row>
-
-
                                     <Row className='mt-3'>
                                         <Col>
                                             <Form.Label>Dealer</Form.Label>
@@ -649,7 +864,7 @@ const AdminReports = () => {
                                             <Form.Control
                                                 as="select"
                                                 name="dealer"
-                                                value={dealerSaleVoucherForm.dealerSaleVoucher}
+                                                value={dealerSaleVoucherForm.dealer}
                                                 onChange={handleDealerSaleVoucherChange}
                                             >
                                                 <option value="allDealers">All Distributors</option>
@@ -683,6 +898,19 @@ const AdminReports = () => {
                                     <Button variant="primary btn btn-sm m-1"
                                         onClick={() => (totalSaleForm.reportType == "withoutGroup" ? generateTotalSaleWihtoutGroup() : generateTotalSaleGroupWise())}
                                         disabled={!totalSaleForm.date || !totalSaleForm.reportType}
+                                    >
+                                        Report
+                                    </Button>
+
+                                </div>
+                            </Card.Footer>
+                        )}
+                        {selectedOption === 'totalLimitSale' && (
+                            <Card.Footer>
+                                <div className="d-flex flex-wrap justify-content-start">
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => (totalLimitSaleForm.reportType == "withoutGroup" ? generateTotalLimitSaleWihtoutGroup() : generateTotalLimitSaleGroupWise())}
+                                        disabled={!totalLimitSaleForm.date || !totalLimitSaleForm.reportType || !totalLimitSaleForm.dealer}
                                     >
                                         Report
                                     </Button>
