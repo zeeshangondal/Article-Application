@@ -28,6 +28,10 @@ function App() {
             if(loggedInUser.role=="distributor"){
                 return <DistributorReports />
             }
+            if(loggedInUser.role=="admin"){
+                return <AdminReports />
+            }
+            
         }catch(e){
 
         }

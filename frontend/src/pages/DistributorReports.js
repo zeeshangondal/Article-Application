@@ -310,13 +310,15 @@ const DistributorReports = () => {
         return savedPurchases
     }
 
-    const addOneTableForDitributor=(pdfDoc,targetUser, savedPurchases,tableMarginTop,isFirst)=> {
+    const addOneTableForDitributor=(pdfDoc,targetUser, savedPurchases,tableMarginTop,isFirst,AllTotal)=> {
 
         // Set font size and display client information
         pdfDoc.setFontSize(10);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, tableMarginTop==32? 30:10);
         if(isFirst){
-            pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, tableMarginTop==32? 30:10, { align: 'right' });
+            pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, tableMarginTop==32? 30:10, { align: 'right' });
+            pdfDoc.text("All total " + AllTotal, pdfDoc.internal.pageSize.width - 20, tableMarginTop==32? 30:10, { align: 'right' });
+
         }
 
         // Divide savedPurchases into parts
@@ -381,7 +383,7 @@ const DistributorReports = () => {
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.text("Dealer Sale Voucher Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
 
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
 
@@ -509,9 +511,24 @@ const DistributorReports = () => {
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text("Total Sale Report All Dealers", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.text(dealerSaleVoucherForm.dealer=="allDealers" ? "All Dealers Sale Voucher Report": "Dealer Sale Voucher Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         let added=false
         let first=true;
+        let firstTotal=0,secondTotal=0,total=0;
+        subUsers.forEach(user=>{
+            let savedPurchases=[]
+            if(user.role=="merchent"){
+                savedPurchases = getTotalOfMerchentFromDraw(user.username)
+            }
+            else {
+                savedPurchases = getTotalOfDistributorFromDraw(user.username)
+            }
+            savedPurchases.forEach(purchase=>{
+                firstTotal+=Number(purchase.first)
+                secondTotal+=Number(purchase.second)
+            })
+        })
+        total+=firstTotal+secondTotal
 
         subUsers.forEach(user=>{
             if(user.role=="merchent"){
@@ -521,10 +538,10 @@ const DistributorReports = () => {
                         pdfDoc.addPage()
                     }
                     if(first){
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true)
+                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true,total)
                         first=false;
                     }else{
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false)
+                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false,total)
                     }
                     added=true
                 }
@@ -536,10 +553,10 @@ const DistributorReports = () => {
                         pdfDoc.addPage()
                     }
                     if(first){
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true)
+                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true,total)
                         first=false;
                     }else{
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false)
+                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false,total)
                     }
                     added=true
                 }
@@ -561,8 +578,6 @@ const DistributorReports = () => {
     const generateDealerSaleVoucherWihtoutGroup = () => {
         let targetUser = getAUser(dealerSaleVoucherForm.dealer)
         if (dealerSaleVoucherForm.dealer == "allDealers") {
-            let savedPurchases = getTotalOfDistributorFromDraw(currentLoggedInUser.username)
-            // generateDealSaleVoucherWithoutGroup(savedPurchases, currentLoggedInUser)
             generateDealSaleVoucherForAllDealersWithoutGroup()
             return;
         }
