@@ -11,6 +11,7 @@ import Merchent from './pages/Merchent';
 import MerchentReports from './pages/MerchentReports';
 import DistributorReports from './pages/DistributorReports';
 import AdminReports from './pages/AdminReports';
+import SearchBundle from './pages/SearchBundle';
 
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
                     <Route path="/users/:_id" element={<Client />} />
                     <Route exact path="/merchent" element={<Merchent />} />
                     <Route exact path="/reports" element={getReportsPageForLoggedInUser()} />
+                    <Route exact path="/searchBundle" element={<SearchBundle/>} />
                     
                 </Routes>
             </Router>

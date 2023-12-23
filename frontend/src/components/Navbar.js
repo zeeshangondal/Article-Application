@@ -29,6 +29,7 @@ function AppNavbar() {
                             </>
                         }
                         <Nav.Link as={Link} to="/reports" className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Reports</Nav.Link>
+                        <Nav.Link as={Link} to={`/searchBundle`} className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Search Bundle</Nav.Link>
 
                     </Nav>
                     <Nav>
