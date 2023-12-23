@@ -707,7 +707,7 @@ const AdminReports = () => {
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text(totalLimitSaleForm.dealer == "allDealers" ? "All Distributors Limit Sale" : "Distributor Limit Sale", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Limit Sale", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         // savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
         pdfDoc.setFontSize(10);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
@@ -739,9 +739,8 @@ const AdminReports = () => {
                         <Card.Body>
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
-                                <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Distributors Sale Voucher</Nav.Link>
                                 <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Limit Sale</Nav.Link>
-
+                                <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Distributors Sale Voucher</Nav.Link>
                             </Nav>
                         </Card.Body>
                     </Card>
