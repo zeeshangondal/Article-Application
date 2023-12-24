@@ -5,6 +5,7 @@ import APIs from '../APIs/users';
 import { localStorageUtils } from '../APIs/localStorageUtils';
 import { useNavigate } from 'react-router-dom';
 import CustomNotification from '../components/CustomNotification';
+import articlesAPI from '../APIs/articles';
 
 
 export default function SearchBundle() {
@@ -16,6 +17,7 @@ export default function SearchBundle() {
     const [selectedDrawDate, setSelectedDrawDate] = useState('')
     const [bundle, setBundle] = useState(null)
     const [searchedResults, setSearchedResults] = useState([])
+    const [targetSheetData, setTargetSheetData] = useState(null)
     const [notification, setNotification] = useState({
         color: "",
         message: "Success",
@@ -153,7 +155,42 @@ export default function SearchBundle() {
                     }
                 }
             })
-            setSearchedResults(result)
+            let merchentsResult = result.filter(res => res.role == "merchent");
+            let distributorsResult = result.filter(res => res.role == "distributor");
+            let merchentsFinalResult = []
+            merchentsResult.forEach(m => {
+                let merchent = getAUser(m.username)
+                let savedPurchasesMade = merchent.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
+                savedPurchasesMade.forEach(savedPurchase => {
+                    let purchasedData = savedPurchase.savedPurchases.filter(p => p.bundle == bundle)
+                    purchasedData.forEach(purchase => {
+                        merchentsFinalResult.push({
+                            role: merchent.role, name: merchent.generalInfo.name, username: merchent.username, bundle: bundle, first: purchase.first, second: purchase.second,
+                            sheet: { exist: true, _id: savedPurchase._id, sheetName: savedPurchase.sheetName, savedPurchases: savedPurchase.savedPurchases }
+                        })
+                    })
+                })
+
+                let notSavedPurchasesMade = merchent.purchasedFromDrawData.filter(data => data.drawId == selectedDraw._id)
+                notSavedPurchasesMade.forEach(savedPurchase => {
+                    let purchasedData = savedPurchase.savedPurchases.filter(p => p.bundle == bundle)
+                    purchasedData.forEach(purchase => {
+                        merchentsFinalResult.push({
+                            role: merchent.role, name: merchent.generalInfo.name, username: merchent.username, bundle: bundle, first: purchase.first, second: purchase.second,
+                            sheet: { exist: false }
+                        })
+                    })
+                })
+
+            })
+            let finalResult = []
+            distributorsResult.forEach(re => {
+                finalResult.push(re)
+            })
+            merchentsFinalResult.forEach(re => {
+                finalResult.push(re)
+            })
+            setSearchedResults(finalResult)
         } else if (currentLoggedInUser.role == "admin") {
             let result = [];
             subUsers.forEach(user => {
@@ -245,6 +282,94 @@ export default function SearchBundle() {
         firstTotal += res.first
         secondTotal += res.second
     })
+
+    const handleTargetMerchentSearch = (res) => {
+        if (res.role == "distributor" || !res.sheet.exist) {
+            setTargetSheetData(null)
+            return;
+        }
+        setTargetSheetData({
+            user: getAUser(res.username),
+            sheet: res.sheet
+        })
+    }
+    const updateTargetUser = async (user) => {
+        await APIs.updateUser(user)
+    }
+    const getDataForBundle = (bundle, currentDraw) => {
+        let data = {
+            firstDigitId: "",
+            secondDigitId: "",
+            bundle,
+            askingUser: targetSheetData.user._id,
+            firstLimitOfDraw: 0,
+            secondLimitOfDraw: 0,
+        };
+
+        if (bundle.length > 0) {
+            if (bundle.length === 1) {
+                data.firstDigitId = currentDraw.oneDigitFirst.digit;
+                data.secondDigitId = currentDraw.oneDigitSecond.digit;
+                data.firstLimitOfDraw = currentDraw.oneDigitFirst.price
+                data.secondLimitOfDraw = currentDraw.oneDigitSecond.price
+            } else if (bundle.length === 2) {
+                data.firstDigitId = currentDraw.twoDigitFirst.digit;
+                data.secondDigitId = currentDraw.twoDigitSecond.digit;
+                data.firstLimitOfDraw = currentDraw.twoDigitFirst.price
+                data.secondLimitOfDraw = currentDraw.twoDigitSecond.price
+
+            } else if (bundle.length === 3) {
+                data.firstDigitId = currentDraw.threeDigitFirst.digit;
+                data.secondDigitId = currentDraw.threeDigitSecond.digit;
+                data.firstLimitOfDraw = currentDraw.threeDigitFirst.price
+                data.secondLimitOfDraw = currentDraw.threeDigitSecond.price
+
+            } else if (bundle.length === 4) {
+                data.firstDigitId = currentDraw.fourDigitFirst.digit;
+                data.secondDigitId = currentDraw.fourDigitSecond.digit;
+                data.firstLimitOfDraw = currentDraw.fourDigitFirst.price
+                data.secondLimitOfDraw = currentDraw.fourDigitSecond.price
+
+            }
+        }
+        return data;
+    };
+
+    const handleRemovingPurchase = async(_id) => {
+        try {
+            let user=getAUser(targetSheetData.user.username)
+            let purchasedData = user.savedPurchasesFromDrawsData.find(data => data.drawId ==selectedDraw._id && data._id== targetSheetData.sheet._id)
+            let purchases = purchasedData.savedPurchases
+            let target = purchases.find(purchase => purchase._id === _id)
+            console.log("Traget", target)
+            let updated = purchases.filter(purchase => purchase._id !== _id)
+            purchasedData.savedPurchases = [...updated]
+            user.availableBalance = user.availableBalance + (Number(target.first) + Number(target.second))
+
+            updateTargetUser(user)
+            fetchSubUsersOf()
+            let data = getDataForBundle(target.bundle, selectedDraw)
+            console.log(data)
+            data = {
+                ...data,
+                purchaseFirst: target.first,
+                purchaseSecond: target.second,
+                type: "+"
+            }
+            successMessage("Removed Successfully")
+            user=getAUser(user.username)
+
+            //sheet: { exist: true, _id: savedPurchase._id, sheetName: savedPurchase.sheetName, savedPurchases: savedPurchase.savedPurchases }
+
+            setTargetSheetData({user:user, sheet: {
+                ...targetSheetData.sheet,
+                savedPurchases: targetSheetData.sheet.savedPurchase.filter(purchase=> purchase._id=="s")
+            }})
+            await articlesAPI.updateDigit(data)
+
+        } catch (e) { }
+
+    }
     return (
         <div>
             <div className='container mt-3'>
@@ -295,17 +420,25 @@ export default function SearchBundle() {
                                     <th>Username</th>
                                     <th>1st</th>
                                     <th>2nd</th>
+                                    <th>Sheet</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {searchedResults.map(res => (
-                                    <tr>
+                                    <tr onClick={() => handleTargetMerchentSearch(res)}>
                                         <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{count++}</td>
                                         <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{bundle}</td>
                                         <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.name}</td>
                                         <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.username}</td>
                                         <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}> {res.first}</td>
                                         <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.second}</td>
+                                        {res.role == "distributor" ?
+                                            <td style={{ backgroundColor: 'lightblue' }}></td>
+                                            :
+                                            <td style={{ backgroundColor: 'orange' }}>{res.sheet.exist ? res.sheet.sheetName : "Not Saved"}</td>
+
+                                        }
+
                                     </tr>
                                 ))}
                             </tbody>
@@ -328,9 +461,42 @@ export default function SearchBundle() {
                                 </tbody>
                             </Table>
                         </div>
+
+                        {targetSheetData &&
+                            <div className='mt-3'>
+                                <h4>{targetSheetData.user.username} - Sheet - {targetSheetData.sheet.sheetName}</h4>
+                                <Table striped hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
+                                    <thead>
+                                        <tr>
+                                            <th>Bundle</th>
+                                            <th>First Total</th>
+                                            <th>Second Total</th>
+                                            <th>Remove</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {targetSheetData.sheet.savedPurchases.map(purchase => (
+                                            <tr>
+                                                <td>{purchase.bundle}</td>
+                                                <td>{purchase.first}</td>
+                                                <td>{purchase.second}</td>
+                                                <td>
+                                                    <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingPurchase(purchase._id)}>Remove</Button>
+
+                                                </td>
+                                            </tr>
+
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </div>
+
+                        }
+
+
+
+
                     </div>
-
-
                 }
 
             </div>
