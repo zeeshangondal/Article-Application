@@ -148,11 +148,13 @@ export default function SearchBundle() {
             let targetUser = getAUser(localStorageUtils.getLoggedInUser().username)
             let result = [];
             let savedPurchases = getTotalOfMerchentFromDraw(targetUser.username)
+
             let tempResult = getBundleIn(bundle, savedPurchases)
             if (tempResult.exist) {
                 result = [...result, { role: targetUser.role, name: targetUser.generalInfo.name, username: targetUser.username, bundle: bundle, first: tempResult.first, second: tempResult.second }]
             }
             setSearchedResults(result)
+            return
         } else if (currentLoggedInUser.role == "distributor") {
             let result = [];
             subUsers.forEach(user => {
@@ -411,6 +413,7 @@ export default function SearchBundle() {
         return (res.first != 0 || res.second != 0)
     })
 
+    console.log("Clean", cleanSearchedResults)
     return (
         <div>
             <div className='container mt-3'>
@@ -455,55 +458,79 @@ export default function SearchBundle() {
                         <Table hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
                             <thead>
                                 <tr  >
-                                    <th>#</th>
+                                    {currentLoggedInUser.role != "merchent" &&
+                                        <th>#</th>
+                                    }
                                     <th>Bundle</th>
                                     <th>Name</th>
                                     <th>Username</th>
                                     <th>1st</th>
                                     <th>2nd</th>
-                                    {localStorageUtils.getLoggedInUser().role != "admin" &&
+                                    {localStorageUtils.getLoggedInUser().role == "distributor" &&
                                         <th>Sheet</th>
                                     }
                                 </tr>
                             </thead>
                             <tbody>
-                                {cleanSearchedResults.map(res => (
-                                    <tr onClick={() => handleTargetMerchentSearch(res)}>
-                                        <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{count++}</td>
-                                        <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{bundle}</td>
-                                        <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.name}</td>
-                                        <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.username}</td>
-                                        <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}> {res.first}</td>
-                                        <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.second}</td>
-                                        {res.role == "distributor" ?
-                                            <td style={{ backgroundColor: 'lightblue' }}></td>
-                                            :
-                                            <td style={{ backgroundColor: 'orange' }}>{res.sheet.exist ? res.sheet.sheetName : "Not Saved"}</td>
+                                {currentLoggedInUser.role == "merchent" ?
+                                    <>
+                                        {cleanSearchedResults.map(res => (
+                                            <tr>
+                                                <td style={{ backgroundColor: 'orange' }}>{bundle}</td>
+                                                <td style={{ backgroundColor: 'orange' }}>{res.name}</td>
+                                                <td style={{ backgroundColor: 'orange' }}>{res.username}</td>
+                                                <td style={{ backgroundColor: 'orange' }}> {res.first}</td>
+                                                <td style={{ backgroundColor: 'orange' }}>{res.second}</td>
+                                            </tr>
+                                        ))}
 
-                                        }
+                                    </>
+                                    :
+                                    <>
+                                        {cleanSearchedResults.map(res => (
+                                            <tr onClick={() => handleTargetMerchentSearch(res)}>
+                                                <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{count++}</td>
+                                                <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{bundle}</td>
+                                                <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.name}</td>
+                                                <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.username}</td>
+                                                <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}> {res.first}</td>
+                                                <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{res.second}</td>
+                                                {res.role == "distributor" ?
+                                                    <td style={{ backgroundColor: 'lightblue' }}></td>
+                                                    :
+                                                    <td style={{ backgroundColor: 'orange' }}>{res.sheet.exist ? res.sheet.sheetName : "Not Saved"}</td>
+                                                }
+                                            </tr>
+                                        ))}
 
-                                    </tr>
-                                ))}
+                                    </>}
                             </tbody>
                         </Table>
-                        <div className='mt-3'>
-                            <Table striped hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
-                                <thead>
-                                    <tr  >
-                                        <th>Bundle</th>
-                                        <th>First Total</th>
-                                        <th>Second Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>{bundle}</td>
-                                        <td>{firstTotal}</td>
-                                        <td>{secondTotal}</td>
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </div>
+
+                        {currentLoggedInUser.role != "merchent" &&
+                            <>
+                                <div className='mt-3'>
+                                    <Table striped hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
+                                        <thead>
+                                            <tr  >
+                                                <th>Bundle</th>
+                                                <th>First Total</th>
+                                                <th>Second Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{bundle}</td>
+                                                <td>{firstTotal}</td>
+                                                <td>{secondTotal}</td>
+                                            </tr>
+                                        </tbody>
+                                    </Table>
+                                </div>
+
+
+                            </>
+                        }
 
                         {targetSheetData &&
                             <div className='mt-3'>
