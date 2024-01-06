@@ -28,6 +28,7 @@ const AdminReports = () => {
         date: '',
         reportType: 'withoutGroup',
         dealer: 'allDealersCombined',
+        limitType: 'upLimit'
     });
 
     const [notification, setNotification] = useState({
@@ -78,6 +79,7 @@ const AdminReports = () => {
             console.error("Error fetching draws", error);
         }
     };
+
     const handleSelect = (selectedKey) => {
         setSelectedOption(selectedKey);
         if (selectedOption != selectedKey) {
@@ -93,6 +95,7 @@ const AdminReports = () => {
                 date: '',
                 reportType: 'withoutGroup',
                 dealer: 'allDealersCombined',
+                limitType: 'upLimit'
             })
 
         }
@@ -533,8 +536,8 @@ const AdminReports = () => {
             }, {});
         let savedPurchases = Object.values(groupedByBundle);
         return savedPurchases
-
     }
+
     const generateDealSaleVoucherForAllDealersWithoutGroup = async () => {
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
@@ -605,30 +608,75 @@ const AdminReports = () => {
                 hadd.secondTendolaKiHad += user.hadd.secondTendolaKiHad;
                 hadd.firstPangodaKiHad += user.hadd.firstPangodaKiHad;
                 hadd.secondPangodaKiHad += user.hadd.secondPangodaKiHad;
-
             })
         } else {
             hadd = targetUser.hadd;
         }
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
-        let updatedSavedPurchases = savedPurchases.map(purchase => {
-            let newData = { ...purchase }
-            if (purchase.bundle.length == 1) {
-                newData.first = Number(newData.first) - Number(hadd.hindsyKiHad1);
-                newData.second = Number(newData.second) - Number(hadd.hindsyKiHad2);
-            } else if (purchase.bundle.length == 2) {
-                newData.first = Number(newData.first) - Number(hadd.akraKiHad1);
-                newData.second = Number(newData.second) - Number(hadd.akraKiHad2);
-            } else if (purchase.bundle.length == 3) {
-                newData.first = Number(newData.first) - Number(hadd.firstTendolaKiHad);
-                newData.second = Number(newData.second) - Number(hadd.secondTendolaKiHad);
-            } else if (purchase.bundle.length == 4) {
-                newData.first = Number(newData.first) - Number(hadd.firstPangodaKiHad);
-                newData.second = Number(newData.second) - Number(hadd.secondPangodaKiHad);
+        let updatedSavedPurchases = []
+        if (totalLimitSaleForm.limitType == "upLimit") {
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 1) {
+                    newData.first = Number(newData.first) - Number(hadd.hindsyKiHad1);
+                    newData.second = Number(newData.second) - Number(hadd.hindsyKiHad2);
+                } else if (purchase.bundle.length == 2) {
+                    newData.first = Number(newData.first) - Number(hadd.akraKiHad1);
+                    newData.second = Number(newData.second) - Number(hadd.akraKiHad2);
+                } else if (purchase.bundle.length == 3) {
+                    newData.first = Number(newData.first) - Number(hadd.firstTendolaKiHad);
+                    newData.second = Number(newData.second) - Number(hadd.secondTendolaKiHad);
+                } else if (purchase.bundle.length == 4) {
+                    newData.first = Number(newData.first) - Number(hadd.firstPangodaKiHad);
+                    newData.second = Number(newData.second) - Number(hadd.secondPangodaKiHad);
+                }
+                return newData
+            })
+
+            updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (newData.first < 0) {
+                    newData.first = 0
+                }
+                if (newData.second < 0) {
+                    newData.second = 0
+                }
+                return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
+            })
+            return updatedSavedPurchases;
+        } else if (totalLimitSaleForm.limitType == "downLimit") {
+            function getDownLimitProcessedPurchase(purchase, had1, had2) {
+                let newData = { ...purchase }
+                if (Number(newData.first) > Number(had1))
+                    newData.first = Number(had1)
+                if (Number(newData.second) > Number(had2))
+                    newData.second = Number(had2)
+                return newData
             }
-            return newData
-        })
-        return updatedSavedPurchases;
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 1) {
+                    newData=getDownLimitProcessedPurchase(newData,hadd.hindsyKiHad1,hadd.hindsyKiHad2)
+                } else if (purchase.bundle.length == 2) {
+                    newData=getDownLimitProcessedPurchase(newData,hadd.akraKiHad1,hadd.akraKiHad2)
+                } else if (purchase.bundle.length == 3) {
+                    newData=getDownLimitProcessedPurchase(newData,hadd.firstTendolaKiHad,hadd.secondTendolaKiHad)
+                } else if (purchase.bundle.length == 4) {
+                    newData=getDownLimitProcessedPurchase(newData,hadd.firstPangodaKiHad,hadd.secondPangodaKiHad)
+                }
+                return newData
+            })
+
+            return updatedSavedPurchases;
+
+        }
+
     }
     const generateTotalLimitSaleForAllDealersSeparateWithoutGroup = async () => {
         const pdfDoc = new jsPDF();
@@ -680,11 +728,11 @@ const AdminReports = () => {
         let targetUser = {}
         if (totalLimitSaleForm.dealer == "allDealersCombined") {
             targetUser = getAUser("admin")
-        }else if(totalLimitSaleForm.dealer == "allDealersSeparate"){
+        } else if (totalLimitSaleForm.dealer == "allDealersSeparate") {
             generateTotalLimitSaleForAllDealersSeparateWithoutGroup()
             return
         }
-         else {
+        else {
             targetUser = getAUser(totalLimitSaleForm.dealer)
         }
         let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
@@ -694,7 +742,7 @@ const AdminReports = () => {
     const generateTotalLimitSaleGroupWise = async () => {
 
         let targetUser = {}
-        if(totalLimitSaleForm.dealer=="allDealersSeparate")
+        if (totalLimitSaleForm.dealer == "allDealersSeparate")
             return
         if (totalLimitSaleForm.dealer == "allDealersCombined") {
             targetUser = getAUser("admin")
@@ -837,6 +885,24 @@ const AdminReports = () => {
                                             </Form.Control>
                                         </Col>
                                     </Row>
+
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Limit Type</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="limitType"
+                                                value={totalLimitSaleForm.limitType}
+                                                onChange={handleTotalLimitSaleChange}
+                                            >
+                                                <option value="upLimit">Up Limit</option>
+                                                <option value="downLimit">Down Limit</option>
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+
                                 </Form>
                             )}
 
