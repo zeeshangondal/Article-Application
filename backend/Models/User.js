@@ -58,6 +58,7 @@ const UserSchema = mongoose.Schema({
         address: { type: String, default: '' },
         contactNumber: { type: String, default: '' },
         active: { type: Boolean, default: false },
+        enableLimitSaleReportView: { type: Boolean, default: false },
     },
     rewardCommission: {
         firstA: { type: Number, default: 0 },

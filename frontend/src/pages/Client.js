@@ -791,6 +791,18 @@ const UserDetails = () => {
                                                         )
                                                     }
                                                 />
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    label="Enable Limit Sale Report View"
+                                                    checked={formValues.generalInfo.enableLimitSaleReportView}
+                                                    onChange={(e) =>
+                                                        handleFormInputChange(
+                                                            'generalInfo',
+                                                            'enableLimitSaleReportView',
+                                                            e.target.checked
+                                                        )
+                                                    }
+                                                />
                                             </Form.Group>
                                         </div>
                                     </div>

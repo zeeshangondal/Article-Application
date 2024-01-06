@@ -24,6 +24,26 @@ const DistributorReports = () => {
         date: '',
         dealer: 'allDealers',
     });
+    const [totalLimitSaleForm, setTotalLimitSaleForm] = useState({
+        date: '',
+        limitType: 'upLimit'
+    });
+
+    const handleTotalLimitSaleChange = (e) => {
+        const { name, value } = e.target;
+        if (name == "date") {
+            let tempDraw = draws.find(draw => draw.drawDate == value)
+            if (!tempDraw) {
+                alertMessage("No Record of Draw")
+                return
+            }
+            setSelectedDraw(tempDraw)
+        }
+        setTotalLimitSaleForm((prevForm) => ({
+            ...prevForm,
+            [name]: value,
+        }));
+    };
 
     const [notification, setNotification] = useState({
         color: "",
@@ -128,6 +148,8 @@ const DistributorReports = () => {
     const getTitle = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'dealerSaleVoucher') return 'Dealer Sale Voucher Report';
+        if (selectedOption === 'totalLimitSale') return 'Total Limit Sale Report';
+
         return '';
     };
     const getSubUserusernames = () => {
@@ -310,14 +332,14 @@ const DistributorReports = () => {
         return savedPurchases
     }
 
-    const addOneTableForDitributor=(pdfDoc,targetUser, savedPurchases,tableMarginTop,isFirst,AllTotal)=> {
+    const addOneTableForDitributor = (pdfDoc, targetUser, savedPurchases, tableMarginTop, isFirst, AllTotal) => {
 
         // Set font size and display client information
         pdfDoc.setFontSize(10);
-        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, tableMarginTop==32? 30:10);
-        if(isFirst){
-            pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, tableMarginTop==32? 30:10, { align: 'right' });
-            pdfDoc.text("All total " + AllTotal, pdfDoc.internal.pageSize.width - 20, tableMarginTop==32? 30:10, { align: 'right' });
+        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, tableMarginTop == 32 ? 30 : 10);
+        if (isFirst) {
+            pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, tableMarginTop == 32 ? 30 : 10, { align: 'right' });
+            pdfDoc.text("All total " + AllTotal, pdfDoc.internal.pageSize.width - 20, tableMarginTop == 32 ? 30 : 10, { align: 'right' });
 
         }
 
@@ -378,12 +400,12 @@ const DistributorReports = () => {
 
     }
 
-    const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser) => {
+    const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser, heading = "Dealer Sale Voucher Report") => {
         const pdfDoc = new jsPDF();
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text("Dealer Sale Voucher Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.text(heading, pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
 
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
 
@@ -507,61 +529,61 @@ const DistributorReports = () => {
         return savedPurchases
 
     }
-    const generateDealSaleVoucherForAllDealersWithoutGroup=async()=>{
+    const generateDealSaleVoucherForAllDealersWithoutGroup = async () => {
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text(dealerSaleVoucherForm.dealer=="allDealers" ? "All Dealers Sale Voucher Report": "Dealer Sale Voucher Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
-        let added=false
-        let first=true;
-        let firstTotal=0,secondTotal=0,total=0;
-        subUsers.forEach(user=>{
-            let savedPurchases=[]
-            if(user.role=="merchent"){
+        pdfDoc.text(dealerSaleVoucherForm.dealer == "allDealers" ? "All Dealers Sale Voucher Report" : "Dealer Sale Voucher Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        let added = false
+        let first = true;
+        let firstTotal = 0, secondTotal = 0, total = 0;
+        subUsers.forEach(user => {
+            let savedPurchases = []
+            if (user.role == "merchent") {
                 savedPurchases = getTotalOfMerchentFromDraw(user.username)
             }
             else {
                 savedPurchases = getTotalOfDistributorFromDraw(user.username)
             }
-            savedPurchases.forEach(purchase=>{
-                firstTotal+=Number(purchase.first)
-                secondTotal+=Number(purchase.second)
+            savedPurchases.forEach(purchase => {
+                firstTotal += Number(purchase.first)
+                secondTotal += Number(purchase.second)
             })
         })
-        total+=firstTotal+secondTotal
+        total += firstTotal + secondTotal
 
-        subUsers.forEach(user=>{
-            if(user.role=="merchent"){
+        subUsers.forEach(user => {
+            if (user.role == "merchent") {
                 let savedPurchases = getTotalOfMerchentFromDraw(user.username)
-                if(savedPurchases.length>0){
-                    if(added){
+                if (savedPurchases.length > 0) {
+                    if (added) {
                         pdfDoc.addPage()
                     }
-                    if(first){
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true,total)
-                        first=false;
-                    }else{
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false,total)
+                    if (first) {
+                        addOneTableForDitributor(pdfDoc, user, savedPurchases, 32, true, total)
+                        first = false;
+                    } else {
+                        addOneTableForDitributor(pdfDoc, user, savedPurchases, 12, false, total)
                     }
-                    added=true
+                    added = true
                 }
             }
-            else if(user.role=="distributor"){
+            else if (user.role == "distributor") {
                 let savedPurchases = getTotalOfDistributorFromDraw(user.username)
-                if(savedPurchases.length>0){
-                    if(added){
+                if (savedPurchases.length > 0) {
+                    if (added) {
                         pdfDoc.addPage()
                     }
-                    if(first){
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,32,true,total)
-                        first=false;
-                    }else{
-                        addOneTableForDitributor(pdfDoc,user,savedPurchases,12,false,total)
+                    if (first) {
+                        addOneTableForDitributor(pdfDoc, user, savedPurchases, 32, true, total)
+                        first = false;
+                    } else {
+                        addOneTableForDitributor(pdfDoc, user, savedPurchases, 12, false, total)
                     }
-                    added=true
+                    added = true
                 }
             }
-            
+
         })
         const filename = 'sample.pdf';
         // pdfDoc.save(filename);
@@ -591,7 +613,82 @@ const DistributorReports = () => {
         }
     }
 
+    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser) => {
+        let hadd = {};
+        hadd = targetUser.hadd;
+        let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+        let updatedSavedPurchases = []
+        if (totalLimitSaleForm.limitType == "upLimit") {
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 1) {
+                    newData.first = Number(newData.first) - Number(hadd.hindsyKiHad1);
+                    newData.second = Number(newData.second) - Number(hadd.hindsyKiHad2);
+                } else if (purchase.bundle.length == 2) {
+                    newData.first = Number(newData.first) - Number(hadd.akraKiHad1);
+                    newData.second = Number(newData.second) - Number(hadd.akraKiHad2);
+                } else if (purchase.bundle.length == 3) {
+                    newData.first = Number(newData.first) - Number(hadd.firstTendolaKiHad);
+                    newData.second = Number(newData.second) - Number(hadd.secondTendolaKiHad);
+                } else if (purchase.bundle.length == 4) {
+                    newData.first = Number(newData.first) - Number(hadd.firstPangodaKiHad);
+                    newData.second = Number(newData.second) - Number(hadd.secondPangodaKiHad);
+                }
+                return newData
+            })
 
+            updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (newData.first < 0) {
+                    newData.first = 0
+                }
+                if (newData.second < 0) {
+                    newData.second = 0
+                }
+                return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
+            })
+            return updatedSavedPurchases;
+        } else if (totalLimitSaleForm.limitType == "downLimit") {
+            function getDownLimitProcessedPurchase(purchase, had1, had2) {
+                let newData = { ...purchase }
+                if (Number(newData.first) > Number(had1))
+                    newData.first = Number(had1)
+                if (Number(newData.second) > Number(had2))
+                    newData.second = Number(had2)
+                return newData
+            }
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 1) {
+                    newData = getDownLimitProcessedPurchase(newData, hadd.hindsyKiHad1, hadd.hindsyKiHad2)
+                } else if (purchase.bundle.length == 2) {
+                    newData = getDownLimitProcessedPurchase(newData, hadd.akraKiHad1, hadd.akraKiHad2)
+                } else if (purchase.bundle.length == 3) {
+                    newData = getDownLimitProcessedPurchase(newData, hadd.firstTendolaKiHad, hadd.secondTendolaKiHad)
+                } else if (purchase.bundle.length == 4) {
+                    newData = getDownLimitProcessedPurchase(newData, hadd.firstPangodaKiHad, hadd.secondPangodaKiHad)
+                }
+                return newData
+            })
+
+            return updatedSavedPurchases;
+
+        }
+
+    }
+    const generateTotalLimitSaleWihtoutGroup = () => {
+        let targetUser = {}
+        targetUser = getAUser(currentLoggedInUser.username)
+
+        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
+        generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser, "Distributor Limit Sale")
+    }
     return (
         <div className='container mt-4'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -606,6 +703,8 @@ const DistributorReports = () => {
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Dealer Sale Voucher</Nav.Link>
+                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Limit Sale</Nav.Link>
+
                             </Nav>
                         </Card.Body>
                     </Card>
@@ -690,6 +789,51 @@ const DistributorReports = () => {
 
                                 </Form>
                             )}
+                            {selectedOption === 'totalLimitSale' && !localStorageUtils.getLoggedInUser().generalInfo.enableLimitSaleReportView &&
+                                <div className='d-flex justify-content-center'>
+                                    {window.innerWidth <= 600 ?
+                                        <h6>Admin has not allowed</h6>
+                                        :
+                                        <h4>Admin has not allowed</h4>
+                                    }
+                                </div>
+                            }
+                            {selectedOption === 'totalLimitSale' && localStorageUtils.getLoggedInUser().generalInfo.enableLimitSaleReportView && (
+                                <Form>
+                                    <Row>
+                                        <Col>
+                                            <Form.Label>Date</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="date"
+                                                name="date"
+                                                value={totalLimitSaleForm.date}
+                                                onChange={handleTotalLimitSaleChange}
+                                            />
+                                        </Col>
+                                    </Row>
+
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Limit Type</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="limitType"
+                                                value={totalLimitSaleForm.limitType}
+                                                onChange={handleTotalLimitSaleChange}
+                                            >
+                                                <option value="upLimit">Up Limit</option>
+                                                <option value="downLimit">Down Limit</option>
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+
+                                </Form>
+                            )}
+
                         </Card.Body>
                         {selectedOption === 'dealerSaleVoucher' && (
                             <Card.Footer>
@@ -709,6 +853,20 @@ const DistributorReports = () => {
                                     <Button variant="primary btn btn-sm m-1"
                                         onClick={() => (totalSaleForm.reportType == "withoutGroup" ? generateTotalSaleWihtoutGroup() : generateTotalSaleGroupWise())}
                                         disabled={!totalSaleForm.date || !totalSaleForm.reportType}
+                                    >
+                                        Report
+                                    </Button>
+
+                                </div>
+                            </Card.Footer>
+                        )}
+
+                        {selectedOption === 'totalLimitSale' && localStorageUtils.getLoggedInUser().generalInfo.enableLimitSaleReportView && (
+                            <Card.Footer>
+                                <div className="d-flex flex-wrap justify-content-start">
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => generateTotalLimitSaleWihtoutGroup()}
+                                        disabled={!totalLimitSaleForm.date || !totalLimitSaleForm.limitType}
                                     >
                                         Report
                                     </Button>
