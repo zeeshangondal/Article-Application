@@ -166,6 +166,8 @@ const AdminReports = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'dealerSaleVoucher') return 'Distributors Sale Voucher Report';
         if (selectedOption === 'totalLimitSale') return 'Total Limit Sale Report';
+        if (selectedOption === 'limitCutting') return 'Limit Cutting Report';
+        
 
         return '';
     };
@@ -797,6 +799,8 @@ const AdminReports = () => {
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Limit Sale</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Distributors Sale Voucher</Nav.Link>
+                                <Nav.Link eventKey="limitCutting" style={{ background: (selectedOption == "limitCutting" ? "lightgray" : "") }} >Limit Cutting</Nav.Link>
+                                
                             </Nav>
                         </Card.Body>
                     </Card>
