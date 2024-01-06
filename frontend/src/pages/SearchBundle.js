@@ -18,6 +18,7 @@ export default function SearchBundle() {
     const [bundle, setBundle] = useState(null)
     const [searchedResults, setSearchedResults] = useState([])
     const [targetSheetData, setTargetSheetData] = useState(null)
+
     const [notification, setNotification] = useState({
         color: "",
         message: "Success",
@@ -82,11 +83,26 @@ export default function SearchBundle() {
         setSelectedDraw(tempDraw)
         setSelectedDrawDate(date)
     }
+
+
+    async function fetchAllUsers() {
+        try {
+            const response = await APIs.getAllUsers();
+            setAllUsers(response.users);
+            // Rest of your code that should proceed after setting all users
+
+        } catch (error) {
+            // Handle any errors that may occur during the API call
+            console.error("Error fetching users:", error);
+        }
+    }
+
     const handleBundleChange = (e) => {
         let tempBundle = e.target.value
         if (!isValidBundle(tempBundle)) {
             return
         }
+        fetchAllUsers()
         setBundle(tempBundle)
         fetchLoggedInUser();
         fetchSubUsersOf()
@@ -335,19 +351,17 @@ export default function SearchBundle() {
         return data;
     };
 
-    const handleRemovingPurchase = async(_id) => {
+    const handleRemovingPurchase = async (_id) => {
         try {
-            let user=getAUser(targetSheetData.user.username)
-            let purchasedData = user.savedPurchasesFromDrawsData.find(data => data.drawId ==selectedDraw._id && data._id== targetSheetData.sheet._id)
+            let user = getAUser(targetSheetData.user.username)
+            let purchasedData = user.savedPurchasesFromDrawsData.find(data => data.drawId == selectedDraw._id && data._id == targetSheetData.sheet._id)
             let purchases = purchasedData.savedPurchases
             let target = purchases.find(purchase => purchase._id === _id)
-            console.log("Traget", target)
             let updated = purchases.filter(purchase => purchase._id !== _id)
             purchasedData.savedPurchases = [...updated]
             user.availableBalance = user.availableBalance + (Number(target.first) + Number(target.second))
 
-            updateTargetUser(user)
-            fetchSubUsersOf()
+
             let data = getDataForBundle(target.bundle, selectedDraw)
             console.log(data)
             data = {
@@ -357,19 +371,46 @@ export default function SearchBundle() {
                 type: "+"
             }
             successMessage("Removed Successfully")
-            user=getAUser(user.username)
+            user = getAUser(user.username)
+
+            // setTargetSheetData({
+            //     user: user, sheet: {
+            //         ...targetSheetData.sheet,
+            //         savedPurchases: [...updated]
+            //     }
+            // })
+
+            let updatedDataForSheetPurchases = targetSheetData.sheet.savedPurchases.filter(p => p._id !== _id)
+            setTargetSheetData({
+                user: user, sheet: {
+                    ...targetSheetData.sheet,
+                    savedPurchases: updatedDataForSheetPurchases
+                }
+            })
 
             //sheet: { exist: true, _id: savedPurchase._id, sheetName: savedPurchase.sheetName, savedPurchases: savedPurchase.savedPurchases }
+            // {
+            //     role: merchent.role, name: merchent.generalInfo.name, username: merchent.username, bundle: bundle, first: purchase.first, second: purchase.second,
+            //     sheet: { exist: true, _id: savedPurchase._id, sheetName: savedPurchase.sheetName, savedPurchases: savedPurchase.savedPurchases }
+            // }
+            updateTargetUser(user)
 
-            setTargetSheetData({user:user, sheet: {
-                ...targetSheetData.sheet,
-                savedPurchases: targetSheetData.sheet.savedPurchase.filter(purchase=> purchase._id=="s")
-            }})
             await articlesAPI.updateDigit(data)
+
+            fetchAllUsers()
+            fetchLoggedInUser();
+            fetchSubUsersOf()
+            fetchDraws();
+            searchAndDisplayResult(bundle)
 
         } catch (e) { }
 
     }
+
+    let cleanSearchedResults = searchedResults.filter(res => {
+        return (res.first != 0 || res.second != 0)
+    })
+
     return (
         <div>
             <div className='container mt-3'>
@@ -408,7 +449,7 @@ export default function SearchBundle() {
                 </Row>
                 <hr />
 
-                {searchedResults.length > 0 &&
+                {cleanSearchedResults.length > 0 &&
                     <div>
 
                         <Table hover size="sm" className="mt-1" style={{ fontSize: '0.8rem' }}>
@@ -420,11 +461,13 @@ export default function SearchBundle() {
                                     <th>Username</th>
                                     <th>1st</th>
                                     <th>2nd</th>
-                                    <th>Sheet</th>
+                                    {localStorageUtils.getLoggedInUser().role != "admin" &&
+                                        <th>Sheet</th>
+                                    }
                                 </tr>
                             </thead>
                             <tbody>
-                                {searchedResults.map(res => (
+                                {cleanSearchedResults.map(res => (
                                     <tr onClick={() => handleTargetMerchentSearch(res)}>
                                         <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{count++}</td>
                                         <td style={{ backgroundColor: res.role == "distributor" ? 'lightblue' : 'orange' }}>{bundle}</td>
