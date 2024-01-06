@@ -133,11 +133,19 @@ const AdminReports = () => {
             }
             setSelectedDraw(tempDraw)
         }
-        setTotalLimitSaleForm((prevForm) => ({
-            ...prevForm,
+        let tempUpdate={
+            ...totalLimitSaleForm,
             [name]: value,
-        }));
+        }
+        if(tempUpdate.dealer=="allDealersSeparate" && tempUpdate.reportType=="groupWise"){
+            tempUpdate={
+                ...tempUpdate,
+                reportType: 'withoutGroup',
+            }
+        }
+        setTotalLimitSaleForm(tempUpdate);
     };
+
     const handleDealerSaleVoucherChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
