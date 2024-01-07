@@ -30,6 +30,21 @@ const AdminReports = () => {
         dealer: 'allDealersCombined',
         limitType: 'upLimit'
     });
+    const [limitCuttingForm, setLimitCuttingForm] = useState({
+        date: '',
+        bundleType: 'A',
+        indFirst: null,
+        indSecond: null,
+        firstA: null,
+        secondA: null,
+        firstB: null,
+        secondB: null,
+        firstC: null,
+        secondC: null,
+        firstD: null,
+        secondD: null,
+        limitType: 'upLimit'
+    });
 
     const [notification, setNotification] = useState({
         color: "",
@@ -97,6 +112,21 @@ const AdminReports = () => {
                 dealer: 'allDealersCombined',
                 limitType: 'upLimit'
             })
+            setLimitCuttingForm({
+                date: '',
+                bundleType: 'A',
+                indFirst: null,
+                indSecond: null,
+                firstA: null,
+                secondA: null,
+                firstB: null,
+                secondB: null,
+                firstC: null,
+                secondC: null,
+                firstD: null,
+                secondD: null,
+                limitType: 'upLimit'
+            })
 
         }
     };
@@ -133,17 +163,43 @@ const AdminReports = () => {
             }
             setSelectedDraw(tempDraw)
         }
-        let tempUpdate={
+        let tempUpdate = {
             ...totalLimitSaleForm,
             [name]: value,
         }
-        if(tempUpdate.dealer=="allDealersSeparate" && tempUpdate.reportType=="groupWise"){
-            tempUpdate={
+        if (tempUpdate.dealer == "allDealersSeparate" && tempUpdate.reportType == "groupWise") {
+            tempUpdate = {
                 ...tempUpdate,
                 reportType: 'withoutGroup',
             }
         }
         setTotalLimitSaleForm(tempUpdate);
+    };
+
+    const handleLimitCuttingChange = (e) => {
+        const { name, value } = e.target;
+        if (name == "date") {
+            let tempDraw = draws.find(draw => draw.drawDate == value)
+            if (!tempDraw) {
+                alertMessage("No Record of Draw")
+                return
+            }
+            setSelectedDraw(tempDraw)
+        }
+        if (name != "date" && name != "bundleType" && name != "limitType") {
+            try {
+                if (Number(value) < 0) {
+                    return
+                }
+            } catch {
+                return;
+            }
+        }
+        let tempUpdate = {
+            ...limitCuttingForm,
+            [name]: value,
+        }
+        setLimitCuttingForm(tempUpdate);
     };
 
     const handleDealerSaleVoucherChange = (e) => {
@@ -167,7 +223,7 @@ const AdminReports = () => {
         if (selectedOption === 'dealerSaleVoucher') return 'Distributors Sale Voucher Report';
         if (selectedOption === 'totalLimitSale') return 'Total Limit Sale Report';
         if (selectedOption === 'limitCutting') return 'Limit Cutting Report';
-        
+
 
         return '';
     };
@@ -672,22 +728,20 @@ const AdminReports = () => {
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 1) {
-                    newData=getDownLimitProcessedPurchase(newData,hadd.hindsyKiHad1,hadd.hindsyKiHad2)
+                    newData = getDownLimitProcessedPurchase(newData, hadd.hindsyKiHad1, hadd.hindsyKiHad2)
                 } else if (purchase.bundle.length == 2) {
-                    newData=getDownLimitProcessedPurchase(newData,hadd.akraKiHad1,hadd.akraKiHad2)
+                    newData = getDownLimitProcessedPurchase(newData, hadd.akraKiHad1, hadd.akraKiHad2)
                 } else if (purchase.bundle.length == 3) {
-                    newData=getDownLimitProcessedPurchase(newData,hadd.firstTendolaKiHad,hadd.secondTendolaKiHad)
+                    newData = getDownLimitProcessedPurchase(newData, hadd.firstTendolaKiHad, hadd.secondTendolaKiHad)
                 } else if (purchase.bundle.length == 4) {
-                    newData=getDownLimitProcessedPurchase(newData,hadd.firstPangodaKiHad,hadd.secondPangodaKiHad)
+                    newData = getDownLimitProcessedPurchase(newData, hadd.firstPangodaKiHad, hadd.secondPangodaKiHad)
                 }
                 return newData
             })
-
             return updatedSavedPurchases;
-
         }
-
     }
+
     const generateTotalLimitSaleForAllDealersSeparateWithoutGroup = async () => {
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
@@ -750,7 +804,6 @@ const AdminReports = () => {
     }
 
     const generateTotalLimitSaleGroupWise = async () => {
-
         let targetUser = {}
         if (totalLimitSaleForm.dealer == "allDealersSeparate")
             return
@@ -784,6 +837,165 @@ const AdminReports = () => {
         }
     }
 
+
+    const getResultOfTotalLimitSale = () => {
+        let hadd = {};
+        hadd = { hindsyKiHad1: 0, hindsyKiHad2: 0, akraKiHad1: 0, akraKiHad2: 0, firstTendolaKiHad: 0, secondTendolaKiHad: 0, firstPangodaKiHad: 0, secondPangodaKiHad: 0 };
+        subUsers.forEach(user => {
+            hadd.hindsyKiHad1 += user.hadd.hindsyKiHad1;
+            hadd.hindsyKiHad2 += user.hadd.hindsyKiHad2;
+            hadd.akraKiHad1 += user.hadd.akraKiHad1;
+            hadd.akraKiHad2 += user.hadd.akraKiHad2;
+            hadd.firstTendolaKiHad += user.hadd.firstTendolaKiHad;
+            hadd.secondTendolaKiHad += user.hadd.secondTendolaKiHad;
+            hadd.firstPangodaKiHad += user.hadd.firstPangodaKiHad;
+            hadd.secondPangodaKiHad += user.hadd.secondPangodaKiHad;
+        })
+
+        let savedPurchases = getTotalOfDistributorFromDraw("admin")
+        let updatedSavedPurchases = []
+        updatedSavedPurchases = savedPurchases.map(purchase => {
+            let newData = { ...purchase }
+            if (purchase.bundle.length == 1) {
+                newData.first = Number(newData.first) - Number(hadd.hindsyKiHad1);
+                newData.second = Number(newData.second) - Number(hadd.hindsyKiHad2);
+            } else if (purchase.bundle.length == 2) {
+                newData.first = Number(newData.first) - Number(hadd.akraKiHad1);
+                newData.second = Number(newData.second) - Number(hadd.akraKiHad2);
+            } else if (purchase.bundle.length == 3) {
+                newData.first = Number(newData.first) - Number(hadd.firstTendolaKiHad);
+                newData.second = Number(newData.second) - Number(hadd.secondTendolaKiHad);
+            } else if (purchase.bundle.length == 4) {
+                newData.first = Number(newData.first) - Number(hadd.firstPangodaKiHad);
+                newData.second = Number(newData.second) - Number(hadd.secondPangodaKiHad);
+            }
+            return newData
+        })
+
+        updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
+            let newData = { ...purchase }
+            if (newData.first < 0) {
+                newData.first = 0
+            }
+            if (newData.second < 0) {
+                newData.second = 0
+            }
+            return newData
+        })
+        updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+            if (purchase.first > 0 || purchase.second > 0)
+                return true
+            else
+                return false
+        })
+        return updatedSavedPurchases;
+    }
+    const getTotalOfDistributorFromDrawForLimitCutting = () => {
+        let hadd = {};
+        let savedPurchases = getResultOfTotalLimitSale()
+        let updatedSavedPurchases = []
+        if (limitCuttingForm.limitType == "upLimit") {
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 1) {
+                    newData.first = Number(newData.first) - Number(limitCuttingForm.firstA);
+                    newData.second = Number(newData.second) - Number(limitCuttingForm.secondA);
+                } else if (purchase.bundle.length == 2) {
+                    newData.first = Number(newData.first) - Number(limitCuttingForm.firstB);
+                    newData.second = Number(newData.second) - Number(limitCuttingForm.secondB);
+                } else if (purchase.bundle.length == 3) {
+                    newData.first = Number(newData.first) - Number(limitCuttingForm.firstC);
+                    newData.second = Number(newData.second) - Number(limitCuttingForm.secondC);
+                } else if (purchase.bundle.length == 4) {
+                    newData.first = Number(newData.first) - Number(limitCuttingForm.firstD);
+                    newData.second = Number(newData.second) - Number(limitCuttingForm.secondD);
+                }
+                return newData
+            })
+
+            updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (newData.first < 0) {
+                    newData.first = 0
+                }
+                if (newData.second < 0) {
+                    newData.second = 0
+                }
+                return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
+            })
+            return updatedSavedPurchases;
+        } else if (limitCuttingForm.limitType == "downLimit") {
+            function getDownLimitProcessedPurchase(purchase, had1, had2) {
+                let newData = { ...purchase }
+                if (Number(newData.first) > Number(had1))
+                    newData.first = Number(had1)
+                if (Number(newData.second) > Number(had2))
+                    newData.second = Number(had2)
+                return newData
+            }
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 1) {
+                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstA, limitCuttingForm.secondA)
+                } else if (purchase.bundle.length == 2) {
+                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstB, limitCuttingForm.secondB)
+                } else if (purchase.bundle.length == 3) {
+                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstC, limitCuttingForm.secondC)
+                } else if (purchase.bundle.length == 4) {
+                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstD, limitCuttingForm.secondD)
+                }
+                return newData
+            })
+            return updatedSavedPurchases;
+        }
+    }
+
+    const generateLimitCuttingGroupWise = async () => {
+        let targetUser = {}
+        targetUser = getAUser(currentLoggedInUser.username)
+        let savedPurchases = getTotalOfDistributorFromDrawForLimitCutting();
+
+        const pdfDoc = new jsPDF();
+        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Limit Sale", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        // savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        processAndAddTablesInPDF(pdfDoc, savedPurchases, true, 32)
+        const filename = 'sample.pdf';
+        // pdfDoc.save(filename);
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
+
+
+    function checkForButton() {
+        if (limitCuttingForm.bundleType == "all") {
+            let notAllow = (!limitCuttingForm.firstA || !limitCuttingForm.secondA || !limitCuttingForm.firstB || !limitCuttingForm.secondB || !limitCuttingForm.firstC || !limitCuttingForm.secondC || !limitCuttingForm.firstD || !limitCuttingForm.secondD)
+            return !notAllow
+        } else {
+            let notAllow = (!limitCuttingForm.indFirst || !limitCuttingForm.indSecond)
+            return !notAllow
+        }
+    }
+    let enableLimitCuttinButton = checkForButton()
+
     return (
         <div className='container mt-4'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -800,7 +1012,7 @@ const AdminReports = () => {
                                 <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Limit Sale</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Distributors Sale Voucher</Nav.Link>
                                 <Nav.Link eventKey="limitCutting" style={{ background: (selectedOption == "limitCutting" ? "lightgray" : "") }} >Limit Cutting</Nav.Link>
-                                
+
                             </Nav>
                         </Card.Body>
                     </Card>
@@ -956,6 +1168,203 @@ const AdminReports = () => {
 
                                 </Form>
                             )}
+
+                            {selectedOption === 'limitCutting' && (
+                                <Form>
+                                    <Row>
+                                        <Col>
+                                            <Form.Label>Date</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="date"
+                                                name="date"
+                                                value={limitCuttingForm.date}
+                                                onChange={handleLimitCuttingChange}
+                                            />
+                                        </Col>
+                                    </Row>
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Bundle</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="bundleType"
+                                                value={limitCuttingForm.bundleType}
+                                                onChange={handleLimitCuttingChange}
+                                            >
+                                                <option value="all">All</option>
+                                                <option value="A">A</option>
+                                                <option value="B">B</option>
+                                                <option value="C">C</option>
+                                                <option value="D">D</option>
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+                                    {limitCuttingForm.bundleType == "all" &&
+                                        <>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>First A</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="firstA"
+                                                        value={limitCuttingForm.firstA}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>Second A</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="secondA"
+                                                        value={limitCuttingForm.secondA}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>First B</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="firstB"
+                                                        value={limitCuttingForm.firstB}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>Second B</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="secondB"
+                                                        value={limitCuttingForm.secondB}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>First C</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="firstC"
+                                                        value={limitCuttingForm.firstC}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>Second C</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="secondC"
+                                                        value={limitCuttingForm.secondC}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>First D</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="firstD"
+                                                        value={limitCuttingForm.firstD}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>Second D</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="secondD"
+                                                        value={limitCuttingForm.secondD}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                        </>
+                                    }
+
+
+                                    {limitCuttingForm.bundleType != "all" &&
+                                        <>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>First</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="indFirst"
+                                                        value={limitCuttingForm.indFirst}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                            <Row className='mt-3'>
+                                                <Col>
+                                                    <Form.Label>Second</Form.Label>
+                                                </Col>
+                                                <Col>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="indSecond"
+                                                        value={limitCuttingForm.indSecond}
+                                                        onChange={handleLimitCuttingChange}
+                                                    />
+                                                </Col>
+                                            </Row>
+                                        </>
+                                    }
+
+
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Limit Type</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="limitType"
+                                                value={limitCuttingForm.limitType}
+                                                onChange={handleLimitCuttingChange}
+                                            >
+                                                <option value="upLimit">Up Limit</option>
+                                                <option value="downLimit">Down Limit</option>
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+
+                                </Form>
+                            )}
+
                         </Card.Body>
                         {selectedOption === 'dealerSaleVoucher' && (
                             <Card.Footer>
@@ -995,7 +1404,19 @@ const AdminReports = () => {
                                 </div>
                             </Card.Footer>
                         )}
+                        {selectedOption === 'limitCutting' && (
+                            <Card.Footer>
+                                <div className="d-flex flex-wrap justify-content-start">
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => generateLimitCuttingGroupWise()}
+                                        disabled={!limitCuttingForm.date || !limitCuttingForm.bundleType || !limitCuttingForm.limitType || !enableLimitCuttinButton}
+                                    >
+                                        Report
+                                    </Button>
 
+                                </div>
+                            </Card.Footer>
+                        )}
                     </Card>
                 </Col>
             </Row>
