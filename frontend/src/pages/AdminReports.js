@@ -891,27 +891,45 @@ const AdminReports = () => {
         return updatedSavedPurchases;
     }
     const getTotalOfDistributorFromDrawForLimitCutting = () => {
-        let hadd = {};
         let savedPurchases = getResultOfTotalLimitSale()
+        if (limitCuttingForm.bundleType != "all") {
+            if (limitCuttingForm.bundleType == "A")
+                savedPurchases = savedPurchases.filter(purchase => purchase.bundle.length == "1")
+            if (limitCuttingForm.bundleType == "B")
+                savedPurchases = savedPurchases.filter(purchase => purchase.bundle.length == "2")
+            if (limitCuttingForm.bundleType == "C")
+                savedPurchases = savedPurchases.filter(purchase => purchase.bundle.length == "3")
+            if (limitCuttingForm.bundleType == "D")
+                savedPurchases = savedPurchases.filter(purchase => purchase.bundle.length == "4")
+        }
         let updatedSavedPurchases = []
         if (limitCuttingForm.limitType == "upLimit") {
-            updatedSavedPurchases = savedPurchases.map(purchase => {
-                let newData = { ...purchase }
-                if (purchase.bundle.length == 1) {
-                    newData.first = Number(newData.first) - Number(limitCuttingForm.firstA);
-                    newData.second = Number(newData.second) - Number(limitCuttingForm.secondA);
-                } else if (purchase.bundle.length == 2) {
-                    newData.first = Number(newData.first) - Number(limitCuttingForm.firstB);
-                    newData.second = Number(newData.second) - Number(limitCuttingForm.secondB);
-                } else if (purchase.bundle.length == 3) {
-                    newData.first = Number(newData.first) - Number(limitCuttingForm.firstC);
-                    newData.second = Number(newData.second) - Number(limitCuttingForm.secondC);
-                } else if (purchase.bundle.length == 4) {
-                    newData.first = Number(newData.first) - Number(limitCuttingForm.firstD);
-                    newData.second = Number(newData.second) - Number(limitCuttingForm.secondD);
-                }
-                return newData
-            })
+            if (limitCuttingForm.bundleType == "all") {
+                updatedSavedPurchases = savedPurchases.map(purchase => {
+                    let newData = { ...purchase }
+                    if (purchase.bundle.length == 1) {
+                        newData.first = Number(newData.first) - Number(limitCuttingForm.firstA);
+                        newData.second = Number(newData.second) - Number(limitCuttingForm.secondA);
+                    } else if (purchase.bundle.length == 2) {
+                        newData.first = Number(newData.first) - Number(limitCuttingForm.firstB);
+                        newData.second = Number(newData.second) - Number(limitCuttingForm.secondB);
+                    } else if (purchase.bundle.length == 3) {
+                        newData.first = Number(newData.first) - Number(limitCuttingForm.firstC);
+                        newData.second = Number(newData.second) - Number(limitCuttingForm.secondC);
+                    } else if (purchase.bundle.length == 4) {
+                        newData.first = Number(newData.first) - Number(limitCuttingForm.firstD);
+                        newData.second = Number(newData.second) - Number(limitCuttingForm.secondD);
+                    }
+                    return newData
+                })
+            } else {
+                updatedSavedPurchases = savedPurchases.map(purchase => {
+                    let newData = { ...purchase }
+                    newData.first = Number(newData.first) - Number(limitCuttingForm.indFirst);
+                    newData.second = Number(newData.second) - Number(limitCuttingForm.indSecond);
+                    return newData
+                })
+            }
 
             updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
                 let newData = { ...purchase }
@@ -939,19 +957,27 @@ const AdminReports = () => {
                     newData.second = Number(had2)
                 return newData
             }
-            updatedSavedPurchases = savedPurchases.map(purchase => {
-                let newData = { ...purchase }
-                if (purchase.bundle.length == 1) {
-                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstA, limitCuttingForm.secondA)
-                } else if (purchase.bundle.length == 2) {
-                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstB, limitCuttingForm.secondB)
-                } else if (purchase.bundle.length == 3) {
-                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstC, limitCuttingForm.secondC)
-                } else if (purchase.bundle.length == 4) {
-                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstD, limitCuttingForm.secondD)
-                }
-                return newData
-            })
+            if (limitCuttingForm.bundleType == "all") {
+                updatedSavedPurchases = savedPurchases.map(purchase => {
+                    let newData = { ...purchase }
+                    if (purchase.bundle.length == 1) {
+                        newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstA, limitCuttingForm.secondA)
+                    } else if (purchase.bundle.length == 2) {
+                        newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstB, limitCuttingForm.secondB)
+                    } else if (purchase.bundle.length == 3) {
+                        newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstC, limitCuttingForm.secondC)
+                    } else if (purchase.bundle.length == 4) {
+                        newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.firstD, limitCuttingForm.secondD)
+                    }
+                    return newData
+                })
+            } else {
+                updatedSavedPurchases = savedPurchases.map(purchase => {
+                    let newData = { ...purchase }
+                    newData = getDownLimitProcessedPurchase(newData, limitCuttingForm.indFirst, limitCuttingForm.indSecond)
+                    return newData
+                })
+            }
             return updatedSavedPurchases;
         }
     }
@@ -965,7 +991,7 @@ const AdminReports = () => {
         const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Limit Sale", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         // savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
         pdfDoc.setFontSize(10);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
