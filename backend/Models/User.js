@@ -42,6 +42,11 @@ const UserSchema = mongoose.Schema({
         commision: { type: Number, default: 0 },
         share: { type: Number, default: 0 },
         pcPercentage: { type: Number, default: 0 },
+        shareEnabled: {
+            type: Boolean,
+            default: false
+        },
+
     },
     hadd: {
         hindsyKiHad1: { type: Number, default: 0 },
@@ -52,6 +57,11 @@ const UserSchema = mongoose.Schema({
         secondTendolaKiHad: { type: Number, default: 0 },
         firstPangodaKiHad: { type: Number, default: 0 },
         secondPangodaKiHad: { type: Number, default: 0 },
+        haddEnabled: {
+            type: Boolean,
+            default: false
+        },
+    
     },
     generalInfo: {
         name: { type: String, default: '' },
@@ -154,9 +164,9 @@ const UserSchema = mongoose.Schema({
         drawId: {
             type: String
         },
-        sheetName:{
+        sheetName: {
             type: String,
-            default:""
+            default: ""
         },
         savedPurchases: [{
             bundle: { type: String },
@@ -169,7 +179,7 @@ const UserSchema = mongoose.Schema({
             second: { type: Number }
         }]
     }],
-    
+
 
 }, { timestamps: true });
 

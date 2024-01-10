@@ -357,6 +357,7 @@ export default function Merchent() {
             await articlesAPI.updateDigit(data)
         } catch (e) { }
     }
+    
     const handleRemovingOversalePurchase = (_id) => {
         try {
             let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)

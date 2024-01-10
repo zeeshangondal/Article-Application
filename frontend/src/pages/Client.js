@@ -38,6 +38,18 @@ const UserDetails = () => {
     const navigate = useNavigate();
 
     const handleFormInputChange = (category, field, value) => {
+        if(category=="hadd" && field=="haddEnabled" && value===true){
+            if(formValues.commission.shareEnabled){
+                alert("You can not enable Hadd when the Share is enabled. If you want to enable Hadd you need to disable Share")
+                return
+            }
+        }
+        if(category=="commission" && field=="shareEnabled" && value===true){
+            if(formValues.hadd.haddEnabled){
+                alert("You can not enable Share when the Hadd is enabled. If you want to enable Share you need to disable Hadd")
+                return
+            }
+        }
         setFormValues(prevValues => ({
             ...prevValues,
             [category]: {
@@ -53,7 +65,7 @@ const UserDetails = () => {
     const fetchAllUsersOf = async (_id) => {
         try {
             const response = await APIs.getAllUsers();
-            let tempUsers=response.users.filter(user=> user.role!='admin')
+            let tempUsers = response.users.filter(user => user.role != 'admin')
             tempUsers = tempUsers.filter(user => user.creator._id == _id)
             setUsers(tempUsers);
         } catch (error) {
@@ -299,7 +311,7 @@ const UserDetails = () => {
                     balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
                     balance: obj.balance - Number(debitTransaction.amount),
                     availableBalance: obj.availableBalance - Number(debitTransaction.amount),
-                    
+
                     transactionHistory: [...obj.transactionHistory, transaction]
                 }
             } else {
@@ -358,12 +370,12 @@ const UserDetails = () => {
             {editMode &&
                 <div style={{ marginLeft: (window.innerWidth <= 600 ? '' : '6vh') }}>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(1)} >Commission</a>
-                    {userDetails.role == "distributor" && userDetails.creator.role=="admin" &&   
+                    {userDetails.role == "distributor" && userDetails.creator.role == "admin" &&
                         <a className='btn btn-sm primary' onClick={() => setEditModeN(2)}>Hadd</a>
                     }
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(3)}>General Info</a>
                     <a className='btn btn-sm primary' onClick={() => setEditModeN(4)}>Reward Commision</a>
-                    {userDetails.role == "distributor" && userDetails.creator.role=="admin"  &&
+                    {userDetails.role == "distributor" && userDetails.creator.role == "admin" &&
                         <a className='btn btn-sm primary' onClick={() => setEditModeN(5)}>Purchase Limit</a>
                     }
                 </div>
@@ -405,7 +417,7 @@ const UserDetails = () => {
                                     <th>BALANCE</th>
                                     <th>BALANCE UPLINE</th>
                                     <th>AVAILABLE BALANCE</th>
-                                    
+
                                 </tr>
                             </thead>
                             <tbody>
@@ -415,7 +427,7 @@ const UserDetails = () => {
                                     <td style={{ color: (userDetails.balance > 0 ? 'green' : 'red') }} >{userDetails.balance}</td>
                                     <td style={{ color: (userDetails.balanceUpline > 0 ? 'green' : 'red') }}>{userDetails.balanceUpline}</td>
                                     <td style={{ color: (userDetails.availableBalance > 0 ? 'green' : 'red') }} >{userDetails.availableBalance}</td>
-                                    
+
                                 </tr>
                             </tbody>
                         </Table>
@@ -579,6 +591,17 @@ const UserDetails = () => {
                                                 />
                                             </Form.Group>
                                         </div>
+                                        <div className="col-md-6">
+                                            <br />
+                                            <Form.Check
+                                                type="checkbox"
+                                                label="Share Enabled"
+                                                checked={formValues.commission.shareEnabled}
+                                                onChange={(e) =>
+                                                    handleFormInputChange('commission', 'shareEnabled', e.target.checked)
+                                                }
+                                            />
+                                        </div>
                                     </div>
                                     <Button variant="primary" type="submit" size="sm">
                                         Submit
@@ -603,6 +626,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'hindsyKiHad1', e.target.value)
                                                     }
+                                                    disabled={!formValues.hadd.haddEnabled}
                                                 />
                                             </Form.Group>
                                         </div>
@@ -615,6 +639,8 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'hindsyKiHad2', e.target.value)
                                                     }
+                                                    disabled={!formValues.hadd.haddEnabled}
+
                                                 />
                                             </Form.Group>
                                         </div>
@@ -629,6 +655,8 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'akraKiHad1', e.target.value)
                                                     }
+                                                    disabled={!formValues.hadd.haddEnabled}
+
                                                 />
                                             </Form.Group>
                                         </div>
@@ -641,6 +669,8 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'akraKiHad2', e.target.value)
                                                     }
+                                                    disabled={!formValues.hadd.haddEnabled}
+
                                                 />
                                             </Form.Group>
                                         </div>
@@ -655,6 +685,8 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'firstTendolaKiHad', e.target.value)
                                                     }
+                                                    disabled={!formValues.hadd.haddEnabled}
+
                                                 />
                                             </Form.Group>
                                         </div>
@@ -667,6 +699,8 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'secondTendolaKiHad', e.target.value)
                                                     }
+                                                    disabled={!formValues.hadd.haddEnabled}
+
                                                 />
                                             </Form.Group>
                                         </div>
@@ -681,6 +715,8 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'firstPangodaKiHad', e.target.value)
                                                     }
+                                                    disabled={!formValues.hadd.haddEnabled}
+
                                                 />
                                             </Form.Group>
                                         </div>
@@ -693,10 +729,25 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'secondPangodaKiHad', e.target.value)
                                                     }
+                                                    disabled={!formValues.hadd.haddEnabled}
+
                                                 />
                                             </Form.Group>
                                         </div>
+                                        <div className="col-md-6">
+                                            <br />
+                                            <Form.Check
+                                                type="checkbox"
+                                                label="Hadd Enabled"
+                                                checked={formValues.hadd.haddEnabled}
+                                                onChange={(e) =>
+                                                    handleFormInputChange('hadd', 'haddEnabled', e.target.checked)
+                                                }
+                                            />
+                                        </div>
                                     </div>
+                                    <br/>
+
                                     <Button variant="primary" type="submit" size="sm">
                                         Submit
                                     </Button>
@@ -766,7 +817,7 @@ const UserDetails = () => {
                                         </div>
                                     </div>
                                     <div className="row">
-                                    <div className="col-md-6">
+                                        <div className="col-md-6">
                                             <Form.Group className="mb-3" controlId="general-info-field7">
                                                 <Form.Label>Password</Form.Label>
                                                 <Form.Control
@@ -778,7 +829,7 @@ const UserDetails = () => {
                                         </div>
                                         <div className="col-md-6">
                                             <Form.Group className="mb-3" controlId="general-info-field5">
-                                                <br/>
+                                                <br />
                                                 <Form.Check
                                                     type="checkbox"
                                                     label="Active"

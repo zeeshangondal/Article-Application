@@ -8,6 +8,7 @@ import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
+import { columnStyles,styles } from './pdfTableStyle';
 
 const AdminReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
@@ -281,7 +282,7 @@ const AdminReports = () => {
             return { tableData, total, totalFirst, totalSecond };
         }
 
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
         let bodyData = [];
         var wtotalFirst = 0, wtotalSecond = 0, wtotal = 0;
 
@@ -299,18 +300,20 @@ const AdminReports = () => {
                     body: bodyData,
                     theme: 'striped',
                     margin: { top: marginTop },
-                    columnStyles: {
-                        0: { fillColor: [192, 192, 192] },
-                        3: { fillColor: [192, 192, 192] },
-                        6: { fillColor: [192, 192, 192] },
-                        9: { fillColor: [192, 192, 192] }
+                    columnStyles:{
+                        ...columnStyles               
+                    },
+                    styles: {
+                        ...styles
                     },
                 });
 
                 pdfDoc.setFontSize(10);
+                pdfDoc.setFont("helvetica", "bold");
                 pdfDoc.text("Total First: " + sectionTableData.totalFirst, 15, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.text("Total Second: " + sectionTableData.totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.text("Total: " + sectionTableData.total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.setFont("helvetica", "normal");
             }
         }
 
@@ -450,7 +453,7 @@ const AdminReports = () => {
         }
         total = totalFirst + totalSecond;
 
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
 
         // Convert the data to a format compatible with jsPDF autoTable
         let bodyData = newData;
@@ -459,25 +462,27 @@ const AdminReports = () => {
             body: bodyData,
             theme: 'striped',
             margin: { top: tableMarginTop }, // Adjusted top margin to leave space for the headings and texts
-            columnStyles: {
-                0: { fillColor: [192, 192, 192] },
-                3: { fillColor: [192, 192, 192] },
-                6: { fillColor: [192, 192, 192] },
-                9: { fillColor: [192, 192, 192] }
+            columnStyles:{
+                ...columnStyles               
+            },
+            styles: {
+                ...styles
             },
         });
 
         // Display totals
         pdfDoc.setFontSize(10);
+        pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFont("helvetica", "normal");
 
     }
 
     const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser, heading = "Distributor Sale Report") => {
         const pdfDoc = new jsPDF();
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.text(heading, pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
@@ -526,18 +531,19 @@ const AdminReports = () => {
             theme: 'striped',
             margin: { top: 32 }, // Adjusted top margin to leave space for the headings and texts
             columnStyles: {
-                0: { fillColor: [192, 192, 192] },
-                3: { fillColor: [192, 192, 192] },
-                6: { fillColor: [192, 192, 192] },
-                9: { fillColor: [192, 192, 192] }
+                ...columnStyles
             },
+            styles:{
+                ...styles
+            }
         });
 
         pdfDoc.setFontSize(10);
+        pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
-
+        pdfDoc.setFont("helvetica", "normal");
 
         const filename = 'sample.pdf';
         // pdfDoc.save(filename);
@@ -815,7 +821,7 @@ const AdminReports = () => {
         let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
 
         const pdfDoc = new jsPDF();
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Limit Sale", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
