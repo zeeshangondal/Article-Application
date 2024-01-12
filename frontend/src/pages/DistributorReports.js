@@ -148,8 +148,7 @@ const DistributorReports = () => {
     const getTitle = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'dealerSaleVoucher') return 'Dealer Sale Voucher Report';
-        if (selectedOption === 'totalLimitSale') return 'Total Limit Sale Report';
-
+        if (selectedOption === 'totalLimitSale') return `Total ${localStorageUtils.getLoggedInUser().commission.shareEnabled? "Share" : "Hadd"} Limit Sale`;
         return '';
     };
     const getSubUserusernames = () => {
@@ -612,8 +611,147 @@ const DistributorReports = () => {
             generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser)
         }
     }
+    const getShareValue = (price, share) => {
+        return Math.floor((share / 100) * price)
+    }
 
+    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser) => {
+        let share = Number(targetUser.commission.share)
+        let pcPercentage = Number(targetUser.commission.pcPercentage)
+
+        let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+        let updatedSavedPurchases = []
+        if (totalLimitSaleForm.limitType == "upLimit") {
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 4) {
+                    newData.first = Number(newData.first) - getShareValue(Number(newData.first), pcPercentage);
+                    newData.second = Number(newData.second) - getShareValue(Number(newData.second), pcPercentage);
+                } else {
+                    newData.first = Number(newData.first) - getShareValue(Number(newData.first), share);
+                    newData.second = Number(newData.second) - getShareValue(Number(newData.second), share);
+                }
+                return newData
+            })
+
+            updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (newData.first < 0) {
+                    newData.first = 0
+                }
+                if (newData.second < 0) {
+                    newData.second = 0
+                }
+                return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
+            })
+            return updatedSavedPurchases;
+        } else if (totalLimitSaleForm.limitType == "downLimit") {
+            function getDownLimitProcessedPurchase(purchase) {
+                let newData = { ...purchase }
+                let shareOrPC = Number(targetUser.commission.share)
+                if (newData.bundle.length == 4) {
+                    shareOrPC = Number(targetUser.commission.pcPercentage)
+                }
+                if (Number(newData.first) > getShareValue(Number(newData.first), shareOrPC))
+                    newData.first = getShareValue(Number(newData.first), shareOrPC)
+                if (Number(newData.second) > getShareValue(Number(newData.second), shareOrPC))
+                    newData.second = getShareValue(Number(newData.second), shareOrPC)
+                return newData
+            }
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                newData = getDownLimitProcessedPurchase(newData)
+                return newData
+            })
+            return updatedSavedPurchases;
+        }
+    }
+
+
+    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser) => {
+        let hadd = {};
+        hadd = targetUser.hadd;
+        let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+        let updatedSavedPurchases = []
+        if (totalLimitSaleForm.limitType == "upLimit") {
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 1) {
+                    newData.first = Number(newData.first) - Number(hadd.hindsyKiHad1);
+                    newData.second = Number(newData.second) - Number(hadd.hindsyKiHad2);
+                } else if (purchase.bundle.length == 2) {
+                    newData.first = Number(newData.first) - Number(hadd.akraKiHad1);
+                    newData.second = Number(newData.second) - Number(hadd.akraKiHad2);
+                } else if (purchase.bundle.length == 3) {
+                    newData.first = Number(newData.first) - Number(hadd.firstTendolaKiHad);
+                    newData.second = Number(newData.second) - Number(hadd.secondTendolaKiHad);
+                } else if (purchase.bundle.length == 4) {
+                    newData.first = Number(newData.first) - Number(hadd.firstPangodaKiHad);
+                    newData.second = Number(newData.second) - Number(hadd.secondPangodaKiHad);
+                }
+                return newData
+            })
+
+            updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (newData.first < 0) {
+                    newData.first = 0
+                }
+                if (newData.second < 0) {
+                    newData.second = 0
+                }
+                return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
+            })
+            return updatedSavedPurchases;
+        } else if (totalLimitSaleForm.limitType == "downLimit") {
+            function getDownLimitProcessedPurchase(purchase, had1, had2) {
+                let newData = { ...purchase }
+                if (Number(newData.first) > Number(had1))
+                    newData.first = Number(had1)
+                if (Number(newData.second) > Number(had2))
+                    newData.second = Number(had2)
+                return newData
+            }
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 1) {
+                    newData = getDownLimitProcessedPurchase(newData, hadd.hindsyKiHad1, hadd.hindsyKiHad2)
+                } else if (purchase.bundle.length == 2) {
+                    newData = getDownLimitProcessedPurchase(newData, hadd.akraKiHad1, hadd.akraKiHad2)
+                } else if (purchase.bundle.length == 3) {
+                    newData = getDownLimitProcessedPurchase(newData, hadd.firstTendolaKiHad, hadd.secondTendolaKiHad)
+                } else if (purchase.bundle.length == 4) {
+                    newData = getDownLimitProcessedPurchase(newData, hadd.firstPangodaKiHad, hadd.secondPangodaKiHad)
+                }
+                return newData
+            })
+            return updatedSavedPurchases;
+        }
+    }
     const getTotalOfDistributorFromDrawForTotalLimit = (targetUser) => {
+        if (targetUser.commission.shareEnabled) {
+            return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser)
+        } else if (targetUser.hadd.haddEnabled) {
+            return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser)
+        } else {
+            return []
+        }
+    }
+
+
+    const getTotalOfDistributorFromDrawForTotalLimit2 = (targetUser) => {
         let hadd = {};
         hadd = targetUser.hadd;
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
@@ -687,7 +825,16 @@ const DistributorReports = () => {
         targetUser = getAUser(currentLoggedInUser.username)
 
         let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
-        generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser, "Distributor Limit Sale")
+        let heading=""
+        if(targetUser.commission.shareEnabled){
+            heading="Distributor Share Limit Sale"
+        }else if(targetUser.hadd.haddEnabled){
+            heading="Distributor Hadd Limit Sale"
+        }else{
+            alert("No option from Hadd or Share is enabled")
+            return
+        }
+        generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser, heading)
     }
     return (
         <div className='container mt-4'>
@@ -703,7 +850,7 @@ const DistributorReports = () => {
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Dealer Sale Voucher</Nav.Link>
-                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Limit Sale</Nav.Link>
+                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total {localStorageUtils.getLoggedInUser().commission.shareEnabled? "Share" : "Hadd"} Limit Sale</Nav.Link>
 
                             </Nav>
                         </Card.Body>
