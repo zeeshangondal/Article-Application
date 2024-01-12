@@ -831,10 +831,17 @@ const DistributorReports = () => {
         }else if(targetUser.hadd.haddEnabled){
             heading="Distributor Hadd Limit Sale"
         }else{
-            alert("No option from Hadd or Share is enabled")
+            alert("Your Share is not enabled")
             return
         }
         generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser, heading)
+    }
+    function getHeadingForLimitSaleNotPermission(){
+        if(localStorageUtils.getLoggedInUser().creator.username=="admin"){
+            return "Admin has not allowed"
+        }else{
+            return "Your Distributor has not allowed"
+        }
     }
     return (
         <div className='container mt-4'>
@@ -939,9 +946,9 @@ const DistributorReports = () => {
                             {selectedOption === 'totalLimitSale' && !localStorageUtils.getLoggedInUser().generalInfo.enableLimitSaleReportView &&
                                 <div className='d-flex justify-content-center'>
                                     {window.innerWidth <= 600 ?
-                                        <h6>Admin has not allowed</h6>
+                                        <h6>{getHeadingForLimitSaleNotPermission()}</h6>
                                         :
-                                        <h4>Admin has not allowed</h4>
+                                        <h4>{getHeadingForLimitSaleNotPermission()}</h4>
                                     }
                                 </div>
                             }

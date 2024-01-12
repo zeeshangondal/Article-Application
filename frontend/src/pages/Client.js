@@ -50,6 +50,13 @@ const UserDetails = () => {
                 return
             }
         }
+        if(field=="share"){
+            const loggedInUser=localStorageUtils.getLoggedInUser();
+            if(loggedInUser.username!="admin" && value> loggedInUser.commission.share){
+                alert("Your assigned share is "+loggedInUser.commission.share+" You cannot give more share then that")
+                return
+            }    
+        }
         setFormValues(prevValues => ({
             ...prevValues,
             [category]: {
@@ -574,6 +581,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('commission', 'share', e.target.value)
                                                     }
+                                                    disabled={!formValues.commission.shareEnabled}
                                                 />
                                             </Form.Group>
                                         </div>
@@ -588,6 +596,8 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('commission', 'pcPercentage', e.target.value)
                                                     }
+                                                    disabled={!formValues.commission.shareEnabled}
+
                                                 />
                                             </Form.Group>
                                         </div>
