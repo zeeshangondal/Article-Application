@@ -965,58 +965,6 @@ const AdminReports = () => {
     }
 
 
-    const getResultOfTotalLimitSale = () => {
-        let hadd = {};
-        hadd = { hindsyKiHad1: 0, hindsyKiHad2: 0, akraKiHad1: 0, akraKiHad2: 0, firstTendolaKiHad: 0, secondTendolaKiHad: 0, firstPangodaKiHad: 0, secondPangodaKiHad: 0 };
-        subUsers.forEach(user => {
-            hadd.hindsyKiHad1 += user.hadd.hindsyKiHad1;
-            hadd.hindsyKiHad2 += user.hadd.hindsyKiHad2;
-            hadd.akraKiHad1 += user.hadd.akraKiHad1;
-            hadd.akraKiHad2 += user.hadd.akraKiHad2;
-            hadd.firstTendolaKiHad += user.hadd.firstTendolaKiHad;
-            hadd.secondTendolaKiHad += user.hadd.secondTendolaKiHad;
-            hadd.firstPangodaKiHad += user.hadd.firstPangodaKiHad;
-            hadd.secondPangodaKiHad += user.hadd.secondPangodaKiHad;
-        })
-
-        let savedPurchases = getTotalOfDistributorFromDraw("admin")
-        let updatedSavedPurchases = []
-        updatedSavedPurchases = savedPurchases.map(purchase => {
-            let newData = { ...purchase }
-            if (purchase.bundle.length == 1) {
-                newData.first = Number(newData.first) - Number(hadd.hindsyKiHad1);
-                newData.second = Number(newData.second) - Number(hadd.hindsyKiHad2);
-            } else if (purchase.bundle.length == 2) {
-                newData.first = Number(newData.first) - Number(hadd.akraKiHad1);
-                newData.second = Number(newData.second) - Number(hadd.akraKiHad2);
-            } else if (purchase.bundle.length == 3) {
-                newData.first = Number(newData.first) - Number(hadd.firstTendolaKiHad);
-                newData.second = Number(newData.second) - Number(hadd.secondTendolaKiHad);
-            } else if (purchase.bundle.length == 4) {
-                newData.first = Number(newData.first) - Number(hadd.firstPangodaKiHad);
-                newData.second = Number(newData.second) - Number(hadd.secondPangodaKiHad);
-            }
-            return newData
-        })
-
-        updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
-            let newData = { ...purchase }
-            if (newData.first < 0) {
-                newData.first = 0
-            }
-            if (newData.second < 0) {
-                newData.second = 0
-            }
-            return newData
-        })
-        updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
-            if (purchase.first > 0 || purchase.second > 0)
-                return true
-            else
-                return false
-        })
-        return updatedSavedPurchases;
-    }
 
     const getTotalOfDistributorFromDrawForLimitCutting = () => {
         let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(getAUser("admin"))
