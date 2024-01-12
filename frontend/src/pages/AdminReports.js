@@ -8,7 +8,7 @@ import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
-import { columnStyles,styles } from './pdfTableStyle';
+import { columnStyles, styles } from './pdfTableStyle';
 
 const AdminReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
@@ -222,7 +222,7 @@ const AdminReports = () => {
     const getTitle = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'dealerSaleVoucher') return 'Distributors Sale Voucher Report';
-        if (selectedOption === 'totalLimitSale') return 'Total Limit Sale Report';
+        if (selectedOption === 'totalLimitSale') return 'Total Share/Hadd Limit Sale Report';
         if (selectedOption === 'limitCutting') return 'Limit Cutting Report';
 
 
@@ -300,8 +300,8 @@ const AdminReports = () => {
                     body: bodyData,
                     theme: 'striped',
                     margin: { top: marginTop },
-                    columnStyles:{
-                        ...columnStyles               
+                    columnStyles: {
+                        ...columnStyles
                     },
                     styles: {
                         ...styles
@@ -462,8 +462,8 @@ const AdminReports = () => {
             body: bodyData,
             theme: 'striped',
             margin: { top: tableMarginTop }, // Adjusted top margin to leave space for the headings and texts
-            columnStyles:{
-                ...columnStyles               
+            columnStyles: {
+                ...columnStyles
             },
             styles: {
                 ...styles
@@ -533,7 +533,7 @@ const AdminReports = () => {
             columnStyles: {
                 ...columnStyles
             },
-            styles:{
+            styles: {
                 ...styles
             }
         });
@@ -667,23 +667,71 @@ const AdminReports = () => {
             generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser)
         }
     }
-    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser) => {
-        let hadd = {};
-        if (targetUser.username == "admin") {
-            hadd = { hindsyKiHad1: 0, hindsyKiHad2: 0, akraKiHad1: 0, akraKiHad2: 0, firstTendolaKiHad: 0, secondTendolaKiHad: 0, firstPangodaKiHad: 0, secondPangodaKiHad: 0 };
-            subUsers.forEach(user => {
-                hadd.hindsyKiHad1 += user.hadd.hindsyKiHad1;
-                hadd.hindsyKiHad2 += user.hadd.hindsyKiHad2;
-                hadd.akraKiHad1 += user.hadd.akraKiHad1;
-                hadd.akraKiHad2 += user.hadd.akraKiHad2;
-                hadd.firstTendolaKiHad += user.hadd.firstTendolaKiHad;
-                hadd.secondTendolaKiHad += user.hadd.secondTendolaKiHad;
-                hadd.firstPangodaKiHad += user.hadd.firstPangodaKiHad;
-                hadd.secondPangodaKiHad += user.hadd.secondPangodaKiHad;
+    const getShareValue = (price, share) => {
+        return Math.floor((share / 100) * price)
+    }
+    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser) => {
+        let share = Number(targetUser.commission.share)
+        let pcPercentage = Number(targetUser.commission.pcPercentage)
+
+        let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+        let updatedSavedPurchases = []
+        if (totalLimitSaleForm.limitType == "upLimit") {
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 4) {
+                    newData.first = Number(newData.first) - getShareValue(Number(newData.first), pcPercentage);
+                    newData.second = Number(newData.second) - getShareValue(Number(newData.second), pcPercentage);
+                } else {
+                    newData.first = Number(newData.first) - getShareValue(Number(newData.first), share);
+                    newData.second = Number(newData.second) - getShareValue(Number(newData.second), share);
+                }
+                return newData
             })
-        } else {
-            hadd = targetUser.hadd;
+
+            updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (newData.first < 0) {
+                    newData.first = 0
+                }
+                if (newData.second < 0) {
+                    newData.second = 0
+                }
+                return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
+            })
+            return updatedSavedPurchases;
+        } else if (totalLimitSaleForm.limitType == "downLimit") {
+            function getDownLimitProcessedPurchase(purchase) {
+                let newData = { ...purchase }
+                let shareOrPC = Number(targetUser.commission.share)
+                if (newData.bundle.length == 4) {
+                    shareOrPC = Number(targetUser.commission.pcPercentage)
+                }
+                if (Number(newData.first) > getShareValue(Number(newData.first), shareOrPC))
+                    newData.first = getShareValue(Number(newData.first), shareOrPC)
+                if (Number(newData.second) > getShareValue(Number(newData.second), shareOrPC))
+                    newData.second = getShareValue(Number(newData.second), shareOrPC)
+                return newData
+            }
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                newData = getDownLimitProcessedPurchase(newData)
+                return newData
+            })
+            return updatedSavedPurchases;
         }
+    }
+
+
+    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser) => {
+        let hadd = {};
+        hadd = targetUser.hadd;
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
         if (totalLimitSaleForm.limitType == "upLimit") {
@@ -748,17 +796,67 @@ const AdminReports = () => {
         }
     }
 
+    function aggregateSavedPurchases(savedPurchases) {
+        const result = [];
+        function getPurchaseFromResult(purchase){
+            return result.find(rePurchase=> rePurchase.bundle==purchase.bundle)
+        }
+        savedPurchases.forEach((purchase) => {
+          let purchaseFromResult=getPurchaseFromResult(purchase)
+          if(purchaseFromResult){
+            purchaseFromResult.first+=Number(purchase.first)
+            purchaseFromResult.second+=Number(purchase.second)
+          }else{
+            let newData={...purchase}
+            newData.first=Number(newData.first)
+            newData.second=Number(newData.second)
+            result.push(newData)
+          }
+        });
+        return result;
+      }
+    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser) => {
+        if (targetUser.username == "admin") {
+            let savedPurchases = []
+            subUsers.forEach(subUser => {
+                let tempSavedPurchases=[]
+                if (subUser.commission.shareEnabled) {
+                    tempSavedPurchases= getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser)
+                } else if (subUser.hadd.haddEnabled) {
+                    tempSavedPurchases= getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser)
+                } else {
+                    return []
+                }
+                savedPurchases=[...savedPurchases,...tempSavedPurchases]
+            })
+            return aggregateSavedPurchases(savedPurchases)
+        } else {
+            if (targetUser.commission.shareEnabled) {
+                return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser)
+            } else if (targetUser.hadd.haddEnabled) {
+                return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser)
+            } else {
+                return []
+            }
+        }
+    }
+    const getAllDirectSubUsersOf = (username) => {
+        let directSubUsers = []
+        return allUsers.filter(subUser => ((subUser.username != "admin" && subUser.creator.username == username)))
+    }
     const generateTotalLimitSaleForAllDealersSeparateWithoutGroup = async () => {
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Sale Limit", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+
+        pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Share/Hadd Limit Sale" : "Distributor Share/Hadd Limit Sale ", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         let added = false
         let first = true;
 
         let firstTotal = 0, secondTotal = 0, total = 0;
         subUsers.forEach(user => {
             let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(getAUser(user.username));
+
             savedPurchases.forEach(purchase => {
                 firstTotal += Number(purchase.first)
                 secondTotal += Number(purchase.second)
@@ -795,36 +893,59 @@ const AdminReports = () => {
         }
     }
     const generateTotalLimitSaleWihtoutGroup = () => {
+        let savedPurchases = [];
+        let heading = ""
         let targetUser = {}
         if (totalLimitSaleForm.dealer == "allDealersCombined") {
             targetUser = getAUser("admin")
+            savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
         } else if (totalLimitSaleForm.dealer == "allDealersSeparate") {
             generateTotalLimitSaleForAllDealersSeparateWithoutGroup()
             return
         }
         else {
             targetUser = getAUser(totalLimitSaleForm.dealer)
+            if (targetUser.commission.shareEnabled) {
+                heading = "Distributor Share Limit Sale"
+            } else if (targetUser.hadd.haddEnabled) {
+                heading = "Distributor Hadd Limit Sale"
+            } else {
+                alert("No option is enabled from Share or Hadd")
+                return
+            }
+            savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
         }
-        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
-        generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser, totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Limit Sale")
+        generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser, totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Hadd/Share Limit Sale" : heading)
     }
 
     const generateTotalLimitSaleGroupWise = async () => {
         let targetUser = {}
+        let savedPurchases = [];
+        let heading = ""
+
         if (totalLimitSaleForm.dealer == "allDealersSeparate")
             return
         if (totalLimitSaleForm.dealer == "allDealersCombined") {
             targetUser = getAUser("admin")
         } else {
             targetUser = getAUser(totalLimitSaleForm.dealer)
+            if (targetUser.commission.shareEnabled) {
+                heading = "Distributor Share Limit Sale"
+            } else if (targetUser.hadd.haddEnabled) {
+                heading = "Distributor Hadd Limit Sale"
+            } else {
+                alert("No option is enabled from Share or Hadd")
+                return 
+            }
         }
-        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
+        
 
+        savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
         const pdfDoc = new jsPDF();
         const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Limit Sale" : "Distributor Limit Sale", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.text(totalLimitSaleForm.dealer.includes("allDealers") ? "All Distributors Share/Hadd Limit Sale" : heading, pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         // savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0);
         pdfDoc.setFontSize(10);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
@@ -896,8 +1017,9 @@ const AdminReports = () => {
         })
         return updatedSavedPurchases;
     }
+
     const getTotalOfDistributorFromDrawForLimitCutting = () => {
-        let savedPurchases = getResultOfTotalLimitSale()
+        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(getAUser("admin"))
         if (limitCuttingForm.bundleType != "all") {
             if (limitCuttingForm.bundleType == "A")
                 savedPurchases = savedPurchases.filter(purchase => purchase.bundle.length == "1")
@@ -1041,7 +1163,7 @@ const AdminReports = () => {
                         <Card.Body>
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
-                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Limit Sale</Nav.Link>
+                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Share/Hadd Limit Sale Report</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Distributors Sale Voucher</Nav.Link>
                                 <Nav.Link eventKey="limitCutting" style={{ background: (selectedOption == "limitCutting" ? "lightgray" : "") }} >Limit Cutting</Nav.Link>
 
