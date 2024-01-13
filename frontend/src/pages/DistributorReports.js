@@ -8,6 +8,7 @@ import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
+import { columnStyles, styles } from './pdfTableStyle';
 
 const DistributorReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
@@ -148,7 +149,7 @@ const DistributorReports = () => {
     const getTitle = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'dealerSaleVoucher') return 'Dealer Sale Voucher Report';
-        if (selectedOption === 'totalLimitSale') return `Total ${localStorageUtils.getLoggedInUser().commission.shareEnabled? "Share" : "Hadd"} Limit Sale`;
+        if (selectedOption === 'totalLimitSale') return `Total ${localStorageUtils.getLoggedInUser().commission.shareEnabled ? "Share" : "Hadd"} Limit Sale`;
         return '';
     };
     const getSubUserusernames = () => {
@@ -205,7 +206,7 @@ const DistributorReports = () => {
             return { tableData, total, totalFirst, totalSecond };
         }
 
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
         let bodyData = [];
         var wtotalFirst = 0, wtotalSecond = 0, wtotal = 0;
 
@@ -224,17 +225,19 @@ const DistributorReports = () => {
                     theme: 'striped',
                     margin: { top: marginTop },
                     columnStyles: {
-                        0: { fillColor: [192, 192, 192] },
-                        3: { fillColor: [192, 192, 192] },
-                        6: { fillColor: [192, 192, 192] },
-                        9: { fillColor: [192, 192, 192] }
+                        ...columnStyles
                     },
-                });
+                    styles: {
+                        ...styles
+                    }
 
-                pdfDoc.setFontSize(10);
+                });
+                pdfDoc.setFont("helvetica", "bold");
                 pdfDoc.text("Total First: " + sectionTableData.totalFirst, 15, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.text("Total Second: " + sectionTableData.totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.text("Total: " + sectionTableData.total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.setFont("helvetica", "normal");
+
             }
         }
 
@@ -267,10 +270,11 @@ const DistributorReports = () => {
             count++;
         }
         if (count > 1) {
-            pdfDoc.setFontSize(12);
+            pdfDoc.setFont("helvetica", "bold");
             pdfDoc.text("Total First: " + wtotalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total Second: " + wtotalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total: " + wtotal, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.setFont("helvetica", "normal");
         }
         return wtotal;
     }
@@ -284,7 +288,6 @@ const DistributorReports = () => {
     const generateTotalSaleGroupWise = async () => {
         let savedPurchases = getTotalOfDistributorFromDraw(currentLoggedInUser.username)
         const pdfDoc = new jsPDF();
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
@@ -374,7 +377,7 @@ const DistributorReports = () => {
         }
         total = totalFirst + totalSecond;
 
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
 
         // Convert the data to a format compatible with jsPDF autoTable
         let bodyData = newData;
@@ -384,24 +387,25 @@ const DistributorReports = () => {
             theme: 'striped',
             margin: { top: tableMarginTop }, // Adjusted top margin to leave space for the headings and texts
             columnStyles: {
-                0: { fillColor: [192, 192, 192] },
-                3: { fillColor: [192, 192, 192] },
-                6: { fillColor: [192, 192, 192] },
-                9: { fillColor: [192, 192, 192] }
+                ...columnStyles
             },
+            styles: {
+                ...styles
+            }
+
         });
 
-        // Display totals
-        pdfDoc.setFontSize(10);
+        pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFont("helvetica", "normal");
 
     }
 
     const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser, heading = "Dealer Sale Voucher Report") => {
         const pdfDoc = new jsPDF();
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.text(heading, pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
@@ -450,17 +454,19 @@ const DistributorReports = () => {
             theme: 'striped',
             margin: { top: 32 }, // Adjusted top margin to leave space for the headings and texts
             columnStyles: {
-                0: { fillColor: [192, 192, 192] },
-                3: { fillColor: [192, 192, 192] },
-                6: { fillColor: [192, 192, 192] },
-                9: { fillColor: [192, 192, 192] }
+                ...columnStyles
             },
-        });
+            styles: {
+                ...styles
+            }
 
-        pdfDoc.setFontSize(10);
+        });
+        pdfDoc.setFont("helvetica", "bold");
+
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFont("helvetica", "normal");
 
 
         const filename = 'sample.pdf';
@@ -751,95 +757,28 @@ const DistributorReports = () => {
     }
 
 
-    const getTotalOfDistributorFromDrawForTotalLimit2 = (targetUser) => {
-        let hadd = {};
-        hadd = targetUser.hadd;
-        let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
-        let updatedSavedPurchases = []
-        if (totalLimitSaleForm.limitType == "upLimit") {
-            updatedSavedPurchases = savedPurchases.map(purchase => {
-                let newData = { ...purchase }
-                if (purchase.bundle.length == 1) {
-                    newData.first = Number(newData.first) - Number(hadd.hindsyKiHad1);
-                    newData.second = Number(newData.second) - Number(hadd.hindsyKiHad2);
-                } else if (purchase.bundle.length == 2) {
-                    newData.first = Number(newData.first) - Number(hadd.akraKiHad1);
-                    newData.second = Number(newData.second) - Number(hadd.akraKiHad2);
-                } else if (purchase.bundle.length == 3) {
-                    newData.first = Number(newData.first) - Number(hadd.firstTendolaKiHad);
-                    newData.second = Number(newData.second) - Number(hadd.secondTendolaKiHad);
-                } else if (purchase.bundle.length == 4) {
-                    newData.first = Number(newData.first) - Number(hadd.firstPangodaKiHad);
-                    newData.second = Number(newData.second) - Number(hadd.secondPangodaKiHad);
-                }
-                return newData
-            })
 
-            updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
-                let newData = { ...purchase }
-                if (newData.first < 0) {
-                    newData.first = 0
-                }
-                if (newData.second < 0) {
-                    newData.second = 0
-                }
-                return newData
-            })
-            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
-                if (purchase.first > 0 || purchase.second > 0)
-                    return true
-                else
-                    return false
-            })
-            return updatedSavedPurchases;
-        } else if (totalLimitSaleForm.limitType == "downLimit") {
-            function getDownLimitProcessedPurchase(purchase, had1, had2) {
-                let newData = { ...purchase }
-                if (Number(newData.first) > Number(had1))
-                    newData.first = Number(had1)
-                if (Number(newData.second) > Number(had2))
-                    newData.second = Number(had2)
-                return newData
-            }
-            updatedSavedPurchases = savedPurchases.map(purchase => {
-                let newData = { ...purchase }
-                if (purchase.bundle.length == 1) {
-                    newData = getDownLimitProcessedPurchase(newData, hadd.hindsyKiHad1, hadd.hindsyKiHad2)
-                } else if (purchase.bundle.length == 2) {
-                    newData = getDownLimitProcessedPurchase(newData, hadd.akraKiHad1, hadd.akraKiHad2)
-                } else if (purchase.bundle.length == 3) {
-                    newData = getDownLimitProcessedPurchase(newData, hadd.firstTendolaKiHad, hadd.secondTendolaKiHad)
-                } else if (purchase.bundle.length == 4) {
-                    newData = getDownLimitProcessedPurchase(newData, hadd.firstPangodaKiHad, hadd.secondPangodaKiHad)
-                }
-                return newData
-            })
-
-            return updatedSavedPurchases;
-
-        }
-
-    }
     const generateTotalLimitSaleWihtoutGroup = () => {
         let targetUser = {}
         targetUser = getAUser(currentLoggedInUser.username)
 
         let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser);
-        let heading=""
-        if(targetUser.commission.shareEnabled){
-            heading="Distributor Share Limit Sale"
-        }else if(targetUser.hadd.haddEnabled){
-            heading="Distributor Hadd Limit Sale"
-        }else{
+        let heading = ""
+        if (targetUser.commission.shareEnabled) {
+            heading = "Distributor Share Limit Sale"
+        } else if (targetUser.hadd.haddEnabled) {
+            heading = "Distributor Hadd Limit Sale"
+        } else {
             alert("Your Share is not enabled")
             return
         }
         generateDealSaleVoucherWithoutGroup(savedPurchases, targetUser, heading)
     }
-    function getHeadingForLimitSaleNotPermission(){
-        if(localStorageUtils.getLoggedInUser().creator.username=="admin"){
+
+    function getHeadingForLimitSaleNotPermission() {
+        if (localStorageUtils.getLoggedInUser().creator.username == "admin") {
             return "Admin has not allowed"
-        }else{
+        } else {
             return "Your Distributor has not allowed"
         }
     }
@@ -857,7 +796,7 @@ const DistributorReports = () => {
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Dealer Sale Voucher</Nav.Link>
-                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total {localStorageUtils.getLoggedInUser().commission.shareEnabled? "Share" : "Hadd"} Limit Sale</Nav.Link>
+                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total {localStorageUtils.getLoggedInUser().commission.shareEnabled ? "Share" : "Hadd"} Limit Sale</Nav.Link>
 
                             </Nav>
                         </Card.Body>

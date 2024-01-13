@@ -8,6 +8,7 @@ import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
+import { columnStyles, styles } from './pdfTableStyle';
 
 const MerchentReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
@@ -216,7 +217,7 @@ const MerchentReports = () => {
             return { tableData, total, totalFirst, totalSecond };
         }
 
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
         let bodyData = [];
         var wtotalFirst = 0, wtotalSecond = 0, wtotal = 0;
 
@@ -235,17 +236,19 @@ const MerchentReports = () => {
                     theme: 'striped',
                     margin: { top: marginTop },
                     columnStyles: {
-                        0: { fillColor: [192, 192, 192] },
-                        3: { fillColor: [192, 192, 192] },
-                        6: { fillColor: [192, 192, 192] },
-                        9: { fillColor: [192, 192, 192] }
+                        ...columnStyles
                     },
-                });
+                    styles: {
+                        ...styles
+                    }
 
-                pdfDoc.setFontSize(10);
+                });
+                pdfDoc.setFont("helvetica", "bold");
                 pdfDoc.text("Total First: " + sectionTableData.totalFirst, 15, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.text("Total Second: " + sectionTableData.totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.text("Total: " + sectionTableData.total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.setFont("helvetica", "normal");
+
             }
         }
 
@@ -278,10 +281,13 @@ const MerchentReports = () => {
             count++;
         }
         if (count > 1) {
-            pdfDoc.setFontSize(12);
+            pdfDoc.setFont("helvetica", "bold");
+
             pdfDoc.text("Total First: " + wtotalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total Second: " + wtotalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total: " + wtotal, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.setFont("helvetica", "normal");
+
         }
         return wtotal;
     }
@@ -383,7 +389,7 @@ const MerchentReports = () => {
 
         const pdfDoc = new jsPDF();
 
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
 
         pdfDoc.setFontSize(20);
         // Two centered headings
@@ -446,18 +452,19 @@ const MerchentReports = () => {
                 theme: 'striped',
                 margin: { top: 32 }, // Adjusted top margin to leave space for the headings and texts
                 columnStyles: {
-                    0: { fillColor: [192, 192, 192] },
-                    3: { fillColor: [192, 192, 192] },
-                    6: { fillColor: [192, 192, 192] },
-                    9: { fillColor: [192, 192, 192] }
+                    ...columnStyles
                 },
+                styles: {
+                    ...styles
+                }
+
             });
         }
-
-        pdfDoc.setFontSize(10);
+        pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFont("helvetica", "normal");
 
 
         if (savedOversales.length > 0 && (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "oversale")) {
@@ -465,7 +472,12 @@ const MerchentReports = () => {
             if (totalSheetSaleForm.category == "combined") {
                 pdfDoc.addPage();
                 pdfDoc.setFontSize(20);
+                pdfDoc.setFont("helvetica", "bold");
                 pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+                pdfDoc.setFont("helvetica", "normal");
+                pdfDoc.setFontSize(10);
+
+
             }
 
             chunkSize = Math.ceil(savedOversales.length / parts);
@@ -510,16 +522,18 @@ const MerchentReports = () => {
                 theme: 'striped',
                 margin: { top: totalSheetSaleForm.category == "oversale" ? 32 : 15 }, // Adjusted top margin to leave space for the headings and texts
                 columnStyles: {
-                    0: { fillColor: [192, 192, 192] },
-                    3: { fillColor: [192, 192, 192] },
-                    6: { fillColor: [192, 192, 192] },
-                    9: { fillColor: [192, 192, 192] }
+                    ...columnStyles
                 },
+                styles: {
+                    ...styles
+                }
+
             });
-            pdfDoc.setFontSize(10);
+            pdfDoc.setFont("helvetica", "bold");
             pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.setFont("helvetica", "normal");
 
         }
         const filename = 'sample.pdf';
@@ -615,7 +629,11 @@ const MerchentReports = () => {
                 if (totalSaleForm.category == "combined") {
                     pdfDoc.addPage();
                     pdfDoc.setFontSize(20);
+                    pdfDoc.setFont("helvetica", "bold");
                     pdfDoc.text("OverSales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+                    pdfDoc.setFont("helvetica", "normal");
+                    pdfDoc.setFontSize(10);
+
                 }
                 //pdfDoc,savedPurchases, drawData, selectedDraw, sorted = false
                 processAndAddTablesInPDF(pdfDoc, savedOversales, sorted, totalSaleForm.category == "oversale" ? 32 : 15)
@@ -644,7 +662,7 @@ const MerchentReports = () => {
         let targetUser = {}
         targetUser = currentLoggedInUser
         const pdfDoc = new jsPDF();
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
         pdfDoc.setFontSize(20);
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.text("Total Share Limit Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
@@ -714,8 +732,8 @@ const MerchentReports = () => {
                 return newData
             })
         }
-        savedPurchases=updatedSavedPurchases
-        savedPurchases=savedPurchases.filter(purchase=> purchase.first>0 || purchase.second>0)
+        savedPurchases = updatedSavedPurchases
+        savedPurchases = savedPurchases.filter(purchase => purchase.first > 0 || purchase.second > 0)
         pdfDoc.setFontSize(10);
         pdfDoc.text(currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
         // Text above the table on the right with adjusted font size
@@ -759,17 +777,20 @@ const MerchentReports = () => {
             theme: 'striped',
             margin: { top: 32 }, // Adjusted top margin to leave space for the headings and texts
             columnStyles: {
-                0: { fillColor: [192, 192, 192] },
-                3: { fillColor: [192, 192, 192] },
-                6: { fillColor: [192, 192, 192] },
-                9: { fillColor: [192, 192, 192] }
+                ...columnStyles
             },
-        });
+            styles: {
+                ...styles
+            }
 
+        });
         pdfDoc.setFontSize(10);
+
+        pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFont("helvetica", "normal");
 
 
         const filename = 'sample.pdf';
@@ -796,7 +817,7 @@ const MerchentReports = () => {
     const generateTotalSaleWihtoutGroupInvoice = async ({ sorted = false }) => {
         const pdfDoc = new jsPDF();
 
-        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
 
         pdfDoc.setFontSize(20);
         // Two centered headings
@@ -904,17 +925,21 @@ const MerchentReports = () => {
                 theme: 'striped',
                 margin: { top: 32 }, // Adjusted top margin to leave space for the headings and texts
                 columnStyles: {
-                    0: { fillColor: [192, 192, 192] },
-                    3: { fillColor: [192, 192, 192] },
-                    6: { fillColor: [192, 192, 192] },
-                    9: { fillColor: [192, 192, 192] }
+                    ...columnStyles
                 },
+                styles:{
+                    ...styles
+                }
+    
             });
-
             pdfDoc.setFontSize(10);
+
+            pdfDoc.setFont("helvetica", "bold");
+
             pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.setFont("helvetica", "normal");
 
         }
 
@@ -971,16 +996,20 @@ const MerchentReports = () => {
                     theme: 'striped',
                     margin: { top: totalSaleForm.category == "combined" ? 15 : 32 }, // Adjusted top margin to leave space for the headings and texts
                     columnStyles: {
-                        0: { fillColor: [192, 192, 192] },
-                        3: { fillColor: [192, 192, 192] },
-                        6: { fillColor: [192, 192, 192] },
-                        9: { fillColor: [192, 192, 192] }
+                        ...columnStyles
                     },
+                    styles:{
+                        ...styles
+                    }
+        
                 });
                 pdfDoc.setFontSize(10);
+
+                pdfDoc.setFont("helvetica", "bold");
                 pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
                 pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
                 pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+                pdfDoc.setFont("helvetica", "normal");
 
             }
         }
