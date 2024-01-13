@@ -26,6 +26,10 @@ const MerchentReports = () => {
         category: 'combined',
         reportType: 'withoutGroup',
     });
+    const [totalLimitSaleForm, setTotalLimitSaleForm] = useState({
+        date: '',
+        limitType: 'upLimit'
+    });
 
     const [notification, setNotification] = useState({
         color: "",
@@ -42,6 +46,28 @@ const MerchentReports = () => {
         fetchDraws();
     }, []);
 
+
+    const handleTotalLimitSaleChange = (e) => {
+        const { name, value } = e.target;
+        if (name == "date") {
+            let tempDraw = draws.find(draw => draw.drawDate == value)
+            if (!tempDraw) {
+                alertMessage("No Record of Draw")
+                return
+            }
+            setSelectedDraw(tempDraw)
+            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw => draw.drawId == tempDraw._id)
+            if (!targets) {
+                alertMessage("You haven't purchased anything from this Draw")
+                return
+            }
+            setSavedPurchasesInDraw(targets)
+        }
+        setTotalLimitSaleForm((prevForm) => ({
+            ...prevForm,
+            [name]: value,
+        }));
+    };
     const fetchLoggedInUser = async () => {
         try {
             const response = await APIs.getAllUsers();
@@ -97,7 +123,7 @@ const MerchentReports = () => {
                 return
             }
             setSelectedDraw(tempDraw)
-            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw => draw.drawId==tempDraw._id)
+            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw => draw.drawId == tempDraw._id)
             if (!targets) {
                 alertMessage("You haven't purchased anything from this Draw")
                 return
@@ -118,7 +144,7 @@ const MerchentReports = () => {
                 return
             }
             setSelectedDraw(tempDraw)
-            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw =>draw.drawId== tempDraw._id)
+            let targets = currentLoggedInUser.savedPurchasesFromDrawsData.filter(draw => draw.drawId == tempDraw._id)
             if (!targets) {
                 alertMessage("You haven't purchased anything from this Draw")
                 return
@@ -134,6 +160,8 @@ const MerchentReports = () => {
     const getTitle = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'totalSheetSale') return 'Total Sheet Sale Report';
+        if (selectedOption === 'totalLimitSale') return 'Total Share Limit Sale Report';
+
         return '';
     };
     const getSheetNames = () => {
@@ -298,7 +326,7 @@ const MerchentReports = () => {
             pdfDoc.text("Total Sheet Oversale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
         pdfDoc.setFontSize(10);
-        pdfDoc.text(currentLoggedInUser.username+", "+selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
+        pdfDoc.text(currentLoggedInUser.username + ", " + selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
@@ -403,7 +431,7 @@ const MerchentReports = () => {
         let bodyData = newData;
 
         pdfDoc.setFontSize(10);
-        pdfDoc.text(currentLoggedInUser.username+", "+selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
+        pdfDoc.text(currentLoggedInUser.username + ", " + selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
@@ -570,7 +598,7 @@ const MerchentReports = () => {
         }
 
         pdfDoc.setFontSize(10);
-        pdfDoc.text(currentLoggedInUser.username+", "+"Draw: " + selectedDraw.title, 15, 30);
+        pdfDoc.text(currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
@@ -607,6 +635,164 @@ const MerchentReports = () => {
             alertMessage("Due to an error could not make report")
         }
     };
+    const getShareValue = (price, share) => {
+        return Math.floor((share / 100) * price)
+    }
+
+
+    const generateTotalLimitSaleWihtoutGroup = async () => {
+        let targetUser = {}
+        targetUser = currentLoggedInUser
+        const pdfDoc = new jsPDF();
+        const columns = ['Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd', 'Bundle', '1st', '2nd'];
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Total Share Limit Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        let groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedPurchases)
+            .reduce((acc, purchase) => {
+                const bundle = purchase.bundle;
+
+                if (!acc[bundle]) {
+                    acc[bundle] = { bundle, first: 0, second: 0 };
+                }
+
+                acc[bundle].first += purchase.first;
+                acc[bundle].second += purchase.second;
+
+                return acc;
+            }, {});
+        let savedPurchases = Object.values(groupedByBundle);
+        savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
+        let share = Number(targetUser.commission.share)
+        let pcPercentage = Number(targetUser.commission.pcPercentage)
+        let updatedSavedPurchases = []
+        if (totalLimitSaleForm.limitType == "upLimit") {
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (purchase.bundle.length == 4) {
+                    newData.first = Number(newData.first) - getShareValue(Number(newData.first), pcPercentage);
+                    newData.second = Number(newData.second) - getShareValue(Number(newData.second), pcPercentage);
+                } else {
+                    newData.first = Number(newData.first) - getShareValue(Number(newData.first), share);
+                    newData.second = Number(newData.second) - getShareValue(Number(newData.second), share);
+                }
+                return newData
+            })
+
+            updatedSavedPurchases = updatedSavedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                if (newData.first < 0) {
+                    newData.first = 0
+                }
+                if (newData.second < 0) {
+                    newData.second = 0
+                }
+                return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
+            })
+        } else if (totalLimitSaleForm.limitType == "downLimit") {
+            function getDownLimitProcessedPurchase(purchase) {
+                let newData = { ...purchase }
+                let shareOrPC = Number(targetUser.commission.share)
+                if (newData.bundle.length == 4) {
+                    shareOrPC = Number(targetUser.commission.pcPercentage)
+                }
+                if (Number(newData.first) > getShareValue(Number(newData.first), shareOrPC))
+                    newData.first = getShareValue(Number(newData.first), shareOrPC)
+                if (Number(newData.second) > getShareValue(Number(newData.second), shareOrPC))
+                    newData.second = getShareValue(Number(newData.second), shareOrPC)
+                return newData
+            }
+            updatedSavedPurchases = savedPurchases.map(purchase => {
+                let newData = { ...purchase }
+                newData = getDownLimitProcessedPurchase(newData)
+                return newData
+            })
+        }
+        savedPurchases=updatedSavedPurchases
+        savedPurchases=savedPurchases.filter(purchase=> purchase.first>0 || purchase.second>0)
+        pdfDoc.setFontSize(10);
+        pdfDoc.text(currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
+        // Text above the table on the right with adjusted font size
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        // pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+
+        let parts = 4;
+        let chunkSize = Math.ceil(savedPurchases.length / parts);
+        let dividedArrays = [];
+        savedPurchases = savedPurchases.sort((a, b) => {
+            return Number('1' + a.bundle) - Number('1' + b.bundle);
+        });
+
+        for (let i = 0; i < savedPurchases.length; i += chunkSize) {
+            dividedArrays.push(savedPurchases.slice(i, i + chunkSize));
+        }
+
+
+        let newData = [];
+        let totalFirst = 0, totalSecond = 0, total = 0;
+
+        for (let i = 0; i < savedPurchases.length / 4; i++) {
+            let row = [];
+            dividedArrays.forEach(array => {
+                if (array[i]) {
+                    row.push(array[i].bundle)
+                    row.push(array[i].first)
+                    row.push(array[i].second)
+                    totalFirst += array[i].first
+                    totalSecond += array[i].second
+                }
+            });
+            newData.push(row);
+        }
+        total = totalFirst + totalSecond
+        // Convert the data to a format compatible with jsPDF autoTable
+        let bodyData = newData;
+        pdfDoc.autoTable({
+            head: [columns],
+            body: bodyData,
+            theme: 'striped',
+            margin: { top: 32 }, // Adjusted top margin to leave space for the headings and texts
+            columnStyles: {
+                0: { fillColor: [192, 192, 192] },
+                3: { fillColor: [192, 192, 192] },
+                6: { fillColor: [192, 192, 192] },
+                9: { fillColor: [192, 192, 192] }
+            },
+        });
+
+        pdfDoc.setFontSize(10);
+        pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+
+
+        const filename = 'sample.pdf';
+        // pdfDoc.save(filename);
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+
+        if (!targetUser.commission.shareEnabled) {
+            alert("Your Share is not enabled")
+            return
+        }
+
+    }
+
+
+
     const generateTotalSaleWihtoutGroupInvoice = async ({ sorted = false }) => {
         const pdfDoc = new jsPDF();
 
@@ -671,7 +857,7 @@ const MerchentReports = () => {
         }
 
         pdfDoc.setFontSize(10);
-        pdfDoc.text(currentLoggedInUser.username+", "+"Draw: " + selectedDraw.title, 15, 30);
+        pdfDoc.text(currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
@@ -811,6 +997,7 @@ const MerchentReports = () => {
         }
     };
 
+
     return (
         <div className='container mt-4'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -826,6 +1013,8 @@ const MerchentReports = () => {
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="totalSheetSale" style={{ background: (selectedOption == "totalSheetSale" ? "lightgray" : "") }} >Total Sheet Sale</Nav.Link>
+                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Share Limit Sale</Nav.Link>
+
                             </Nav>
                         </Card.Body>
                     </Card>
@@ -959,6 +1148,50 @@ const MerchentReports = () => {
                                     </Row>
                                 </Form>
                             )}
+                            {selectedOption === 'totalLimitSale' && localStorageUtils.getLoggedInUser().generalInfo.enableLimitSaleReportView && (
+                                <Form>
+                                    <Row>
+                                        <Col>
+                                            <Form.Label>Date</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="date"
+                                                name="date"
+                                                value={totalLimitSaleForm.date}
+                                                onChange={handleTotalLimitSaleChange}
+                                            />
+                                        </Col>
+                                    </Row>
+
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Limit Type</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="limitType"
+                                                value={totalLimitSaleForm.limitType}
+                                                onChange={handleTotalLimitSaleChange}
+                                            >
+                                                <option value="upLimit">Up Limit</option>
+                                                <option value="downLimit">Down Limit</option>
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+
+                                </Form>
+                            )}
+                            {selectedOption === 'totalLimitSale' && !localStorageUtils.getLoggedInUser().generalInfo.enableLimitSaleReportView &&
+                                <div className='d-flex justify-content-center'>
+                                    {window.innerWidth <= 600 ?
+                                        <h6>Your Distributor has not allowed</h6>
+                                        :
+                                        <h4>Your Distributor has not allowed</h4>
+                                    }
+                                </div>
+                            }
                         </Card.Body>
                         {selectedOption === 'totalSheetSale' && (
                             <Card.Footer>
@@ -992,6 +1225,19 @@ const MerchentReports = () => {
                                         onClick={() => (totalSaleForm.reportType == "withoutGroup" ? generateTotalSaleWihtoutGroupInvoice({ sorted: true }) : generateTotalSaleGroupWiseInvoice({ sorted: true }))}
                                         disabled={!totalSaleForm.date || !totalSaleForm.category || !totalSaleForm.reportType}
 
+                                    >
+                                        Report
+                                    </Button>
+
+                                </div>
+                            </Card.Footer>
+                        )}
+                        {selectedOption === 'totalLimitSale' && localStorageUtils.getLoggedInUser().generalInfo.enableLimitSaleReportView && (
+                            <Card.Footer>
+                                <div className="d-flex flex-wrap justify-content-start">
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => generateTotalLimitSaleWihtoutGroup()}
+                                        disabled={!totalLimitSaleForm.date || !totalLimitSaleForm.limitType}
                                     >
                                         Report
                                     </Button>

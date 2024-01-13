@@ -51,6 +51,7 @@ export default function Merchent() {
         second: '',
         _id: ''
     });
+    
     useEffect(() => {
         fetchLoggedInUser();
         fetchDraws();
