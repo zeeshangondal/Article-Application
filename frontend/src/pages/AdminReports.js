@@ -1396,7 +1396,7 @@ const AdminReports = () => {
             let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             let id = targetUser.userId, name = targetUser.generalInfo.name;
-            let amount = result.totalBill;
+            let amount = result.totalSale;
             let commission = result.totalCommission
             let gross = Number((amount - commission).toFixed(1))
             let prize = result.totalPrize

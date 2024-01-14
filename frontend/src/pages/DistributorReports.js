@@ -1045,13 +1045,17 @@ const DistributorReports = () => {
     }
 
     const generateBillingSheet = async () => {
-        let tempSub = subUsers.filter(user => user.role != "merchent");
         const pdfDoc = new jsPDF();
         if (billingSheetForm.dealer == "allDealers") {
-            let subUsers = tempSub
             for (let i = 0; i < subUsers.length; i++) {
                 let targetUser = getAUser(subUsers[i].username)
-                let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                let savedPurchases = []
+                if(targetUser.role=="distributor"){
+                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                }else{
+                    savedPurchases=getTotalOfMerchentFromDraw(targetUser.username) 
+    
+                }
                 let result = calculateResultOfDistributor(targetUser, savedPurchases)
                 addBillSheetOfADistributor(pdfDoc, targetUser, result)
                 if (i + 1 < subUsers.length) {
@@ -1060,7 +1064,14 @@ const DistributorReports = () => {
             }
         } else {
             let targetUser = getAUser(billingSheetForm.dealer)
-            let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+
+            let savedPurchases = []
+            if(targetUser.role=="distributor"){
+                savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            }else{
+                savedPurchases=getTotalOfMerchentFromDraw(targetUser.username)
+
+            }
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             addBillSheetOfADistributor(pdfDoc, targetUser, result)
         }
@@ -1085,13 +1096,13 @@ const DistributorReports = () => {
 
         const columns = ['Id', 'Name', 'Ammount', 'Commission', 'Gross', 'Prize', 'NetBalance', 'Share', 'Result'];
         let bodyData = []
-        let tempSubUsers=subUsers.filter(user=>user.role!="merchent")
+        let tempSubUsers=subUsers
         for (let i = 0; i < tempSubUsers.length; i++) {
             let targetUser = getAUser(tempSubUsers[i].username)
             let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             let id = targetUser.userId, name = targetUser.generalInfo.name;
-            let amount = result.totalBill;
+            let amount = result.totalSale;
             let commission = result.totalCommission
             let gross = Number((amount - commission).toFixed(1))
             let prize = result.totalPrize
