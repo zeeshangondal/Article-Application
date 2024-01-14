@@ -1043,12 +1043,12 @@ const DistributorReports = () => {
         }
         return result
     }
-    
+
     const generateBillingSheet = async () => {
-        let tempSub= subUsers.filter(user => user.role != "merchent");
+        let tempSub = subUsers.filter(user => user.role != "merchent");
         const pdfDoc = new jsPDF();
         if (billingSheetForm.dealer == "allDealers") {
-            let subUsers =tempSub
+            let subUsers = tempSub
             for (let i = 0; i < subUsers.length; i++) {
                 let targetUser = getAUser(subUsers[i].username)
                 let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
@@ -1064,6 +1064,63 @@ const DistributorReports = () => {
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             addBillSheetOfADistributor(pdfDoc, targetUser, result)
         }
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
+    const generateBillingSheetSummary = async () => {
+        let targetUser = getAUser(localStorageUtils.getLoggedInUser().username)
+        const pdfDoc = new jsPDF();
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Bill Sheet Summary", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 25);
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 25, { align: 'right' });
+
+        const columns = ['Id', 'Name', 'Ammount', 'Commission', 'Gross', 'Prize', 'NetBalance', 'Share', 'Result'];
+        let bodyData = []
+        let tempSubUsers=subUsers.filter(user=>user.role!="merchent")
+        for (let i = 0; i < tempSubUsers.length; i++) {
+            let targetUser = getAUser(tempSubUsers[i].username)
+            let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            let result = calculateResultOfDistributor(targetUser, savedPurchases)
+            let id = targetUser.userId, name = targetUser.generalInfo.name;
+            let amount = result.totalBill;
+            let commission = result.totalCommission
+            let gross = Number((amount - commission).toFixed(1))
+            let prize = result.totalPrize
+            let netBalance = Number((gross - prize).toFixed(1))
+            let share = result.totalShare
+            let outputResult = Number((netBalance - share).toFixed(1))
+            bodyData.push([id, name, amount, commission, gross, prize, netBalance, share, outputResult])
+        }
+        pdfDoc.autoTable({
+            head: [columns],
+            body: bodyData,
+            theme: '',
+            margin: { top: 28 },
+            styles: {
+                fontStyle: 'bold',
+                textColor: [0, 0, 0],
+                lineWidth: 0.2,  // Set the border width to 0
+                lineColor: [0, 0, 0],  // Set the border color to match the background
+                fillStyle: 'DF',
+                fillColor: [255, 255, 255],
+                head: {
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [255, 0, 0],
+                    textColor: [255, 255, 255],
+                },
+            }
+        });
+
         const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
         const formData = new FormData();
         formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
@@ -1308,7 +1365,7 @@ const DistributorReports = () => {
                                         Bill Sheet
                                     </Button>
                                     <Button variant="primary btn btn-sm m-1"
-                                        // onClick={() => generateLimitCuttingGroupWise()}
+                                        onClick={() => generateBillingSheetSummary()}
                                         disabled={!billingSheetForm.date || !billingSheetForm.dealer}
                                     >
                                         Summarized Bill Sheet
