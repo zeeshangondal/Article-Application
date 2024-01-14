@@ -250,7 +250,7 @@ const AdminReports = () => {
         if (selectedOption === 'dealerSaleVoucher') return 'Distributors Sale Voucher Report';
         if (selectedOption === 'totalLimitSale') return 'Total Share/Hadd Limit Sale Report';
         if (selectedOption === 'limitCutting') return 'Limit Cutting Report';
-        if (selectedOption === 'billingSheet') return 'Billing Sheet ';
+        if (selectedOption === 'billingSheet') return 'Bill Sheet ';
         return '';
     };
     const getSubUserusernames = () => {
@@ -889,7 +889,7 @@ const AdminReports = () => {
             })
         })
         total += firstTotal + secondTotal
-        
+
         subUsers.forEach(user => {
             if (user.role == "distributor") {
                 let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(getAUser(user.username));
@@ -1113,7 +1113,6 @@ const AdminReports = () => {
         }
     }
 
-
     function checkForButton() {
         if (limitCuttingForm.bundleType == "all") {
             let notAllow = (!limitCuttingForm.firstA || !limitCuttingForm.secondA || !limitCuttingForm.firstB || !limitCuttingForm.secondB || !limitCuttingForm.firstC || !limitCuttingForm.secondC || !limitCuttingForm.firstD || !limitCuttingForm.secondD)
@@ -1124,6 +1123,78 @@ const AdminReports = () => {
         }
     }
     let enableLimitCuttinButton = checkForButton()
+
+    const generateBillSheetOfADistributor = async (targetUser, result) => {
+        const pdfDoc = new jsPDF();
+        let x1 = 5, x2 = 140;
+        let y = 20, ySpace = 6
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Bill Sheet", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        // pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.text("Draw date:", x1, y);pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1+30, y);
+        pdfDoc.text("Dealer Code:" , x2, y);pdfDoc.text(targetUser.userId+"", x2+27, y);
+
+
+        pdfDoc.text("Commission:" , x1, y + ySpace);pdfDoc.text(targetUser.commission.commision + " %", x1+30, y + ySpace);
+        pdfDoc.text("Name:" , x2, y + ySpace);pdfDoc.text(targetUser.generalInfo.name+"", x2+27, y + ySpace);
+
+
+        pdfDoc.text("PC:", x1, y + 2 * ySpace);        pdfDoc.text(targetUser.commission.pcPercentage + " %", x1+30, y + 2 * ySpace);
+        pdfDoc.text("Address:" , x2, y + 2 * ySpace);        pdfDoc.text(targetUser.generalInfo.address, x2+27, y + 2 * ySpace);
+
+
+        pdfDoc.text("Share:" , x1, y + 3 * ySpace);        pdfDoc.text(targetUser.commission.share + " %", x1+30, y + 3 * ySpace);
+        pdfDoc.text("Contact:" , x2, y + 3 * ySpace);        pdfDoc.text(targetUser.generalInfo.contactNumber, x2+27, y + 3 * ySpace);
+
+
+        pdfDoc.autoTable({
+            head: [["Total Prize", "Total Sale", "Draw Time"]],
+            body: [[0, 0, 0]],
+            theme: '',
+            margin: { top: y + 4 * ySpace },
+            styles: {
+                fontStyle: 'bold',
+                textColor: [0, 0, 0],
+                lineWidth: 0.2,  // Set the border width to 0
+                lineColor: [0, 0, 0],  // Set the border color to match the background
+                fillStyle: 'DF',
+                fillColor: [255, 255, 255],
+                head: {
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [255, 0, 0],
+                    textColor: [255, 255, 255],
+                },
+            }
+        });
+        x2=120
+        pdfDoc.text("A+B+C First:", x1, y + 8 * ySpace);pdfDoc.text(0+"", x1+40, y + 8 * ySpace);
+        pdfDoc.text("D First:" , x2, y + 8 * ySpace);pdfDoc.text(0+"", x2+27, y + 8 * ySpace);
+
+        pdfDoc.text("A+B+C Second:", x1, y + 9 * ySpace);pdfDoc.text(0+"", x1+40, y + 9 * ySpace);
+        pdfDoc.text("D Second:" , x2, y + 9 * ySpace);pdfDoc.text(0+"", x2+27, y + 9 * ySpace);
+
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
+
+    const generateBillingSheet = () => {
+        if (billingSheetForm.dealer == "allDealers") {
+
+        } else {
+            let targetUser = getAUser(billingSheetForm.dealer)
+            let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+            generateBillSheetOfADistributor(targetUser, {})
+        }
+    }
 
     return (
         <div className='container mt-4'>
@@ -1141,7 +1212,7 @@ const AdminReports = () => {
                                 <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Share/Hadd Limit Sale Report</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Distributors Sale Voucher</Nav.Link>
                                 <Nav.Link eventKey="limitCutting" style={{ background: (selectedOption == "limitCutting" ? "lightgray" : "") }} >Limit Cutting</Nav.Link>
-                                <Nav.Link eventKey="billingSheet" style={{ background: (selectedOption == "billingSheet" ? "lightgray" : "") }} >Billing Sheet</Nav.Link>
+                                <Nav.Link eventKey="billingSheet" style={{ background: (selectedOption == "billingSheet" ? "lightgray" : "") }} >Bill Sheet</Nav.Link>
 
                             </Nav>
                         </Card.Body>
@@ -1581,7 +1652,24 @@ const AdminReports = () => {
                                     >
                                         Report
                                     </Button>
-
+                                </div>
+                            </Card.Footer>
+                        )}
+                        {selectedOption === 'billingSheet' && (
+                            <Card.Footer>
+                                <div className="d-flex flex-wrap justify-content-start">
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => generateBillingSheet()}
+                                        disabled={!billingSheetForm.date || !billingSheetForm.dealer}
+                                    >
+                                        Bill Sheet
+                                    </Button>
+                                    <Button variant="primary btn btn-sm m-1"
+                                        // onClick={() => generateLimitCuttingGroupWise()}
+                                        disabled={!billingSheetForm.date || !billingSheetForm.dealer}
+                                    >
+                                        Summarized Bill Sheet
+                                    </Button>
                                 </div>
                             </Card.Footer>
                         )}
