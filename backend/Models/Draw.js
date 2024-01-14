@@ -1,6 +1,32 @@
 const mongoose = require("mongoose");
 
 const DrawSchema = mongoose.Schema({
+    prize:{
+        firstPrize:{
+            type:String,
+            default:""
+        },
+        secondPrize1:{
+            type:String,
+            default:""
+        },
+        secondPrize2:{
+            type:String,
+            default:""
+        },
+        secondPrize3:{
+            type:String,
+            default:""
+        },
+        secondPrize4:{
+            type:String,
+            default:""
+        },
+        secondPrize5:{
+            type:String,
+            default:""
+        },
+    },
     title: {
         type: String,
     },
