@@ -1184,26 +1184,26 @@ const AdminReports = () => {
         pdfDoc.text("PC Commsion:", x2, y + 11 * ySpace); pdfDoc.text(result.PCCommission + "", x2 + 40, y + 11 * ySpace);
 
         const lineY = y + 12 * ySpace;  // Adjust the Y coordinate as needed
-        pdfDoc.line(x1, lineY, pdfDoc.internal.pageSize.width-x1, lineY);
+        pdfDoc.line(x1, lineY, pdfDoc.internal.pageSize.width - x1, lineY);
 
         pdfDoc.text("Total Sale:", x1, y + 13 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 13 * ySpace);
         pdfDoc.text("Total Commission:", x2, y + 13 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 13 * ySpace);
 
         pdfDoc.text("Extra Sale:", x1, y + 14 * ySpace); pdfDoc.text(result.extraSale + "", x1 + 40, y + 14 * ySpace);
 
-        pdfDoc.text("Total Prize:", x1, y + 15 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 15 * ySpace);
-        pdfDoc.text("ABC Prize:", x1+50+20, y + 15 * ySpace); pdfDoc.text(0 + "", x1+40+50+5, y + 15 * ySpace);
-        pdfDoc.text("D Prize:", x2+10, y + 15 * ySpace); pdfDoc.text(0 + "", x2+40, y + 15 * ySpace);
+        pdfDoc.text("Total Prize:", x1, y + 15 * ySpace); pdfDoc.text(result.totalPrize + "", x1 + 40, y + 15 * ySpace);
+        pdfDoc.text("ABC Prize:", x1 + 50 + 20, y + 15 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40 + 50 + 5, y + 15 * ySpace);
+        pdfDoc.text("D Prize:", x2 + 10, y + 15 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 15 * ySpace);
 
         pdfDoc.text("Bill:", x1, y + 16 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 16 * ySpace);
-        pdfDoc.text("ABC Bill:", x1+50+20, y + 16 * ySpace); pdfDoc.text(0 + "", x1+40+50+5, y + 16 * ySpace);
-        pdfDoc.text("D Bill:", x2+10, y + 16 * ySpace); pdfDoc.text(0 + "", x2+40, y + 16 * ySpace);
+        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 16 * ySpace); pdfDoc.text(0 + "", x1 + 40 + 50 + 5, y + 16 * ySpace);
+        pdfDoc.text("D Bill:", x2 + 10, y + 16 * ySpace); pdfDoc.text(0 + "", x2 + 40, y + 16 * ySpace);
 
 
         pdfDoc.text("Total Share:", x1, y + 17 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 17 * ySpace);
-        pdfDoc.text("ABC Share:", x1+50+20, y + 17 * ySpace); pdfDoc.text(0 + "", x1+40+50+5, y + 17 * ySpace);
-        pdfDoc.text("D Share:", x2+10, y + 17 * ySpace); pdfDoc.text(0 + "", x2+40, y + 17 * ySpace);
-        
+        pdfDoc.text("ABC Share:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(0 + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
+        pdfDoc.text("D Share:", x2 + 10, y + 17 * ySpace); pdfDoc.text(0 + "", x2 + 40, y + 17 * ySpace);
+
         pdfDoc.text("Total Bill:", x1, y + 18 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 18 * ySpace);
 
         const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
@@ -1217,36 +1217,108 @@ const AdminReports = () => {
         }
     }
 
-    const calculateTotalsInFormat=(savedPurchases)=>{
-        let ABCFirstTotal=0,ABCSecondTotal=0, DFirstTotal=0,DSecondTotal=0
-        savedPurchases.forEach(purchase=>{
-            if(purchase.bundle.length==4){
-                DFirstTotal+=Number(purchase.first)
-                DSecondTotal+=Number(purchase.second)
-            }else{
-                ABCFirstTotal+=Number(purchase.first)
-                ABCSecondTotal+=Number(purchase.second)
+    const calculateTotalsInFormat = (savedPurchases) => {
+        let ABCFirstTotal = 0, ABCSecondTotal = 0, DFirstTotal = 0, DSecondTotal = 0
+        savedPurchases.forEach(purchase => {
+            if (purchase.bundle.length == 4) {
+                DFirstTotal += Number(purchase.first)
+                DSecondTotal += Number(purchase.second)
+            } else {
+                ABCFirstTotal += Number(purchase.first)
+                ABCSecondTotal += Number(purchase.second)
             }
         })
-        return {ABCFirstTotal,ABCSecondTotal, DFirstTotal,DSecondTotal}
+        return { ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal }
     }
-    const calculateResultOfDistributor=(targetUser,savedPurchases)=>{
-        let {ABCFirstTotal,ABCSecondTotal, DFirstTotal,DSecondTotal}= calculateTotalsInFormat(savedPurchases)
-        let ABCTotalSale=ABCFirstTotal+ABCSecondTotal;
-        let DTotalSale=DFirstTotal+DSecondTotal;
+    const calculatePrize = (targetUser, savedPurchases) => {
+        function getFirstOfBundle(bundle) {
+            let res = null
+            savedPurchases.forEach(purchase => {
+                if (purchase.bundle == bundle) {
+                    res = Number(purchase.first)
+                }
+            })
+            return res
+        }
+        function getSecondOfBundle(bundle) {
+            let res = null
+            savedPurchases.forEach(purchase => {
+                if (purchase.bundle == bundle) {
+                    res = Number(purchase.second)
+                }
+            })
+            return res
+        }
+        function getFormatArray(prize) {
+            const output = [];
+            for (let i = 1; i <= prize.length; i++) {
+                output.push(prize.substring(0, i));
+            }
+            return output;
+        }
+        let rewardObj = targetUser.rewardCommission
+        function getRewardForBundle(bundle) {
+            if (bundle.length == 1) return Number(rewardObj.firstA)
+            if (bundle.length == 2) return Number(rewardObj.firstB)
+            if (bundle.length == 3) return Number(rewardObj.firstC)
+            if (bundle.length == 4) return Number(rewardObj.firstD)
+        }
+        let drawPrizeObj = selectedDraw.prize;
+        let ABCFirstTotalPrize = 0, DFirstTotalPrize = 0, ABCSecondTotalPrize = 0, DSecondTotalPrize = 0
+        if (drawPrizeObj.firstPrize.length == 4) {
+            getFormatArray(drawPrizeObj.firstPrize).forEach(bundle => {
+                if (bundle.length == 4) {
+                    let tempV = getFirstOfBundle(bundle)
+                    if (tempV)
+                        DFirstTotalPrize += tempV * getRewardForBundle(bundle)
+                } else {
+                    let tempV = getFirstOfBundle(bundle)
+                    if (tempV)
+                        ABCFirstTotalPrize += tempV * getRewardForBundle(bundle)
+                }
+            })
 
-        let commission=Number(((Number(targetUser.commission.commision)/100)*ABCTotalSale).toFixed(1))
-        let PCCommission=Number(((Number(targetUser.commission.pcPercentage)/100)*DTotalSale).toFixed(1))
-        
-        let totalSale=ABCTotalSale+DTotalSale
-        let totalCommission=commission+PCCommission
-        
-        let extraSale=totalSale-totalCommission
+        }
+        let drawSecondPrizes = []
+        let count = 0
+        if (drawPrizeObj.secondPrize1.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize1); count++ }
+        if (drawPrizeObj.secondPrize2.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize2); count++ }
+        if (drawPrizeObj.secondPrize3.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize3); count++ }
+        if (drawPrizeObj.secondPrize4.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize4); count++ }
+        if (drawPrizeObj.secondPrize5.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize5); count++ }
+        drawSecondPrizes.forEach(tempSecondPrize => {
+            getFormatArray(tempSecondPrize).forEach(bundle => {
+                if (bundle.length == 4) {
+                    let tempV = getSecondOfBundle(bundle)
+                    if (tempV)
+                        DSecondTotalPrize += Number((getSecondOfBundle(bundle) * getRewardForBundle(bundle) / count).toFixed(1))
+                } else {
+                    let tempV = getSecondOfBundle(bundle)
+                    if (tempV)
+                        ABCSecondTotalPrize += Number((getSecondOfBundle(bundle) * getRewardForBundle(bundle) / count).toFixed(1))
+                }
+            })
+        })
+        // console.log(ABCFirstTotalPrize , ABCSecondTotalPrize,DFirstTotalPrize ,DSecondTotalPrize )
+        let ABCPrize = ABCFirstTotalPrize + ABCSecondTotalPrize
+        let DPrize = DFirstTotalPrize + DSecondTotalPrize
+        return { ABCPrize, DPrize, totalPrize: ABCPrize + DPrize }
+    }
+    const calculateResultOfDistributor = (targetUser, savedPurchases) => {
+        let { ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal } = calculateTotalsInFormat(savedPurchases)
+        let ABCTotalSale = ABCFirstTotal + ABCSecondTotal;
+        let DTotalSale = DFirstTotal + DSecondTotal;
+        let commission = Number(((Number(targetUser.commission.commision) / 100) * ABCTotalSale).toFixed(1))
+        let PCCommission = Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1))
+        let totalSale = ABCTotalSale + DTotalSale
+        let totalCommission = commission + PCCommission
+        let extraSale = totalSale - totalCommission
 
-
-        let result={
-            ABCFirstTotal,ABCSecondTotal, DFirstTotal,DSecondTotal,ABCTotalSale,DTotalSale,commission,PCCommission,
-            totalSale,totalCommission,extraSale
+        let prize = calculatePrize(targetUser, savedPurchases)
+        console.log(prize)
+        let result = {
+            ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
+            totalSale, totalCommission, extraSale, ABCPrize: prize.ABCPrize, DPrize: prize.DPrize, totalPrize: prize.totalPrize
         }
         return result
     }
@@ -1256,7 +1328,7 @@ const AdminReports = () => {
         } else {
             let targetUser = getAUser(billingSheetForm.dealer)
             let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
-            let result=calculateResultOfDistributor(targetUser,savedPurchases)
+            let result = calculateResultOfDistributor(targetUser, savedPurchases)
             generateBillSheetOfADistributor(targetUser, result)
         }
     }
