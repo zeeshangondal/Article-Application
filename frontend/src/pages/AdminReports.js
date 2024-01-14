@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
 import { columnStyles, styles } from './pdfTableStyle';
+import { formatTime } from '../Utils/Utils';
 
 const AdminReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
@@ -1132,25 +1133,25 @@ const AdminReports = () => {
         pdfDoc.text("Bill Sheet", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         // pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         pdfDoc.setFontSize(12);
-        pdfDoc.text("Draw date:", x1, y);pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1+30, y);
-        pdfDoc.text("Dealer Code:" , x2, y);pdfDoc.text(targetUser.userId+"", x2+27, y);
+        pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
+        pdfDoc.text("Dealer Code:", x2, y); pdfDoc.text(targetUser.userId + "", x2 + 27, y);
 
 
-        pdfDoc.text("Commission:" , x1, y + ySpace);pdfDoc.text(targetUser.commission.commision + " %", x1+30, y + ySpace);
-        pdfDoc.text("Name:" , x2, y + ySpace);pdfDoc.text(targetUser.generalInfo.name+"", x2+27, y + ySpace);
+        pdfDoc.text("Commission:", x1, y + ySpace); pdfDoc.text(targetUser.commission.commision + " %", x1 + 30, y + ySpace);
+        pdfDoc.text("Name:", x2, y + ySpace); pdfDoc.text(targetUser.generalInfo.name + "", x2 + 27, y + ySpace);
 
 
-        pdfDoc.text("PC:", x1, y + 2 * ySpace);        pdfDoc.text(targetUser.commission.pcPercentage + " %", x1+30, y + 2 * ySpace);
-        pdfDoc.text("Address:" , x2, y + 2 * ySpace);        pdfDoc.text(targetUser.generalInfo.address, x2+27, y + 2 * ySpace);
+        pdfDoc.text("PC:", x1, y + 2 * ySpace); pdfDoc.text(targetUser.commission.pcPercentage + " %", x1 + 30, y + 2 * ySpace);
+        pdfDoc.text("Address:", x2, y + 2 * ySpace); pdfDoc.text(targetUser.generalInfo.address, x2 + 27, y + 2 * ySpace);
 
 
-        pdfDoc.text("Share:" , x1, y + 3 * ySpace);        pdfDoc.text(targetUser.commission.share + " %", x1+30, y + 3 * ySpace);
-        pdfDoc.text("Contact:" , x2, y + 3 * ySpace);        pdfDoc.text(targetUser.generalInfo.contactNumber, x2+27, y + 3 * ySpace);
+        pdfDoc.text("Share:", x1, y + 3 * ySpace); pdfDoc.text(targetUser.commission.share + " %", x1 + 30, y + 3 * ySpace);
+        pdfDoc.text("Contact:", x2, y + 3 * ySpace); pdfDoc.text(targetUser.generalInfo.contactNumber, x2 + 27, y + 3 * ySpace);
 
 
         pdfDoc.autoTable({
             head: [["Total Prize", "Total Sale", "Draw Time"]],
-            body: [[0, 0, 0]],
+            body: [[0, 0, formatTime(selectedDraw.drawTime)]],
             theme: '',
             margin: { top: y + 4 * ySpace },
             styles: {
@@ -1168,12 +1169,34 @@ const AdminReports = () => {
                 },
             }
         });
-        x2=120
-        pdfDoc.text("A+B+C First:", x1, y + 8 * ySpace);pdfDoc.text(0+"", x1+40, y + 8 * ySpace);
-        pdfDoc.text("D First:" , x2, y + 8 * ySpace);pdfDoc.text(0+"", x2+27, y + 8 * ySpace);
+        x2 = 120
+        pdfDoc.text("A+B+C First:", x1, y + 8 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 8 * ySpace);
+        pdfDoc.text("D First:", x2, y + 8 * ySpace); pdfDoc.text(0 + "", x2 + 40, y + 8 * ySpace);
 
-        pdfDoc.text("A+B+C Second:", x1, y + 9 * ySpace);pdfDoc.text(0+"", x1+40, y + 9 * ySpace);
-        pdfDoc.text("D Second:" , x2, y + 9 * ySpace);pdfDoc.text(0+"", x2+27, y + 9 * ySpace);
+        pdfDoc.text("A+B+C Second:", x1, y + 9 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 9 * ySpace);
+        pdfDoc.text("D Second:", x2, y + 9 * ySpace); pdfDoc.text(0 + "", x2 + 40, y + 9 * ySpace);
+
+        pdfDoc.text("Total Sale:", x1, y + 10 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 10 * ySpace);//ABC total
+        pdfDoc.text("Total Sale:", x2, y + 10 * ySpace); pdfDoc.text(0 + "", x2 + 40, y + 10 * ySpace);//D total
+
+        pdfDoc.text("Commission:", x1, y + 11 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 11 * ySpace);
+        pdfDoc.text("PC Commsion:", x2, y + 11 * ySpace); pdfDoc.text(0 + "", x2 + 40, y + 11 * ySpace);
+
+        const lineY = y + 12 * ySpace;  // Adjust the Y coordinate as needed
+        pdfDoc.line(x1, lineY, pdfDoc.internal.pageSize.width-x1, lineY);
+
+        pdfDoc.text("Total Sale:", x1, y + 13 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 13 * ySpace);
+        pdfDoc.text("Total Commission:", x2, y + 13 * ySpace); pdfDoc.text(0 + "", x2 + 40, y + 13 * ySpace);
+
+        pdfDoc.text("Extra Sale:", x1, y + 14 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 14 * ySpace);
+
+        pdfDoc.text("Total Prize:", x1, y + 15 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 15 * ySpace);
+        pdfDoc.text("ABC Prize:", x1+50+20, y + 15 * ySpace); pdfDoc.text(0 + "", x1+40+50+5, y + 15 * ySpace);
+        pdfDoc.text("D Prize:", x2+10, y + 15 * ySpace); pdfDoc.text(0 + "", x2+40, y + 15 * ySpace);
+
+        pdfDoc.text("Bill:", x1, y + 16 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 16 * ySpace);
+        pdfDoc.text("ABC Bill:", x1+50+20, y + 16 * ySpace); pdfDoc.text(0 + "", x1+40+50+5, y + 16 * ySpace);
+        pdfDoc.text("D Bill:", x2+10, y + 16 * ySpace); pdfDoc.text(0 + "", x2+40, y + 16 * ySpace);
 
         const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
         const formData = new FormData();
