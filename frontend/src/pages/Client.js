@@ -38,24 +38,38 @@ const UserDetails = () => {
     const navigate = useNavigate();
 
     const handleFormInputChange = (category, field, value) => {
-        if(category=="hadd" && field=="haddEnabled" && value===true){
-            if(formValues.commission.shareEnabled){
+        if (category == "hadd" && field == "haddEnabled" && value === true) {
+            if (formValues.commission.shareEnabled) {
                 alert("You can not enable Hadd when the Share is enabled. If you want to enable Hadd you need to disable Share")
                 return
             }
         }
-        if(category=="commission" && field=="shareEnabled" && value===true){
-            if(formValues.hadd.haddEnabled){
+        if (category == "commission" && field == "shareEnabled" && value === true) {
+            if (formValues.hadd.haddEnabled) {
                 alert("You can not enable Share when the Hadd is enabled. If you want to enable Share you need to disable Hadd")
                 return
             }
         }
-        if(field=="share"){
-            const loggedInUser=localStorageUtils.getLoggedInUser();
-            if(loggedInUser.username!="admin" && value> loggedInUser.commission.share){
-                alert("Your assigned share is "+loggedInUser.commission.share+" You cannot give more share then that")
+        if (field == "share") {
+            const loggedInUser = localStorageUtils.getLoggedInUser();
+            if (loggedInUser.username != "admin" && value > loggedInUser.commission.share) {
+                alert("Your assigned share is " + loggedInUser.commission.share + " You cannot give more share then that")
                 return
-            }    
+            }
+        }
+        if (field == "pcPercentage") {
+            const loggedInUser = localStorageUtils.getLoggedInUser();
+            if (loggedInUser.username != "admin" && value > loggedInUser.commission.pcPercentage) {
+                alert("Your assigned pc Percentage is " + loggedInUser.commission.pcPercentage + " You cannot give more then that")
+                return
+            }
+        }
+        if (field == "pcShare") {
+            const loggedInUser = localStorageUtils.getLoggedInUser();
+            if (loggedInUser.username != "admin" && value > loggedInUser.commission.pcShare) {
+                alert("Your assigned pc share is " + loggedInUser.commission.pcShare + " You cannot give more then that")
+                return
+            }
         }
         setFormValues(prevValues => ({
             ...prevValues,
@@ -581,7 +595,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('commission', 'share', e.target.value)
                                                     }
-                                                    disabled={!formValues.commission.shareEnabled}
+                                                // disabled={!formValues.commission.shareEnabled}
                                                 />
                                             </Form.Group>
                                         </div>
@@ -596,22 +610,38 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('commission', 'pcPercentage', e.target.value)
                                                     }
-                                                    disabled={!formValues.commission.shareEnabled}
-
+                                                // disabled={!formValues.commission.shareEnabled}
                                                 />
                                             </Form.Group>
                                         </div>
                                         <div className="col-md-6">
-                                            <br />
-                                            <Form.Check
-                                                type="checkbox"
-                                                label="Share Enabled"
-                                                checked={formValues.commission.shareEnabled}
-                                                onChange={(e) =>
-                                                    handleFormInputChange('commission', 'shareEnabled', e.target.checked)
-                                                }
-                                            />
+                                            <Form.Group className="mb-3">
+                                                <Form.Label>PC Share</Form.Label>
+                                                <Form.Control
+                                                    type="number"
+                                                    value={formValues.commission.pcShare}
+                                                    onChange={(e) =>
+                                                        handleFormInputChange('commission', 'pcShare', e.target.value)
+                                                    }
+                                                // disabled={!formValues.commission.shareEnabled}
+                                                />
+                                            </Form.Group>
                                         </div>
+
+                                        {formValues.role != "merchent" &&
+                                            <div className="col-md-6">
+                                                <br />
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    label="Share Enabled"
+                                                    checked={formValues.commission.shareEnabled}
+                                                    onChange={(e) =>
+                                                        handleFormInputChange('commission', 'shareEnabled', e.target.checked)
+                                                    }
+                                                />
+                                                <br/>
+                                            </div>
+                                        }
                                     </div>
                                     <Button variant="primary" type="submit" size="sm">
                                         Submit
@@ -636,7 +666,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'hindsyKiHad1', e.target.value)
                                                     }
-                                                    disabled={!formValues.hadd.haddEnabled}
+                                                // disabled={!formValues.hadd.haddEnabled}
                                                 />
                                             </Form.Group>
                                         </div>
@@ -649,7 +679,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'hindsyKiHad2', e.target.value)
                                                     }
-                                                    disabled={!formValues.hadd.haddEnabled}
+                                                // disabled={!formValues.hadd.haddEnabled}
 
                                                 />
                                             </Form.Group>
@@ -665,7 +695,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'akraKiHad1', e.target.value)
                                                     }
-                                                    disabled={!formValues.hadd.haddEnabled}
+                                                // disabled={!formValues.hadd.haddEnabled}
 
                                                 />
                                             </Form.Group>
@@ -679,7 +709,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'akraKiHad2', e.target.value)
                                                     }
-                                                    disabled={!formValues.hadd.haddEnabled}
+                                                // disabled={!formValues.hadd.haddEnabled}
 
                                                 />
                                             </Form.Group>
@@ -695,7 +725,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'firstTendolaKiHad', e.target.value)
                                                     }
-                                                    disabled={!formValues.hadd.haddEnabled}
+                                                // disabled={!formValues.hadd.haddEnabled}
 
                                                 />
                                             </Form.Group>
@@ -709,7 +739,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'secondTendolaKiHad', e.target.value)
                                                     }
-                                                    disabled={!formValues.hadd.haddEnabled}
+                                                // disabled={!formValues.hadd.haddEnabled}
 
                                                 />
                                             </Form.Group>
@@ -725,7 +755,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'firstPangodaKiHad', e.target.value)
                                                     }
-                                                    disabled={!formValues.hadd.haddEnabled}
+                                                // disabled={!formValues.hadd.haddEnabled}
 
                                                 />
                                             </Form.Group>
@@ -739,7 +769,7 @@ const UserDetails = () => {
                                                     onChange={(e) =>
                                                         handleFormInputChange('hadd', 'secondPangodaKiHad', e.target.value)
                                                     }
-                                                    disabled={!formValues.hadd.haddEnabled}
+                                                // disabled={!formValues.hadd.haddEnabled}
 
                                                 />
                                             </Form.Group>
@@ -756,7 +786,7 @@ const UserDetails = () => {
                                             />
                                         </div>
                                     </div>
-                                    <br/>
+                                    <br />
 
                                     <Button variant="primary" type="submit" size="sm">
                                         Submit
@@ -852,18 +882,21 @@ const UserDetails = () => {
                                                         )
                                                     }
                                                 />
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    label="Enable Limit Sale Report View"
-                                                    checked={formValues.generalInfo.enableLimitSaleReportView}
-                                                    onChange={(e) =>
-                                                        handleFormInputChange(
-                                                            'generalInfo',
-                                                            'enableLimitSaleReportView',
-                                                            e.target.checked
-                                                        )
-                                                    }
-                                                />
+                                                {formValues.role != "merchent" &&
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        label="Enable Limit Sale Report View"
+                                                        checked={formValues.generalInfo.enableLimitSaleReportView}
+                                                        onChange={(e) =>
+                                                            handleFormInputChange(
+                                                                'generalInfo',
+                                                                'enableLimitSaleReportView',
+                                                                e.target.checked
+                                                            )
+                                                        }
+                                                    />
+
+                                                }
                                             </Form.Group>
                                         </div>
                                     </div>

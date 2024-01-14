@@ -9,6 +9,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
 import { columnStyles, styles } from './pdfTableStyle';
+import { formatTime } from '../Utils/Utils';
 
 const DistributorReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
@@ -28,6 +29,10 @@ const DistributorReports = () => {
     const [totalLimitSaleForm, setTotalLimitSaleForm] = useState({
         date: '',
         limitType: 'upLimit'
+    });
+    const [billingSheetForm, setBillingSheetForm] = useState({
+        date: '',
+        dealer: 'allDealers',
     });
 
     const handleTotalLimitSaleChange = (e) => {
@@ -105,6 +110,14 @@ const DistributorReports = () => {
                 date: '',
                 reportType: 'withoutGroup',
             })
+            setBillingSheetForm({
+                date: '',
+                dealer: 'allDealers',
+            })
+            setTotalLimitSaleForm({
+                date: '',
+                limitType: 'upLimit'
+            })
         }
     };
 
@@ -114,6 +127,21 @@ const DistributorReports = () => {
     function alertMessage(msg) {
         setNotification({ ...notification, color: "danger", show: true, message: msg })
     }
+    const handleBillingSheetChange = (e) => {
+        const { name, value } = e.target;
+        if (name == "date") {
+            let tempDraw = draws.find(draw => draw.drawDate == value)
+            if (!tempDraw) {
+                alertMessage("No Record of Draw")
+                return
+            }
+            setSelectedDraw(tempDraw)
+        }
+        setBillingSheetForm((prevForm) => ({
+            ...prevForm,
+            [name]: value,
+        }));
+    };
 
     const handleTotalSaleChange = (e) => {
         const { name, value } = e.target;
@@ -150,6 +178,8 @@ const DistributorReports = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'dealerSaleVoucher') return 'Dealer Sale Voucher Report';
         if (selectedOption === 'totalLimitSale') return `Total ${localStorageUtils.getLoggedInUser().commission.shareEnabled ? "Share" : "Hadd"} Limit Sale`;
+        if (selectedOption === 'billingSheet') return 'Bill Sheet';
+
         return '';
     };
     const getSubUserusernames = () => {
@@ -786,6 +816,265 @@ const DistributorReports = () => {
             return "Your Distributor has not allowed"
         }
     }
+
+    const addBillSheetOfADistributor = async (pdfDoc, targetUser, result) => {
+        let x1 = 5, x2 = 140;
+        let y = 20, ySpace = 7
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Bill Sheet", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        // pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
+        pdfDoc.text("Dealer Code:", x2, y); pdfDoc.text(targetUser.userId + "", x2 + 27, y);
+
+
+        pdfDoc.text("Commission:", x1, y + ySpace); pdfDoc.text(targetUser.commission.commision + " %", x1 + 30, y + ySpace);
+        pdfDoc.text("Name:", x2, y + ySpace); pdfDoc.text(targetUser.generalInfo.name + "", x2 + 27, y + ySpace);
+
+
+        pdfDoc.text("PC:", x1, y + 2 * ySpace); pdfDoc.text(targetUser.commission.pcPercentage + " %", x1 + 30, y + 2 * ySpace);
+        pdfDoc.text("Address:", x2, y + 2 * ySpace); pdfDoc.text(targetUser.generalInfo.address, x2 + 27, y + 2 * ySpace);
+
+
+        pdfDoc.text("Share:", x1, y + 3 * ySpace); pdfDoc.text(targetUser.commission.share + " %", x1 + 30, y + 3 * ySpace);
+        pdfDoc.text("PC Share:", x1 + 50 + 20, y + 3 * ySpace); pdfDoc.text(targetUser.commission.pcShare + "%", x1 + 40 + 50 + 5, y + 3 * ySpace);
+
+        pdfDoc.text("Contact:", x2, y + 3 * ySpace); pdfDoc.text(targetUser.generalInfo.contactNumber, x2 + 27, y + 3 * ySpace);
+
+
+        pdfDoc.autoTable({
+            head: [["Total Prize", "Total Sale", "Draw Time"]],
+            body: [[0, result.totalSale, formatTime(selectedDraw.drawTime)]],
+            theme: '',
+            margin: { top: y + 4 * ySpace },
+            styles: {
+                fontStyle: 'bold',
+                textColor: [0, 0, 0],
+                lineWidth: 0.2,  // Set the border width to 0
+                lineColor: [0, 0, 0],  // Set the border color to match the background
+                fillStyle: 'DF',
+                fillColor: [255, 255, 255],
+                head: {
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [255, 0, 0],
+                    textColor: [255, 255, 255],
+                },
+            }
+        });
+        pdfDoc.autoTable({
+            head: [["First Prize", "Second Prize 1", "Second Prize 2", "Second Prize 3", "Second Prize 4", "Second Prize 5"]],
+            body: [[selectedDraw.prize.firstPrize, selectedDraw.prize.secondPrize1, selectedDraw.prize.secondPrize2, selectedDraw.prize.secondPrize3, selectedDraw.prize.secondPrize4, selectedDraw.prize.secondPrize5]],
+            theme: '',
+            margin: { top: y + 30 * ySpace },
+            styles: {
+                fontStyle: 'bold',
+                textColor: [0, 0, 0],
+                lineWidth: 0.2,  // Set the border width to 0
+                lineColor: [0, 0, 0],  // Set the border color to match the background
+                fillStyle: 'DF',
+                fillColor: [255, 255, 255],
+                head: {
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [255, 0, 0],
+                    textColor: [255, 255, 255],
+                },
+            }
+        });
+        const lineY = y + 10 * ySpace;  // Adjust the Y coordinate as needed
+        pdfDoc.line(x1, lineY, pdfDoc.internal.pageSize.width - x1, lineY);
+
+
+        x2 = 120
+        pdfDoc.text("A+B+C First:", x1, y + 11 * ySpace); pdfDoc.text(result.ABCFirstTotal + "", x1 + 40, y + 11 * ySpace);
+        pdfDoc.text("D First:", x2, y + 11 * ySpace); pdfDoc.text(result.DFirstTotal + "", x2 + 40, y + 11 * ySpace);
+
+        pdfDoc.text("A+B+C Second:", x1, y + 12 * ySpace); pdfDoc.text(result.ABCSecondTotal + "", x1 + 40, y + 12 * ySpace);
+        pdfDoc.text("D Second:", x2, y + 12 * ySpace); pdfDoc.text(result.DSecondTotal + "", x2 + 40, y + 12 * ySpace);
+
+        pdfDoc.text("Total Sale:", x1, y + 13 * ySpace); pdfDoc.text(result.ABCTotalSale + "", x1 + 40, y + 13 * ySpace);//ABC total
+        pdfDoc.text("Total Sale:", x2, y + 13 * ySpace); pdfDoc.text(result.DTotalSale + "", x2 + 40, y + 13 * ySpace);//D total
+
+        pdfDoc.text("Commission:", x1, y + 14 * ySpace); pdfDoc.text(result.commission + "", x1 + 40, y + 14 * ySpace);
+        pdfDoc.text("PC Commsion:", x2, y + 14 * ySpace); pdfDoc.text(result.PCCommission + "", x2 + 40, y + 14 * ySpace);
+
+
+        pdfDoc.text("Total Sale:", x1, y + 15 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 15 * ySpace);
+        pdfDoc.text("Total Commission:", x2, y + 15 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 15 * ySpace);
+
+        pdfDoc.text("Extra Sale:", x1, y + 16 * ySpace); pdfDoc.text(result.extraSale + "", x1 + 40, y + 16 * ySpace);
+        pdfDoc.text("ABC Extra:", x1 + 50 + 20, y + 16 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40 + 50 + 5, y + 16 * ySpace);
+        pdfDoc.text("D Extra:", x2 + 10, y + 16 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 16 * ySpace);
+
+        pdfDoc.text("Total Prize:", x1, y + 17 * ySpace); pdfDoc.text(result.totalPrize + "", x1 + 40, y + 17 * ySpace);
+        pdfDoc.text("ABC Prize:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
+        pdfDoc.text("D Prize:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
+
+        pdfDoc.text("Bill:", x1, y + 18 * ySpace); pdfDoc.text(result.bill + "", x1 + 40, y + 18 * ySpace);
+        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 18 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40 + 50 + 5, y + 18 * ySpace);
+        pdfDoc.text("D Bill:", x2 + 10, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
+
+
+        pdfDoc.text("Total Share:", x1, y + 19 * ySpace); pdfDoc.text(result.totalShare + "", x1 + 40, y + 19 * ySpace);
+        pdfDoc.text("ABC Share:", x1 + 50 + 20, y + 19 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40 + 50 + 5, y + 19 * ySpace);
+        pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
+
+        pdfDoc.text("Total Bill:", x1, y + 20 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40, y + 20 * ySpace);
+        pdfDoc.text("Total Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
+        pdfDoc.text("Total Bill:", x2 + 10, y + 20 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 20 * ySpace);
+    }
+
+    const calculateTotalsInFormat = (savedPurchases) => {
+        let ABCFirstTotal = 0, ABCSecondTotal = 0, DFirstTotal = 0, DSecondTotal = 0
+        savedPurchases.forEach(purchase => {
+            if (purchase.bundle.length == 4) {
+                DFirstTotal += Number(purchase.first)
+                DSecondTotal += Number(purchase.second)
+            } else {
+                ABCFirstTotal += Number(purchase.first)
+                ABCSecondTotal += Number(purchase.second)
+            }
+        })
+        return { ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal }
+    }
+    const calculatePrize = (targetUser, savedPurchases) => {
+        function getFirstOfBundle(bundle) {
+            let res = null
+            savedPurchases.forEach(purchase => {
+                if (purchase.bundle == bundle) {
+                    res = Number(purchase.first)
+                }
+            })
+            return res
+        }
+        function getSecondOfBundle(bundle) {
+            let res = null
+            savedPurchases.forEach(purchase => {
+                if (purchase.bundle == bundle) {
+                    res = Number(purchase.second)
+                }
+            })
+            return res
+        }
+        function getFormatArray(prize) {
+            const output = [];
+            for (let i = 1; i <= prize.length; i++) {
+                output.push(prize.substring(0, i));
+            }
+            return output;
+        }
+        let rewardObj = targetUser.rewardCommission
+        function getRewardForBundle(bundle) {
+            if (bundle.length == 1) return Number(rewardObj.firstA)
+            if (bundle.length == 2) return Number(rewardObj.firstB)
+            if (bundle.length == 3) return Number(rewardObj.firstC)
+            if (bundle.length == 4) return Number(rewardObj.firstD)
+        }
+        let drawPrizeObj = selectedDraw.prize;
+        let ABCFirstTotalPrize = 0, DFirstTotalPrize = 0, ABCSecondTotalPrize = 0, DSecondTotalPrize = 0
+        if (drawPrizeObj.firstPrize.length == 4) {
+            getFormatArray(drawPrizeObj.firstPrize).forEach(bundle => {
+                if (bundle.length == 4) {
+                    let tempV = getFirstOfBundle(bundle)
+                    if (tempV)
+                        DFirstTotalPrize += tempV * getRewardForBundle(bundle)
+                } else {
+                    let tempV = getFirstOfBundle(bundle)
+                    if (tempV)
+                        ABCFirstTotalPrize += tempV * getRewardForBundle(bundle)
+                }
+            })
+        }
+        let drawSecondPrizes = []
+        let count = 0
+        if (drawPrizeObj.secondPrize1.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize1); count++ }
+        if (drawPrizeObj.secondPrize2.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize2); count++ }
+        if (drawPrizeObj.secondPrize3.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize3); count++ }
+        if (drawPrizeObj.secondPrize4.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize4); count++ }
+        if (drawPrizeObj.secondPrize5.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize5); count++ }
+        drawSecondPrizes.forEach(tempSecondPrize => {
+            getFormatArray(tempSecondPrize).forEach(bundle => {
+                if (bundle.length == 4) {
+                    let tempV = getSecondOfBundle(bundle)
+                    if (tempV)
+                        DSecondTotalPrize += Number((getSecondOfBundle(bundle) * getRewardForBundle(bundle) / count).toFixed(1))
+                } else {
+                    let tempV = getSecondOfBundle(bundle)
+                    if (tempV)
+                        ABCSecondTotalPrize += Number((getSecondOfBundle(bundle) * getRewardForBundle(bundle) / count).toFixed(1))
+                }
+            })
+        })
+        // console.log(ABCFirstTotalPrize , ABCSecondTotalPrize,DFirstTotalPrize ,DSecondTotalPrize )
+        let ABCPrize = ABCFirstTotalPrize + ABCSecondTotalPrize
+        let DPrize = DFirstTotalPrize + DSecondTotalPrize
+        return { ABCPrize, DPrize, totalPrize: ABCPrize + DPrize }
+    }
+    const calculateResultOfDistributor = (targetUser, savedPurchases) => {
+        let { ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal } = calculateTotalsInFormat(savedPurchases)
+        let ABCTotalSale = ABCFirstTotal + ABCSecondTotal;
+        let DTotalSale = DFirstTotal + DSecondTotal;
+        let commission = Number(((Number(targetUser.commission.commision) / 100) * ABCTotalSale).toFixed(1))
+        let PCCommission = Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1))
+        let totalSale = ABCTotalSale + DTotalSale
+        let totalCommission = commission + PCCommission
+        let extraSale = totalSale - totalCommission
+        let ABCExtraSale = ABCTotalSale - commission
+        let DExtraSale = DTotalSale - PCCommission
+
+        let prize = calculatePrize(targetUser, savedPurchases)
+        let bill = extraSale - prize.totalPrize
+        let ABCBill = ABCExtraSale - prize.ABCPrize
+        let DBill = DExtraSale - prize.DPrize
+        let ABCShare = ABCBill * (Number(targetUser.commission.share) / 100)
+        let DShare = DBill * (Number(targetUser.commission.pcShare) / 100)
+        let totalShare = ABCShare + DShare
+        let totalABCBill = ABCBill - ABCShare
+        let totalDBill = DBill - DShare
+        let totalBill = totalABCBill + totalDBill
+        let result = {
+            ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
+            totalSale, totalCommission, extraSale, ABCPrize: prize.ABCPrize, DPrize: prize.DPrize, totalPrize: prize.totalPrize,
+            ABCExtraSale, DExtraSale, bill, ABCBill, DBill, ABCShare, DShare, totalShare, totalABCBill, totalDBill, totalBill
+        }
+        for (let key in result) {
+            result[key] = Number(result[key].toFixed(1))
+        }
+        return result
+    }
+    
+    const generateBillingSheet = async () => {
+        let tempSub= subUsers.filter(user => user.role != "merchent");
+        const pdfDoc = new jsPDF();
+        if (billingSheetForm.dealer == "allDealers") {
+            let subUsers =tempSub
+            for (let i = 0; i < subUsers.length; i++) {
+                let targetUser = getAUser(subUsers[i].username)
+                let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                let result = calculateResultOfDistributor(targetUser, savedPurchases)
+                addBillSheetOfADistributor(pdfDoc, targetUser, result)
+                if (i + 1 < subUsers.length) {
+                    pdfDoc.addPage()
+                }
+            }
+        } else {
+            let targetUser = getAUser(billingSheetForm.dealer)
+            let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            let result = calculateResultOfDistributor(targetUser, savedPurchases)
+            addBillSheetOfADistributor(pdfDoc, targetUser, result)
+        }
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
+
     return (
         <div className='container mt-4'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -801,7 +1090,7 @@ const DistributorReports = () => {
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Dealer Sale Voucher</Nav.Link>
                                 <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total {localStorageUtils.getLoggedInUser().commission.shareEnabled ? "Share" : "Hadd"} Limit Sale</Nav.Link>
-
+                                <Nav.Link eventKey="billingSheet" style={{ background: (selectedOption == "billingSheet" ? "lightgray" : "") }} >Bill Sheet</Nav.Link>
                             </Nav>
                         </Card.Body>
                     </Card>
@@ -930,6 +1219,44 @@ const DistributorReports = () => {
 
                                 </Form>
                             )}
+                            {selectedOption === 'billingSheet' && (
+                                <Form>
+                                    <Row>
+                                        <Col>
+                                            <Form.Label>Date</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="date"
+                                                name="date"
+                                                value={billingSheetForm.date}
+                                                onChange={handleBillingSheetChange}
+                                            />
+                                        </Col>
+                                    </Row>
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Dealer</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="dealer"
+                                                value={billingSheetForm.dealer}
+                                                onChange={handleBillingSheetChange}
+                                            >
+                                                <option value="allDealers">All Distributors</option>
+                                                {getSubUserusernames().map(user => {
+                                                    return (
+                                                        <option value={user.username} >{user.username}</option>
+                                                    )
+                                                })}
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+                                </Form>
+                            )}
+
 
                         </Card.Body>
                         {selectedOption === 'dealerSaleVoucher' && (
@@ -971,6 +1298,25 @@ const DistributorReports = () => {
                                 </div>
                             </Card.Footer>
                         )}
+                        {selectedOption === 'billingSheet' && (
+                            <Card.Footer>
+                                <div className="d-flex flex-wrap justify-content-start">
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => generateBillingSheet()}
+                                        disabled={!billingSheetForm.date || !billingSheetForm.dealer}
+                                    >
+                                        Bill Sheet
+                                    </Button>
+                                    <Button variant="primary btn btn-sm m-1"
+                                        // onClick={() => generateLimitCuttingGroupWise()}
+                                        disabled={!billingSheetForm.date || !billingSheetForm.dealer}
+                                    >
+                                        Summarized Bill Sheet
+                                    </Button>
+                                </div>
+                            </Card.Footer>
+                        )}
+
 
                     </Card>
                 </Col>

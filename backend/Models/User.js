@@ -42,11 +42,12 @@ const UserSchema = mongoose.Schema({
         commision: { type: Number, default: 0 },
         share: { type: Number, default: 0 },
         pcPercentage: { type: Number, default: 0 },
+        pcShare: { type: Number, default: 0 },
+        
         shareEnabled: {
             type: Boolean,
             default: false
         },
-
     },
     hadd: {
         hindsyKiHad1: { type: Number, default: 0 },

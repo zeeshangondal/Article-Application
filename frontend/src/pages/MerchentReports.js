@@ -934,10 +934,10 @@ const MerchentReports = () => {
                 columnStyles: {
                     ...columnStyles
                 },
-                styles:{
+                styles: {
                     ...styles
                 }
-    
+
             });
             pdfDoc.setFontSize(10);
 
@@ -1005,10 +1005,10 @@ const MerchentReports = () => {
                     columnStyles: {
                         ...columnStyles
                     },
-                    styles:{
+                    styles: {
                         ...styles
                     }
-        
+
                 });
                 pdfDoc.setFontSize(10);
 
@@ -1049,8 +1049,10 @@ const MerchentReports = () => {
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="totalSheetSale" style={{ background: (selectedOption == "totalSheetSale" ? "lightgray" : "") }} >Total Sheet Sale</Nav.Link>
-                                <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Share Limit Sale</Nav.Link>
-
+                                {localStorageUtils.getLoggedInUser().role != "merchent"
+                                    &&
+                                    <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Share Limit Sale</Nav.Link>
+                                }
                             </Nav>
                         </Card.Body>
                     </Card>

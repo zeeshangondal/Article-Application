@@ -1126,8 +1126,7 @@ const AdminReports = () => {
     let enableLimitCuttinButton = checkForButton()
 
 
-    const generateBillSheetOfADistributor = async (targetUser, result) => {
-        const pdfDoc = new jsPDF();
+    const addBillSheetOfADistributor = async (pdfDoc, targetUser, result) => {
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
@@ -1147,6 +1146,8 @@ const AdminReports = () => {
 
 
         pdfDoc.text("Share:", x1, y + 3 * ySpace); pdfDoc.text(targetUser.commission.share + " %", x1 + 30, y + 3 * ySpace);
+        pdfDoc.text("PC Share:", x1 + 50 + 20, y + 3 * ySpace); pdfDoc.text(targetUser.commission.pcShare + "%", x1 + 40 + 50 + 5, y + 3 * ySpace);
+
         pdfDoc.text("Contact:", x2, y + 3 * ySpace); pdfDoc.text(targetUser.generalInfo.contactNumber, x2 + 27, y + 3 * ySpace);
 
 
@@ -1170,53 +1171,67 @@ const AdminReports = () => {
                 },
             }
         });
-        x2 = 120
-        pdfDoc.text("A+B+C First:", x1, y + 8 * ySpace); pdfDoc.text(result.ABCFirstTotal + "", x1 + 40, y + 8 * ySpace);
-        pdfDoc.text("D First:", x2, y + 8 * ySpace); pdfDoc.text(result.DFirstTotal + "", x2 + 40, y + 8 * ySpace);
-
-        pdfDoc.text("A+B+C Second:", x1, y + 9 * ySpace); pdfDoc.text(result.ABCSecondTotal + "", x1 + 40, y + 9 * ySpace);
-        pdfDoc.text("D Second:", x2, y + 9 * ySpace); pdfDoc.text(result.DSecondTotal + "", x2 + 40, y + 9 * ySpace);
-
-        pdfDoc.text("Total Sale:", x1, y + 10 * ySpace); pdfDoc.text(result.ABCTotalSale + "", x1 + 40, y + 10 * ySpace);//ABC total
-        pdfDoc.text("Total Sale:", x2, y + 10 * ySpace); pdfDoc.text(result.DTotalSale + "", x2 + 40, y + 10 * ySpace);//D total
-
-        pdfDoc.text("Commission:", x1, y + 11 * ySpace); pdfDoc.text(result.commission + "", x1 + 40, y + 11 * ySpace);
-        pdfDoc.text("PC Commsion:", x2, y + 11 * ySpace); pdfDoc.text(result.PCCommission + "", x2 + 40, y + 11 * ySpace);
-
-        const lineY = y + 12 * ySpace;  // Adjust the Y coordinate as needed
+        pdfDoc.autoTable({
+            head: [["First Prize", "Second Prize 1", "Second Prize 2", "Second Prize 3", "Second Prize 4", "Second Prize 5"]],
+            body: [[selectedDraw.prize.firstPrize, selectedDraw.prize.secondPrize1, selectedDraw.prize.secondPrize2, selectedDraw.prize.secondPrize3, selectedDraw.prize.secondPrize4, selectedDraw.prize.secondPrize5]],
+            theme: '',
+            margin: { top: y + 30 * ySpace },
+            styles: {
+                fontStyle: 'bold',
+                textColor: [0, 0, 0],
+                lineWidth: 0.2,  // Set the border width to 0
+                lineColor: [0, 0, 0],  // Set the border color to match the background
+                fillStyle: 'DF',
+                fillColor: [255, 255, 255],
+                head: {
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [255, 0, 0],
+                    textColor: [255, 255, 255],
+                },
+            }
+        });
+        const lineY = y + 10 * ySpace;  // Adjust the Y coordinate as needed
         pdfDoc.line(x1, lineY, pdfDoc.internal.pageSize.width - x1, lineY);
 
-        pdfDoc.text("Total Sale:", x1, y + 13 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 13 * ySpace);
-        pdfDoc.text("Total Commission:", x2, y + 13 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 13 * ySpace);
 
-        pdfDoc.text("Extra Sale:", x1, y + 14 * ySpace); pdfDoc.text(result.extraSale + "", x1 + 40, y + 14 * ySpace);
-        pdfDoc.text("ABC Extra:", x1 + 50 + 20, y + 14 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40 + 50 + 5, y + 14 * ySpace);
-        pdfDoc.text("D Extra:", x2 + 10, y + 14 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 14 * ySpace);
+        x2 = 120
+        pdfDoc.text("A+B+C First:", x1, y + 11 * ySpace); pdfDoc.text(result.ABCFirstTotal + "", x1 + 40, y + 11 * ySpace);
+        pdfDoc.text("D First:", x2, y + 11 * ySpace); pdfDoc.text(result.DFirstTotal + "", x2 + 40, y + 11 * ySpace);
 
-        pdfDoc.text("Total Prize:", x1, y + 15 * ySpace); pdfDoc.text(result.totalPrize + "", x1 + 40, y + 15 * ySpace);
-        pdfDoc.text("ABC Prize:", x1 + 50 + 20, y + 15 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40 + 50 + 5, y + 15 * ySpace);
-        pdfDoc.text("D Prize:", x2 + 10, y + 15 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 15 * ySpace);
+        pdfDoc.text("A+B+C Second:", x1, y + 12 * ySpace); pdfDoc.text(result.ABCSecondTotal + "", x1 + 40, y + 12 * ySpace);
+        pdfDoc.text("D Second:", x2, y + 12 * ySpace); pdfDoc.text(result.DSecondTotal + "", x2 + 40, y + 12 * ySpace);
 
-        pdfDoc.text("Bill:", x1, y + 16 * ySpace); pdfDoc.text(result.bill + "", x1 + 40, y + 16 * ySpace);
-        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 16 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40 + 50 + 5, y + 16 * ySpace);
-        pdfDoc.text("D Bill:", x2 + 10, y + 16 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 16 * ySpace);
+        pdfDoc.text("Total Sale:", x1, y + 13 * ySpace); pdfDoc.text(result.ABCTotalSale + "", x1 + 40, y + 13 * ySpace);//ABC total
+        pdfDoc.text("Total Sale:", x2, y + 13 * ySpace); pdfDoc.text(result.DTotalSale + "", x2 + 40, y + 13 * ySpace);//D total
+
+        pdfDoc.text("Commission:", x1, y + 14 * ySpace); pdfDoc.text(result.commission + "", x1 + 40, y + 14 * ySpace);
+        pdfDoc.text("PC Commsion:", x2, y + 14 * ySpace); pdfDoc.text(result.PCCommission + "", x2 + 40, y + 14 * ySpace);
 
 
-        pdfDoc.text("Total Share:", x1, y + 17 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 17 * ySpace);
-        pdfDoc.text("ABC Share:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(0 + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
-        pdfDoc.text("D Share:", x2 + 10, y + 17 * ySpace); pdfDoc.text(0 + "", x2 + 40, y + 17 * ySpace);
+        pdfDoc.text("Total Sale:", x1, y + 15 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 15 * ySpace);
+        pdfDoc.text("Total Commission:", x2, y + 15 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 15 * ySpace);
 
-        pdfDoc.text("Total Bill:", x1, y + 18 * ySpace); pdfDoc.text(0 + "", x1 + 40, y + 18 * ySpace);
+        pdfDoc.text("Extra Sale:", x1, y + 16 * ySpace); pdfDoc.text(result.extraSale + "", x1 + 40, y + 16 * ySpace);
+        pdfDoc.text("ABC Extra:", x1 + 50 + 20, y + 16 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40 + 50 + 5, y + 16 * ySpace);
+        pdfDoc.text("D Extra:", x2 + 10, y + 16 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 16 * ySpace);
 
-        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
-        const formData = new FormData();
-        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
-        try {
-            await savePdfOnBackend(formData);
-            successMessage("Report generated successfully")
-        } catch (e) {
-            alertMessage("Due to an error could not make report")
-        }
+        pdfDoc.text("Total Prize:", x1, y + 17 * ySpace); pdfDoc.text(result.totalPrize + "", x1 + 40, y + 17 * ySpace);
+        pdfDoc.text("ABC Prize:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
+        pdfDoc.text("D Prize:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
+
+        pdfDoc.text("Bill:", x1, y + 18 * ySpace); pdfDoc.text(result.bill + "", x1 + 40, y + 18 * ySpace);
+        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 18 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40 + 50 + 5, y + 18 * ySpace);
+        pdfDoc.text("D Bill:", x2 + 10, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
+
+
+        pdfDoc.text("Total Share:", x1, y + 19 * ySpace); pdfDoc.text(result.totalShare + "", x1 + 40, y + 19 * ySpace);
+        pdfDoc.text("ABC Share:", x1 + 50 + 20, y + 19 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40 + 50 + 5, y + 19 * ySpace);
+        pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
+
+        pdfDoc.text("Total Bill:", x1, y + 20 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40, y + 20 * ySpace);
+        pdfDoc.text("Total Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
+        pdfDoc.text("Total Bill:", x2 + 10, y + 20 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 20 * ySpace);
     }
 
     const calculateTotalsInFormat = (savedPurchases) => {
@@ -1318,30 +1333,51 @@ const AdminReports = () => {
         let DExtraSale = DTotalSale - PCCommission
 
         let prize = calculatePrize(targetUser, savedPurchases)
-        let bill=extraSale-prize.totalPrize
-        let ABCBill=ABCExtraSale-prize.ABCPrize
-        let DBill=DExtraSale-prize.DPrize
-        
-        
-
+        let bill = extraSale - prize.totalPrize
+        let ABCBill = ABCExtraSale - prize.ABCPrize
+        let DBill = DExtraSale - prize.DPrize
+        let ABCShare = ABCBill * (Number(targetUser.commission.share) / 100)
+        let DShare = DBill * (Number(targetUser.commission.pcShare) / 100)
+        let totalShare = ABCShare + DShare
+        let totalABCBill = ABCBill - ABCShare
+        let totalDBill = DBill - DShare
+        let totalBill = totalABCBill + totalDBill
         let result = {
             ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
             totalSale, totalCommission, extraSale, ABCPrize: prize.ABCPrize, DPrize: prize.DPrize, totalPrize: prize.totalPrize,
-            ABCExtraSale,DExtraSale, bill, ABCBill, DBill
+            ABCExtraSale, DExtraSale, bill, ABCBill, DBill, ABCShare, DShare, totalShare, totalABCBill, totalDBill, totalBill
         }
-        for (let key in result){
-            result[key]= Number(result[key].toFixed(1)) 
+        for (let key in result) {
+            result[key] = Number(result[key].toFixed(1))
         }
         return result
     }
-    const generateBillingSheet = () => {
+    const generateBillingSheet = async () => {
+        const pdfDoc = new jsPDF();
         if (billingSheetForm.dealer == "allDealers") {
-
+            for (let i = 0; i < subUsers.length; i++) {
+                let targetUser = getAUser(subUsers[i].username)
+                let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                let result = calculateResultOfDistributor(targetUser, savedPurchases)
+                addBillSheetOfADistributor(pdfDoc, targetUser, result)
+                if (i + 1 < subUsers.length) {
+                    pdfDoc.addPage()
+                }
+            }
         } else {
             let targetUser = getAUser(billingSheetForm.dealer)
-            let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+            let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
-            generateBillSheetOfADistributor(targetUser, result)
+            addBillSheetOfADistributor(pdfDoc, targetUser, result)
+        }
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
         }
     }
 
