@@ -618,7 +618,7 @@ const DistributorReports = () => {
         }
     }
     const getShareValue = (price, share) => {
-        return Math.floor((share / 100) * price)
+        return Number(((share / 100) * price).toFixed(1))
     }
 
     const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser) => {
@@ -674,6 +674,12 @@ const DistributorReports = () => {
                 let newData = { ...purchase }
                 newData = getDownLimitProcessedPurchase(newData)
                 return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
             })
             return updatedSavedPurchases;
         }
@@ -755,8 +761,6 @@ const DistributorReports = () => {
             return []
         }
     }
-
-
 
     const generateTotalLimitSaleWihtoutGroup = () => {
         let targetUser = {}

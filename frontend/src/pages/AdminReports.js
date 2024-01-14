@@ -21,10 +21,16 @@ const AdminReports = () => {
         date: '',
         reportType: 'withoutGroup',
     });
+
     const [dealerSaleVoucherForm, setDealerSaleVoucherForm] = useState({
         date: '',
         dealer: 'allDealers',
     });
+    const [billingSheetForm, setBillingSheetForm] = useState({
+        date: '',
+        dealer: 'allDealers',
+    });
+
     const [totalLimitSaleForm, setTotalLimitSaleForm] = useState({
         date: '',
         reportType: 'withoutGroup',
@@ -103,6 +109,10 @@ const AdminReports = () => {
                 date: '',
                 dealer: 'allDealers',
             })
+            setBillingSheetForm({
+                date: '',
+                dealer: 'allDealers',
+            })
             setTotalSaleForm({
                 date: '',
                 reportType: 'withoutGroup',
@@ -154,6 +164,22 @@ const AdminReports = () => {
             [name]: value,
         }));
     };
+    const handleBillingSheetChange = (e) => {
+        const { name, value } = e.target;
+        if (name == "date") {
+            let tempDraw = draws.find(draw => draw.drawDate == value)
+            if (!tempDraw) {
+                alertMessage("No Record of Draw")
+                return
+            }
+            setSelectedDraw(tempDraw)
+        }
+        setBillingSheetForm((prevForm) => ({
+            ...prevForm,
+            [name]: value,
+        }));
+    };
+
     const handleTotalLimitSaleChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
@@ -224,8 +250,7 @@ const AdminReports = () => {
         if (selectedOption === 'dealerSaleVoucher') return 'Distributors Sale Voucher Report';
         if (selectedOption === 'totalLimitSale') return 'Total Share/Hadd Limit Sale Report';
         if (selectedOption === 'limitCutting') return 'Limit Cutting Report';
-
-
+        if (selectedOption === 'billingSheet') return 'Billing Sheet ';
         return '';
     };
     const getSubUserusernames = () => {
@@ -668,8 +693,9 @@ const AdminReports = () => {
         }
     }
     const getShareValue = (price, share) => {
-        return Math.floor((share / 100) * price)
+        return Number(((share / 100) * price).toFixed(1))
     }
+
     const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser) => {
         let share = Number(targetUser.commission.share)
         let pcPercentage = Number(targetUser.commission.pcPercentage)
@@ -798,36 +824,36 @@ const AdminReports = () => {
 
     function aggregateSavedPurchases(savedPurchases) {
         const result = [];
-        function getPurchaseFromResult(purchase){
-            return result.find(rePurchase=> rePurchase.bundle==purchase.bundle)
+        function getPurchaseFromResult(purchase) {
+            return result.find(rePurchase => rePurchase.bundle == purchase.bundle)
         }
         savedPurchases.forEach((purchase) => {
-          let purchaseFromResult=getPurchaseFromResult(purchase)
-          if(purchaseFromResult){
-            purchaseFromResult.first+=Number(purchase.first)
-            purchaseFromResult.second+=Number(purchase.second)
-          }else{
-            let newData={...purchase}
-            newData.first=Number(newData.first)
-            newData.second=Number(newData.second)
-            result.push(newData)
-          }
+            let purchaseFromResult = getPurchaseFromResult(purchase)
+            if (purchaseFromResult) {
+                purchaseFromResult.first += Number(purchase.first)
+                purchaseFromResult.second += Number(purchase.second)
+            } else {
+                let newData = { ...purchase }
+                newData.first = Number(newData.first)
+                newData.second = Number(newData.second)
+                result.push(newData)
+            }
         });
         return result;
-      }
+    }
     const getTotalOfDistributorFromDrawForTotalLimit = (targetUser) => {
         if (targetUser.username == "admin") {
             let savedPurchases = []
             subUsers.forEach(subUser => {
-                let tempSavedPurchases=[]
+                let tempSavedPurchases = []
                 if (subUser.commission.shareEnabled) {
-                    tempSavedPurchases= getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser)
+                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser)
                 } else if (subUser.hadd.haddEnabled) {
-                    tempSavedPurchases= getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser)
+                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser)
                 } else {
                     return []
                 }
-                savedPurchases=[...savedPurchases,...tempSavedPurchases]
+                savedPurchases = [...savedPurchases, ...tempSavedPurchases]
             })
             return aggregateSavedPurchases(savedPurchases)
         } else {
@@ -863,6 +889,7 @@ const AdminReports = () => {
             })
         })
         total += firstTotal + secondTotal
+        
         subUsers.forEach(user => {
             if (user.role == "distributor") {
                 let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(getAUser(user.username));
@@ -935,10 +962,10 @@ const AdminReports = () => {
                 heading = "Distributor Hadd Limit Sale"
             } else {
                 alert("No option is enabled from Share or Hadd")
-                return 
+                return
             }
         }
-        
+
 
         savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
         const pdfDoc = new jsPDF();
@@ -1114,6 +1141,7 @@ const AdminReports = () => {
                                 <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Share/Hadd Limit Sale Report</Nav.Link>
                                 <Nav.Link eventKey="dealerSaleVoucher" style={{ background: (selectedOption == "dealerSaleVoucher" ? "lightgray" : "") }} >Distributors Sale Voucher</Nav.Link>
                                 <Nav.Link eventKey="limitCutting" style={{ background: (selectedOption == "limitCutting" ? "lightgray" : "") }} >Limit Cutting</Nav.Link>
+                                <Nav.Link eventKey="billingSheet" style={{ background: (selectedOption == "billingSheet" ? "lightgray" : "") }} >Billing Sheet</Nav.Link>
 
                             </Nav>
                         </Card.Body>
@@ -1158,6 +1186,44 @@ const AdminReports = () => {
                                     </Row>
                                 </Form>
                             )}
+                            {selectedOption === 'billingSheet' && (
+                                <Form>
+                                    <Row>
+                                        <Col>
+                                            <Form.Label>Date</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="date"
+                                                name="date"
+                                                value={billingSheetForm.date}
+                                                onChange={handleBillingSheetChange}
+                                            />
+                                        </Col>
+                                    </Row>
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Dealer</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="dealer"
+                                                value={billingSheetForm.dealer}
+                                                onChange={handleBillingSheetChange}
+                                            >
+                                                <option value="allDealers">All Distributors</option>
+                                                {getSubUserusernames().map(user => {
+                                                    return (
+                                                        <option value={user.username} >{user.username}</option>
+                                                    )
+                                                })}
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+                                </Form>
+                            )}
+
                             {selectedOption === 'totalLimitSale' && (
                                 <Form>
                                     <Row>

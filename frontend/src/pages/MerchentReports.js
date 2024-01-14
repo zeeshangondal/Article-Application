@@ -654,8 +654,9 @@ const MerchentReports = () => {
         }
     };
     const getShareValue = (price, share) => {
-        return Math.floor((share / 100) * price)
+        return Number(((share / 100) * price).toFixed(1))
     }
+
 
 
     const generateTotalLimitSaleWihtoutGroup = async () => {
@@ -730,6 +731,12 @@ const MerchentReports = () => {
                 let newData = { ...purchase }
                 newData = getDownLimitProcessedPurchase(newData)
                 return newData
+            })
+            updatedSavedPurchases = updatedSavedPurchases.filter(purchase => {
+                if (purchase.first > 0 || purchase.second > 0)
+                    return true
+                else
+                    return false
             })
         }
         savedPurchases = updatedSavedPurchases
