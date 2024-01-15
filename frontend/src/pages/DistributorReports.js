@@ -33,6 +33,8 @@ const DistributorReports = () => {
     const [billingSheetForm, setBillingSheetForm] = useState({
         date: '',
         dealer: 'allDealers',
+        limitType: 'apply'
+
     });
 
     const handleTotalLimitSaleChange = (e) => {
@@ -113,6 +115,8 @@ const DistributorReports = () => {
             setBillingSheetForm({
                 date: '',
                 dealer: 'allDealers',
+                limitType: 'apply'
+
             })
             setTotalLimitSaleForm({
                 date: '',
@@ -821,7 +825,17 @@ const DistributorReports = () => {
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
-        pdfDoc.text("Bill Sheet", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        let head1="Bill Sheet";
+        if(targetUser.role=="distributor" && billingSheetForm.limitType=="apply"){
+            head1+=targetUser.haddEnabled? "- Hadd Sale": "- Share Sale"
+        }
+        if(targetUser.role=="distributor"){
+            pdfDoc.setTextColor(0, 0, 255); 
+        }else{
+            pdfDoc.setTextColor(255, 0, 0); 
+        }
+        pdfDoc.text(head1, pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.setTextColor(0, 0, 0); 
         // pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
@@ -1051,10 +1065,13 @@ const DistributorReports = () => {
                 let targetUser = getAUser(subUsers[i].username)
                 let savedPurchases = []
                 if(targetUser.role=="distributor"){
-                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                    if(billingSheetForm.limitType=="apply"){
+                        savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                    }else{
+                        savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
+                    }
                 }else{
                     savedPurchases=getTotalOfMerchentFromDraw(targetUser.username) 
-    
                 }
                 let result = calculateResultOfDistributor(targetUser, savedPurchases)
                 addBillSheetOfADistributor(pdfDoc, targetUser, result)
@@ -1064,13 +1081,16 @@ const DistributorReports = () => {
             }
         } else {
             let targetUser = getAUser(billingSheetForm.dealer)
-
             let savedPurchases = []
             if(targetUser.role=="distributor"){
-                savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                if(billingSheetForm.limitType=="apply"){
+                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                }else{
+                    savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
+                }
+
             }else{
                 savedPurchases=getTotalOfMerchentFromDraw(targetUser.username)
-
             }
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             addBillSheetOfADistributor(pdfDoc, targetUser, result)
@@ -1089,7 +1109,7 @@ const DistributorReports = () => {
         let targetUser = getAUser(localStorageUtils.getLoggedInUser().username)
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
-        pdfDoc.text("Bill Sheet Summary", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Bill Sheet Summary"+(billingSheetForm.limitType=="apply"? " - Limit Sale":""), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 25);
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 25, { align: 'right' });
@@ -1099,7 +1119,16 @@ const DistributorReports = () => {
         let tempSubUsers=subUsers
         for (let i = 0; i < tempSubUsers.length; i++) {
             let targetUser = getAUser(tempSubUsers[i].username)
-            let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            let savedPurchases=[]
+            if(targetUser.role=="distributor"){
+                if(billingSheetForm.limitType=="apply"){
+                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                }else{
+                    savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
+                }
+            }else{
+                savedPurchases=getTotalOfMerchentFromDraw(targetUser.username)
+            }
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             let id = targetUser.userId, name = targetUser.generalInfo.name;
             let amount = result.totalSale;
@@ -1322,6 +1351,23 @@ const DistributorReports = () => {
                                             </Form.Control>
                                         </Col>
                                     </Row>
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Limit/Share</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="limitType"
+                                                value={billingSheetForm.limitType}
+                                                onChange={handleBillingSheetChange}
+                                            >
+                                                <option value="apply">Apply</option>
+                                                <option value="notApply">Not Apply</option>
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+
                                 </Form>
                             )}
 
