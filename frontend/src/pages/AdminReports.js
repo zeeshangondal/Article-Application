@@ -27,9 +27,11 @@ const AdminReports = () => {
         date: '',
         dealer: 'allDealers',
     });
+
     const [billingSheetForm, setBillingSheetForm] = useState({
         date: '',
         dealer: 'allDealers',
+        limitType: 'apply'
     });
 
     const [totalLimitSaleForm, setTotalLimitSaleForm] = useState({
@@ -113,6 +115,8 @@ const AdminReports = () => {
             setBillingSheetForm({
                 date: '',
                 dealer: 'allDealers',
+                limitType: 'apply'
+
             })
             setTotalSaleForm({
                 date: '',
@@ -1130,7 +1134,12 @@ const AdminReports = () => {
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
-        pdfDoc.text("Bill Sheet", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        let head1="Bill Sheet";
+        if(billingSheetForm.limitType=="apply"){
+            head1+=targetUser.haddEnabled? "- Hadd Sale": "- Share Sale"
+        }
+
+        pdfDoc.text(head1 , pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         // pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
@@ -1357,7 +1366,12 @@ const AdminReports = () => {
         if (billingSheetForm.dealer == "allDealers") {
             for (let i = 0; i < subUsers.length; i++) {
                 let targetUser = getAUser(subUsers[i].username)
-                let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                let savedPurchases = []
+                if (billingSheetForm.limitType == "apply") {
+                    savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                } else {
+                    savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+                }
                 let result = calculateResultOfDistributor(targetUser, savedPurchases)
                 addBillSheetOfADistributor(pdfDoc, targetUser, result)
                 if (i + 1 < subUsers.length) {
@@ -1366,7 +1380,13 @@ const AdminReports = () => {
             }
         } else {
             let targetUser = getAUser(billingSheetForm.dealer)
-            let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            let savedPurchases = []
+            if (billingSheetForm.limitType == "apply") {
+                savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            } else {
+                savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
+            }
+
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             addBillSheetOfADistributor(pdfDoc, targetUser, result)
         }
@@ -1384,7 +1404,7 @@ const AdminReports = () => {
         let targetUser = getAUser("admin")
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
-        pdfDoc.text("Bill Sheet Summary", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Bill Sheet Summary"+(billingSheetForm.limitType=="apply" ? " - Limit Sale":""), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 25);
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 25, { align: 'right' });
@@ -1393,7 +1413,12 @@ const AdminReports = () => {
         let bodyData = []
         for (let i = 0; i < subUsers.length; i++) {
             let targetUser = getAUser(subUsers[i].username)
-            let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            let savedPurchases = []
+            if(billingSheetForm.limitType=="apply"){
+                savedPurchases =getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            }else{
+                savedPurchases =getTotalOfDistributorFromDraw(targetUser.username)
+            }
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             let id = targetUser.userId, name = targetUser.generalInfo.name;
             let amount = result.totalSale;
@@ -1409,7 +1434,7 @@ const AdminReports = () => {
             head: [columns],
             body: bodyData,
             theme: '',
-            margin: { top:  28  },
+            margin: { top: 28 },
             styles: {
                 fontStyle: 'bold',
                 textColor: [0, 0, 0],
@@ -1530,6 +1555,22 @@ const AdminReports = () => {
                                                         <option value={user.username} >{user.username}</option>
                                                     )
                                                 })}
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Limit/Share</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="limitType"
+                                                value={billingSheetForm.limitType}
+                                                onChange={handleBillingSheetChange}
+                                            >
+                                                <option value="apply">Apply</option>
+                                                <option value="notApply">Not Apply</option>
                                             </Form.Control>
                                         </Col>
                                     </Row>
