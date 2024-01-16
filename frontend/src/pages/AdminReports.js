@@ -1134,12 +1134,12 @@ const AdminReports = () => {
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
-        let head1="Bill Sheet";
-        if(billingSheetForm.limitType=="apply"){
-            head1+=targetUser.haddEnabled? "- Hadd Sale": "- Share Sale"
+        let head1 = "Bill Sheet";
+        if (billingSheetForm.limitType == "apply") {
+            head1 += targetUser.haddEnabled ? "- Hadd Sale" : "- Share Sale"
         }
 
-        pdfDoc.text(head1 , pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text(head1, pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         // pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
@@ -1351,7 +1351,7 @@ const AdminReports = () => {
         let totalABCBill = ABCBill - ABCShare
         let totalDBill = DBill - DShare
         let totalBill = totalABCBill + totalDBill
-        totalBill=-totalBill              /// plus should indicate balance to be added in user's account
+        totalBill = -totalBill              /// plus should indicate balance to be added in user's account
         let result = {
             ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
             totalSale, totalCommission, extraSale, ABCPrize: prize.ABCPrize, DPrize: prize.DPrize, totalPrize: prize.totalPrize,
@@ -1405,7 +1405,7 @@ const AdminReports = () => {
         let targetUser = getAUser("admin")
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
-        pdfDoc.text("Bill Sheet Summary"+(billingSheetForm.limitType=="apply" ? " - Limit Sale":""), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Bill Sheet Summary" + (billingSheetForm.limitType == "apply" ? " - Limit Sale" : ""), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 25);
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 25, { align: 'right' });
@@ -1415,10 +1415,10 @@ const AdminReports = () => {
         for (let i = 0; i < subUsers.length; i++) {
             let targetUser = getAUser(subUsers[i].username)
             let savedPurchases = []
-            if(billingSheetForm.limitType=="apply"){
-                savedPurchases =getTotalOfDistributorFromDrawForTotalLimit(targetUser)
-            }else{
-                savedPurchases =getTotalOfDistributorFromDraw(targetUser.username)
+            if (billingSheetForm.limitType == "apply") {
+                savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+            } else {
+                savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
             }
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             let id = targetUser.userId, name = targetUser.generalInfo.name;
@@ -1429,7 +1429,7 @@ const AdminReports = () => {
             let netBalance = Number((gross - prize).toFixed(1))
             let share = result.totalShare
             let outputResult = Number((netBalance - share).toFixed(1))
-            outputResult=-outputResult
+            outputResult = -outputResult
             bodyData.push([id, name, amount, commission, gross, prize, netBalance, share, outputResult])
         }
         pdfDoc.autoTable({
@@ -1461,6 +1461,81 @@ const AdminReports = () => {
             successMessage("Report generated successfully")
         } catch (e) {
             alertMessage("Due to an error could not make report")
+        }
+    }
+
+    const updateAllUsersBalance = () => {
+        function ifRewarded(username) {
+            console.log(selectedDraw.rewardedUsernames)
+            if (selectedDraw.rewardedUsernames.find(d => d.username == username)) {
+                return true
+            }
+            return false
+        }
+        let dataArray = []
+        allUsers.forEach(user => {
+            if (user.username != "admin") {
+                try {
+                    let purchases = []
+                    if (user.role == "distributor") {
+                        purchases = getTotalOfDistributorFromDrawForTotalLimit(user)
+                    } else if (user.role == "merchent") {
+                        purchases = getTotalOfMerchentFromDraw(user.username)
+                    }
+                    if (purchases) {
+                        let tempNewBalance = calculateResultOfDistributor(user, purchases).totalBill
+                        if (tempNewBalance && !ifRewarded(user.username)) {
+                            dataArray.push({ userId: user.userId, username: user.username, newBalance: tempNewBalance })
+                        }
+                    }
+                } catch (e) {
+
+                }
+            }
+        })
+        if (dataArray.length == 0) {
+            alert("No client for this draw")
+            return
+        }
+        let resStr = ""
+        dataArray.forEach(d => {
+            resStr += d.userId + ", " + d.username + ": " + d.newBalance + "\n"
+        })
+        if (window.confirm("Below Users will be updated. Do You confirm? \n\n" + resStr)) {
+            handleUpdateBalances(dataArray)
+        }
+    }
+    const handleUpdateBalances = async (dataArray) => {
+        let count = 0
+        let resultDataArray = []
+        try {
+            dataArray.forEach(async (d) => {
+                let user = getAUser(d.username)
+                user.balance += d.newBalance
+                // await APIs.updateUser(user)
+                count++
+                resultDataArray.push({ ...d, newBalance: user.balance })
+            })
+        } catch (e) {
+            alert("Error Occured.")
+        }
+
+        let resStr = ""
+        resultDataArray.forEach((d) => {
+            // selectedDraw.rewardedUsernames.push(d.username)
+            resStr += d.userId + ", " + d.username + " Updated: " + d.newBalance + "\n"
+        })
+        if (resultDataArray.length == dataArray.length) {
+            // selectedDraw.allRewarded=true            
+        }
+        try {
+            await DrawAPIs.updateDraw(selectedDraw)
+            fetchLoggedInUser()
+            fetchSubUsersOf()
+            fetchDraws();
+            alert("Below are udpated balances of each user \n\n" + resStr)
+        } catch (e) {
+
         }
     }
 
@@ -1941,19 +2016,43 @@ const AdminReports = () => {
                         )}
                         {selectedOption === 'billingSheet' && (
                             <Card.Footer>
-                                <div className="d-flex flex-wrap justify-content-start">
-                                    <Button variant="primary btn btn-sm m-1"
-                                        onClick={() => generateBillingSheet()}
-                                        disabled={!billingSheetForm.date || !billingSheetForm.dealer}
-                                    >
-                                        Bill Sheet
-                                    </Button>
-                                    <Button variant="primary btn btn-sm m-1"
-                                        onClick={() => generateBillingSheetSummary()}
-                                        disabled={!billingSheetForm.date}
-                                    >
-                                        Summarized Bill Sheet
-                                    </Button>
+                                <div className='d-flex justify-content-between'>
+                                    <div className="d-flex flex-wrap justify-content-start">
+                                        <Button variant="primary btn btn-sm m-1"
+                                            onClick={() => generateBillingSheet()}
+                                            disabled={!billingSheetForm.date || !billingSheetForm.dealer}
+                                        >
+                                            Bill Sheet
+                                        </Button>
+                                        <Button variant="primary btn btn-sm m-1"
+                                            onClick={() => generateBillingSheetSummary()}
+                                            disabled={!billingSheetForm.date}
+                                        >
+                                            Summarized Bill Sheet
+                                        </Button>
+                                    </div>
+                                    <div>
+                                        {!selectedDraw.allRewarded ?
+                                            <Button variant="danger btn btn-sm m-1"
+                                                onClick={() => {
+                                                    const userConfirmed = window.confirm("Are you sure you want to update all users' balances? You won't be able to reverse this");
+                                                    if (userConfirmed) {
+                                                        updateAllUsersBalance();
+                                                    }
+                                                }}
+                                                disabled={!billingSheetForm.date}
+                                            >
+                                                Update Balances
+                                            </Button>
+                                            :
+                                            <Button variant="success btn btn-sm m-1"
+                                                disabled={true}
+                                            >
+                                                Balance Updated
+                                            </Button>
+
+                                        }
+                                    </div>
                                 </div>
                             </Card.Footer>
                         )}

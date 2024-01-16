@@ -1,6 +1,14 @@
 const mongoose = require("mongoose");
 
 const DrawSchema = mongoose.Schema({
+    rewardedUsernames: {
+        type: [String], 
+        default: []      
+      },
+      allRewarded:{
+        type:Boolean,
+        default:false
+      },
     prize:{
         firstPrize:{
             type:String,
