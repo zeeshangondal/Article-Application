@@ -34,7 +34,6 @@ const DistributorReports = () => {
         date: '',
         dealer: 'allDealers',
         limitType: 'apply'
-
     });
 
     const handleTotalLimitSaleChange = (e) => {

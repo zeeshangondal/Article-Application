@@ -9,6 +9,13 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
 import { columnStyles, styles } from './pdfTableStyle';
+import { formatTime } from '../Utils/Utils';
+
+
+
+
+
+
 
 const MerchentReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
@@ -16,12 +23,19 @@ const MerchentReports = () => {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({});
     const [selectedDraw, setSelectedDraw] = useState(null)
     const [savedPurchasesInDraw, setSavedPurchasesInDraw] = useState(null)
+    const [allUsers, setAllUsers] = useState([]);
+
     const [totalSheetSaleForm, setTotalSheetSaleForm] = useState({
         date: '',
         sheetNo: '',
         category: 'combined',
         reportType: 'withoutGroup',
     });
+    const [billingSheetForm, setBillingSheetForm] = useState({
+        date: '',
+        type: 'general',
+    });
+
     const [totalSaleForm, setTotalSaleForm] = useState({
         date: '',
         category: 'combined',
@@ -48,6 +62,22 @@ const MerchentReports = () => {
     }, []);
 
 
+    const handleBillingSheetChange = (e) => {
+        const { name, value } = e.target;
+        if (name == "date") {
+            let tempDraw = draws.find(draw => draw.drawDate == value)
+            if (!tempDraw) {
+                alertMessage("No Record of Draw")
+                return
+            }
+            setSelectedDraw(tempDraw)
+        }
+        setBillingSheetForm((prevForm) => ({
+            ...prevForm,
+            [name]: value,
+        }));
+    };
+
     const handleTotalLimitSaleChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
@@ -72,9 +102,11 @@ const MerchentReports = () => {
     const fetchLoggedInUser = async () => {
         try {
             const response = await APIs.getAllUsers();
+            setAllUsers(response.users)
             let tempUser = response.users.find(user => user._id == localStorageUtils.getLoggedInUser()._id);
             setCurrentLoggedInUser(tempUser);
             localStorageUtils.setLoggedInUser(JSON.stringify(tempUser));
+
         } catch (error) {
             console.error('Error fetching users');
         }
@@ -100,6 +132,11 @@ const MerchentReports = () => {
                 category: 'combined',
                 reportType: 'withoutGroup',
             })
+            setBillingSheetForm({
+                date: '',
+                type: 'general',
+            })
+
             setTotalSaleForm({
                 date: '',
                 category: 'combined',
@@ -162,7 +199,7 @@ const MerchentReports = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
         if (selectedOption === 'totalSheetSale') return 'Total Sheet Sale Report';
         if (selectedOption === 'totalLimitSale') return 'Total Share Limit Sale Report';
-
+        if (selectedOption === 'billingSheet') return 'Bill Sheet';
         return '';
     };
     const getSheetNames = () => {
@@ -1033,6 +1070,366 @@ const MerchentReports = () => {
         }
     };
 
+    const addBillSheetOfAMerchent = async (pdfDoc, targetUser, result) => {
+        let x1 = 5, x2 = 140;
+        let y = 20, ySpace = 7
+        pdfDoc.setFontSize(20);
+        let head1="Bill Sheet";
+        pdfDoc.text("Bill Sheet"+(billingSheetForm.type=="apply"? " - General":" - Oversale"), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
+        pdfDoc.text("Dealer Code:", x2, y); pdfDoc.text(targetUser.userId + "", x2 + 27, y);
+
+
+        pdfDoc.text("Commission:", x1, y + ySpace); pdfDoc.text(targetUser.commission.commision + " %", x1 + 30, y + ySpace);
+        pdfDoc.text("Name:", x2, y + ySpace); pdfDoc.text(targetUser.generalInfo.name + "", x2 + 27, y + ySpace);
+
+
+        pdfDoc.text("PC:", x1, y + 2 * ySpace); pdfDoc.text(targetUser.commission.pcPercentage + " %", x1 + 30, y + 2 * ySpace);
+        pdfDoc.text("Address:", x2, y + 2 * ySpace); pdfDoc.text(targetUser.generalInfo.address, x2 + 27, y + 2 * ySpace);
+
+
+        pdfDoc.text("Share:", x1, y + 3 * ySpace); pdfDoc.text(targetUser.commission.share + " %", x1 + 30, y + 3 * ySpace);
+        pdfDoc.text("PC Share:", x1 + 50 + 20, y + 3 * ySpace); pdfDoc.text(targetUser.commission.pcShare + "%", x1 + 40 + 50 + 5, y + 3 * ySpace);
+
+        pdfDoc.text("Contact:", x2, y + 3 * ySpace); pdfDoc.text(targetUser.generalInfo.contactNumber, x2 + 27, y + 3 * ySpace);
+
+
+        pdfDoc.autoTable({
+            head: [["Total Prize", "Total Sale", "Draw Time"]],
+            body: [[0, result.totalSale, formatTime(selectedDraw.drawTime)]],
+            theme: '',
+            margin: { top: y + 4 * ySpace },
+            styles: {
+                fontStyle: 'bold',
+                textColor: [0, 0, 0],
+                lineWidth: 0.2,  // Set the border width to 0
+                lineColor: [0, 0, 0],  // Set the border color to match the background
+                fillStyle: 'DF',
+                fillColor: [255, 255, 255],
+                head: {
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [255, 0, 0],
+                    textColor: [255, 255, 255],
+                },
+            }
+        });
+        pdfDoc.autoTable({
+            head: [["First Prize", "Second Prize 1", "Second Prize 2", "Second Prize 3", "Second Prize 4", "Second Prize 5"]],
+            body: [[selectedDraw.prize.firstPrize, selectedDraw.prize.secondPrize1, selectedDraw.prize.secondPrize2, selectedDraw.prize.secondPrize3, selectedDraw.prize.secondPrize4, selectedDraw.prize.secondPrize5]],
+            theme: '',
+            margin: { top: y + 30 * ySpace },
+            styles: {
+                fontStyle: 'bold',
+                textColor: [0, 0, 0],
+                lineWidth: 0.2,  // Set the border width to 0
+                lineColor: [0, 0, 0],  // Set the border color to match the background
+                fillStyle: 'DF',
+                fillColor: [255, 255, 255],
+                head: {
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [255, 0, 0],
+                    textColor: [255, 255, 255],
+                },
+            }
+        });
+        const lineY = y + 10 * ySpace;  // Adjust the Y coordinate as needed
+        pdfDoc.line(x1, lineY, pdfDoc.internal.pageSize.width - x1, lineY);
+
+
+        x2 = 120
+        pdfDoc.text("A+B+C First:", x1, y + 11 * ySpace); pdfDoc.text(result.ABCFirstTotal + "", x1 + 40, y + 11 * ySpace);
+        pdfDoc.text("D First:", x2, y + 11 * ySpace); pdfDoc.text(result.DFirstTotal + "", x2 + 40, y + 11 * ySpace);
+
+        pdfDoc.text("A+B+C Second:", x1, y + 12 * ySpace); pdfDoc.text(result.ABCSecondTotal + "", x1 + 40, y + 12 * ySpace);
+        pdfDoc.text("D Second:", x2, y + 12 * ySpace); pdfDoc.text(result.DSecondTotal + "", x2 + 40, y + 12 * ySpace);
+
+        pdfDoc.text("Total Sale:", x1, y + 13 * ySpace); pdfDoc.text(result.ABCTotalSale + "", x1 + 40, y + 13 * ySpace);//ABC total
+        pdfDoc.text("Total Sale:", x2, y + 13 * ySpace); pdfDoc.text(result.DTotalSale + "", x2 + 40, y + 13 * ySpace);//D total
+
+        pdfDoc.text("Commission:", x1, y + 14 * ySpace); pdfDoc.text(result.commission + "", x1 + 40, y + 14 * ySpace);
+        pdfDoc.text("PC Commsion:", x2, y + 14 * ySpace); pdfDoc.text(result.PCCommission + "", x2 + 40, y + 14 * ySpace);
+
+
+        pdfDoc.text("Total Sale:", x1, y + 15 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 15 * ySpace);
+        pdfDoc.text("Total Commission:", x2, y + 15 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 15 * ySpace);
+
+        pdfDoc.text("Extra Sale:", x1, y + 16 * ySpace); pdfDoc.text(result.extraSale + "", x1 + 40, y + 16 * ySpace);
+        pdfDoc.text("ABC Extra:", x1 + 50 + 20, y + 16 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40 + 50 + 5, y + 16 * ySpace);
+        pdfDoc.text("D Extra:", x2 + 10, y + 16 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 16 * ySpace);
+
+        pdfDoc.text("Total Prize:", x1, y + 17 * ySpace); pdfDoc.text(result.totalPrize + "", x1 + 40, y + 17 * ySpace);
+        pdfDoc.text("ABC Prize:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
+        pdfDoc.text("D Prize:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
+
+        pdfDoc.text("Bill:", x1, y + 18 * ySpace); pdfDoc.text(result.bill + "", x1 + 40, y + 18 * ySpace);
+        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 18 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40 + 50 + 5, y + 18 * ySpace);
+        pdfDoc.text("D Bill:", x2 + 10, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
+
+
+        pdfDoc.text("Total Share:", x1, y + 19 * ySpace); pdfDoc.text(result.totalShare + "", x1 + 40, y + 19 * ySpace);
+        pdfDoc.text("ABC Share:", x1 + 50 + 20, y + 19 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40 + 50 + 5, y + 19 * ySpace);
+        pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
+
+        pdfDoc.text("Total Bill:", x1, y + 20 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40, y + 20 * ySpace);
+        pdfDoc.text("Total Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
+        pdfDoc.text("Total Bill:", x2 + 10, y + 20 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 20 * ySpace);
+    }
+
+    const calculateTotalsInFormat = (savedPurchases) => {
+        let ABCFirstTotal = 0, ABCSecondTotal = 0, DFirstTotal = 0, DSecondTotal = 0
+        savedPurchases.forEach(purchase => {
+            if (purchase.bundle.length == 4) {
+                DFirstTotal += Number(purchase.first)
+                DSecondTotal += Number(purchase.second)
+            } else {
+                ABCFirstTotal += Number(purchase.first)
+                ABCSecondTotal += Number(purchase.second)
+            }
+        })
+        return { ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal }
+    }
+    const calculatePrize = (targetUser, savedPurchases) => {
+        function getFirstOfBundle(bundle) {
+            let res = null
+            savedPurchases.forEach(purchase => {
+                if (purchase.bundle == bundle) {
+                    res = Number(purchase.first)
+                }
+            })
+            return res
+        }
+        function getSecondOfBundle(bundle) {
+            let res = null
+            savedPurchases.forEach(purchase => {
+                if (purchase.bundle == bundle) {
+                    res = Number(purchase.second)
+                }
+            })
+            return res
+        }
+        function getFormatArray(prize) {
+            const output = [];
+            for (let i = 1; i <= prize.length; i++) {
+                output.push(prize.substring(0, i));
+            }
+            return output;
+        }
+        let rewardObj = targetUser.rewardCommission
+        function getRewardForBundle(bundle) {
+            if (bundle.length == 1) return Number(rewardObj.firstA)
+            if (bundle.length == 2) return Number(rewardObj.firstB)
+            if (bundle.length == 3) return Number(rewardObj.firstC)
+            if (bundle.length == 4) return Number(rewardObj.firstD)
+        }
+        let drawPrizeObj = selectedDraw.prize;
+        let ABCFirstTotalPrize = 0, DFirstTotalPrize = 0, ABCSecondTotalPrize = 0, DSecondTotalPrize = 0
+        if (drawPrizeObj.firstPrize.length == 4) {
+            getFormatArray(drawPrizeObj.firstPrize).forEach(bundle => {
+                if (bundle.length == 4) {
+                    let tempV = getFirstOfBundle(bundle)
+                    if (tempV)
+                        DFirstTotalPrize += tempV * getRewardForBundle(bundle)
+                } else {
+                    let tempV = getFirstOfBundle(bundle)
+                    if (tempV)
+                        ABCFirstTotalPrize += tempV * getRewardForBundle(bundle)
+                }
+            })
+        }
+        let drawSecondPrizes = []
+        let count = 0
+        if (drawPrizeObj.secondPrize1.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize1); count++ }
+        if (drawPrizeObj.secondPrize2.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize2); count++ }
+        if (drawPrizeObj.secondPrize3.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize3); count++ }
+        if (drawPrizeObj.secondPrize4.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize4); count++ }
+        if (drawPrizeObj.secondPrize5.length == 4) { drawSecondPrizes.push(drawPrizeObj.secondPrize5); count++ }
+        drawSecondPrizes.forEach(tempSecondPrize => {
+            getFormatArray(tempSecondPrize).forEach(bundle => {
+                if (bundle.length == 4) {
+                    let tempV = getSecondOfBundle(bundle)
+                    if (tempV)
+                        DSecondTotalPrize += Number((getSecondOfBundle(bundle) * getRewardForBundle(bundle) / count).toFixed(1))
+                } else {
+                    let tempV = getSecondOfBundle(bundle)
+                    if (tempV)
+                        ABCSecondTotalPrize += Number((getSecondOfBundle(bundle) * getRewardForBundle(bundle) / count).toFixed(1))
+                }
+            })
+        })
+        // console.log(ABCFirstTotalPrize , ABCSecondTotalPrize,DFirstTotalPrize ,DSecondTotalPrize )
+        let ABCPrize = ABCFirstTotalPrize + ABCSecondTotalPrize
+        let DPrize = DFirstTotalPrize + DSecondTotalPrize
+        return { ABCPrize, DPrize, totalPrize: ABCPrize + DPrize }
+    }
+    const calculateResultOfMerchent = (targetUser, savedPurchases) => {
+        let { ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal } = calculateTotalsInFormat(savedPurchases)
+        let ABCTotalSale = ABCFirstTotal + ABCSecondTotal;
+        let DTotalSale = DFirstTotal + DSecondTotal;
+        let commission = Number(((Number(targetUser.commission.commision) / 100) * ABCTotalSale).toFixed(1))
+        let PCCommission = Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1))
+        let totalSale = ABCTotalSale + DTotalSale
+        let totalCommission = commission + PCCommission
+        let extraSale = totalSale - totalCommission
+        let ABCExtraSale = ABCTotalSale - commission
+        let DExtraSale = DTotalSale - PCCommission
+
+        let prize = calculatePrize(targetUser, savedPurchases)
+        let bill = extraSale - prize.totalPrize
+        let ABCBill = ABCExtraSale - prize.ABCPrize
+        let DBill = DExtraSale - prize.DPrize
+        let ABCShare = ABCBill * (Number(targetUser.commission.share) / 100)
+        let DShare = DBill * (Number(targetUser.commission.pcShare) / 100)
+        let totalShare = ABCShare + DShare
+        let totalABCBill = ABCBill - ABCShare
+        let totalDBill = DBill - DShare
+        let totalBill = totalABCBill + totalDBill
+        let result = {
+            ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
+            totalSale, totalCommission, extraSale, ABCPrize: prize.ABCPrize, DPrize: prize.DPrize, totalPrize: prize.totalPrize,
+            ABCExtraSale, DExtraSale, bill, ABCBill, DBill, ABCShare, DShare, totalShare, totalABCBill, totalDBill, totalBill
+        }
+        for (let key in result) {
+            result[key] = Number(result[key].toFixed(1))
+        }
+        return result
+    }
+    const getAUser = (username) => {
+        return allUsers.find(user => user.username == username)
+    }
+
+    const getTotalGeneralSalesOfMerchentFromDraw = (username,general=false,oversale=false) => {
+        let targetUser = getAUser(username)
+        if(general){
+            let drawDataArray = targetUser.savedPurchasesFromDrawsData.filter(data => {
+                return data.drawId == selectedDraw._id
+            })
+            let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)
+                .reduce((acc, purchase) => {
+                    const bundle = purchase.bundle;
+    
+                    if (!acc[bundle]) {
+                        acc[bundle] = { bundle, first: 0, second: 0 };
+                    }
+    
+                    acc[bundle].first += purchase.first;
+                    acc[bundle].second += purchase.second;
+    
+                    return acc;
+                }, {});
+            let savedPurchases = Object.values(groupedByBundle);
+            return savedPurchases    
+        }else if(oversale){
+            let drawDataArray = targetUser.savedPurchasesFromDrawsData.filter(data => {
+                return data.drawId == selectedDraw._id
+            })
+            let groupedByBundle = drawDataArray.flatMap(draw => draw.savedOversales)
+                .reduce((acc, purchase) => {
+                    const bundle = purchase.bundle;
+    
+                    if (!acc[bundle]) {
+                        acc[bundle] = { bundle, first: 0, second: 0 };
+                    }
+    
+                    acc[bundle].first += purchase.first;
+                    acc[bundle].second += purchase.second;
+    
+                    return acc;
+                }, {});
+            let savedOversales = Object.values(groupedByBundle);
+            return savedOversales
+        }
+        return []
+
+    }
+    
+    const generateBillingSheet = async () => {
+        let targetUser=getAUser(localStorageUtils.getLoggedInUser().username)
+        const pdfDoc = new jsPDF();
+        let purchases=[]
+        if(billingSheetForm.type=="oversale"){
+            purchases=getTotalGeneralSalesOfMerchentFromDraw(targetUser.username,true,false)
+        }else{
+            purchases=getTotalGeneralSalesOfMerchentFromDraw(targetUser.username,false,true)
+        }
+
+        let result = calculateResultOfMerchent(targetUser, purchases)
+        addBillSheetOfAMerchent(pdfDoc, targetUser, result)
+
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
+
+    
+
+    const generateBillingSheetSummary = async () => {
+        let targetUser = getAUser(currentLoggedInUser.username)
+        const pdfDoc = new jsPDF();
+        pdfDoc.setFontSize(20);
+        pdfDoc.text("Bill Sheet Summary", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 25);
+        pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 25, { align: 'right' });
+
+        const columns = ['Sheet No', 'Sheet Name', 'Sheet Total', 'Total Prize'];
+        let bodyData = []
+        let savedDataOfUser=targetUser.savedPurchasesFromDrawsData.filter(data=> data.drawId==selectedDraw._id)
+        for(let i=0;i<savedDataOfUser.length;i++){
+            let sheetNo=i+1
+            let sheetName=savedDataOfUser[i].sheetName
+            // savedPurchases, savedOversales, purchases, oversales
+            let totalSale=getAllTotal({
+                savedPurchases: savedDataOfUser[i].savedPurchases,
+                savedOversales:savedDataOfUser[i].savedOversales,
+                purchases:true,oversales:true
+             })
+
+             let sheetSavedPurchasesPrize=calculateResultOfMerchent(targetUser,savedDataOfUser[i].savedPurchases).totalPrize
+             let sheetSavedOversalesPrize=calculateResultOfMerchent(targetUser,savedDataOfUser[i].savedOversales).totalPrize
+             let totalPrize=sheetSavedPurchasesPrize+sheetSavedOversalesPrize
+             bodyData.push([sheetNo, sheetName,totalSale,totalPrize])
+        }
+        pdfDoc.autoTable({
+            head: [columns],
+            body: bodyData,
+            theme: '',
+            margin: { top: 28 },
+            styles: {
+                fontStyle: 'bold',
+                textColor: [0, 0, 0],
+                lineWidth: 0.2,  // Set the border width to 0
+                lineColor: [0, 0, 0],  // Set the border color to match the background
+                fillStyle: 'DF',
+                fillColor: [255, 255, 255],
+                head: {
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    fillColor: [255, 0, 0],
+                    textColor: [255, 255, 255],
+                },
+            }
+        });
+
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
+
 
     return (
         <div className='container mt-4'>
@@ -1049,6 +1446,8 @@ const MerchentReports = () => {
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
                                 <Nav.Link eventKey="totalSheetSale" style={{ background: (selectedOption == "totalSheetSale" ? "lightgray" : "") }} >Total Sheet Sale</Nav.Link>
+                                <Nav.Link eventKey="billingSheet" style={{ background: (selectedOption == "billingSheet" ? "lightgray" : "") }} >Bill Sheet</Nav.Link>
+
                                 {localStorageUtils.getLoggedInUser().role != "merchent"
                                     &&
                                     <Nav.Link eventKey="totalLimitSale" style={{ background: (selectedOption == "totalLimitSale" ? "lightgray" : "") }} >Total Share Limit Sale</Nav.Link>
@@ -1230,6 +1629,41 @@ const MerchentReports = () => {
                                     }
                                 </div>
                             }
+                            {selectedOption === 'billingSheet' && (
+                                <Form>
+                                    <Row>
+                                        <Col>
+                                            <Form.Label>Date</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="date"
+                                                name="date"
+                                                value={billingSheetForm.date}
+                                                onChange={handleBillingSheetChange}
+                                            />
+                                        </Col>
+                                    </Row>
+                                    <Row className='mt-3'>
+                                        <Col>
+                                            <Form.Label>Type</Form.Label>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                as="select"
+                                                name="type"
+                                                value={billingSheetForm.type}
+                                                onChange={handleBillingSheetChange}
+                                            >
+                                                <option value="general">General</option>
+                                                <option value="oversale">OverSale</option>
+                                            </Form.Control>
+                                        </Col>
+                                    </Row>
+
+                                </Form>
+                            )}
+
                         </Card.Body>
                         {selectedOption === 'totalSheetSale' && (
                             <Card.Footer>
@@ -1270,6 +1704,25 @@ const MerchentReports = () => {
                                 </div>
                             </Card.Footer>
                         )}
+                        {selectedOption === 'billingSheet' && (
+                            <Card.Footer>
+                                <div className="d-flex flex-wrap justify-content-start">
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => generateBillingSheet()}
+                                        disabled={!billingSheetForm.date || !billingSheetForm.type}
+                                    >
+                                        Bill Sheet
+                                    </Button>
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => generateBillingSheetSummary()}
+                                        disabled={!billingSheetForm.date}
+                                    >
+                                        Summarized Bill Sheet
+                                    </Button>
+                                </div>
+                            </Card.Footer>
+                        )}
+
                         {selectedOption === 'totalLimitSale' && localStorageUtils.getLoggedInUser().generalInfo.enableLimitSaleReportView && (
                             <Card.Footer>
                                 <div className="d-flex flex-wrap justify-content-start">
