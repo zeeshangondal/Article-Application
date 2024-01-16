@@ -115,7 +115,6 @@ const DistributorReports = () => {
                 date: '',
                 dealer: 'allDealers',
                 limitType: 'apply'
-
             })
             setTotalLimitSaleForm({
                 date: '',
@@ -857,7 +856,7 @@ const DistributorReports = () => {
 
         pdfDoc.autoTable({
             head: [["Total Prize", "Total Sale", "Draw Time"]],
-            body: [[0, result.totalSale, formatTime(selectedDraw.drawTime)]],
+            body: [[result.totalPrize, result.totalSale, formatTime(selectedDraw.drawTime)]],
             theme: '',
             margin: { top: y + 4 * ySpace },
             styles: {
@@ -1046,6 +1045,8 @@ const DistributorReports = () => {
         let totalABCBill = ABCBill - ABCShare
         let totalDBill = DBill - DShare
         let totalBill = totalABCBill + totalDBill
+        totalBill=-totalBill              /// plus should indicate balance to be added in user's account
+
         let result = {
             ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
             totalSale, totalCommission, extraSale, ABCPrize: prize.ABCPrize, DPrize: prize.DPrize, totalPrize: prize.totalPrize,
@@ -1137,6 +1138,8 @@ const DistributorReports = () => {
             let netBalance = Number((gross - prize).toFixed(1))
             let share = result.totalShare
             let outputResult = Number((netBalance - share).toFixed(1))
+            outputResult=-outputResult
+
             bodyData.push([id, name, amount, commission, gross, prize, netBalance, share, outputResult])
         }
         pdfDoc.autoTable({

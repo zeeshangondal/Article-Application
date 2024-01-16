@@ -1097,7 +1097,7 @@ const MerchentReports = () => {
 
         pdfDoc.autoTable({
             head: [["Total Prize", "Total Sale", "Draw Time"]],
-            body: [[0, result.totalSale, formatTime(selectedDraw.drawTime)]],
+            body: [[result.totalPrize, result.totalSale, formatTime(selectedDraw.drawTime)]],
             theme: '',
             margin: { top: y + 4 * ySpace },
             styles: {
@@ -1286,6 +1286,8 @@ const MerchentReports = () => {
         let totalABCBill = ABCBill - ABCShare
         let totalDBill = DBill - DShare
         let totalBill = totalABCBill + totalDBill
+        totalBill=-totalBill              /// plus should indicate balance to be added in user's account
+
         let result = {
             ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
             totalSale, totalCommission, extraSale, ABCPrize: prize.ABCPrize, DPrize: prize.DPrize, totalPrize: prize.totalPrize,
