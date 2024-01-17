@@ -1559,6 +1559,24 @@ const AdminReports = () => {
         }
     }
 
+    const generateAdminLimitCuttingBillSheet=async()=>{
+        const pdfDoc = new jsPDF();
+        let targetUser = getAUser("admin")
+        let savedPurchases = getTotalOfDistributorFromDrawForLimitCutting()
+        let result = calculateResultOfDistributor(targetUser, savedPurchases)
+        addBillSheetOfADistributor(pdfDoc, targetUser, result)
+
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
+        }
+    }
+
     return (
         <div className='container mt-4'>
             <CustomNotification notification={notification} setNotification={setNotification} />
@@ -2033,6 +2051,7 @@ const AdminReports = () => {
                         )}
                         {selectedOption === 'limitCutting' && (
                             <Card.Footer>
+                                <div className='d-flex justify-content-between'>
                                 <div className="d-flex flex-wrap justify-content-start">
                                     <Button variant="primary btn btn-sm m-1"
                                         onClick={() => generateLimitCuttingGroupWise()}
@@ -2040,6 +2059,16 @@ const AdminReports = () => {
                                     >
                                         Report
                                     </Button>
+                                </div>
+                                <div className="">
+                                    <Button variant="primary btn btn-sm m-1"
+                                        onClick={() => generateAdminLimitCuttingBillSheet()}
+                                        disabled={!limitCuttingForm.date || !limitCuttingForm.bundleType || !limitCuttingForm.limitType || !enableLimitCuttinButton}
+                                    >
+                                        Admin Bill Sheet
+                                    </Button>
+                                </div>
+
                                 </div>
                             </Card.Footer>
                         )}
