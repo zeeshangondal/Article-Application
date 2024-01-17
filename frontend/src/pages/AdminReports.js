@@ -70,6 +70,7 @@ const AdminReports = () => {
         fetchLoggedInUser();
         fetchSubUsersOf()
         fetchDraws();
+
     }, []);
 
     const fetchLoggedInUser = async () => {
@@ -78,6 +79,17 @@ const AdminReports = () => {
             let tempUser = response.users.find(user => user._id == localStorageUtils.getLoggedInUser()._id);
             setCurrentLoggedInUser(tempUser);
             localStorageUtils.setLoggedInUser(JSON.stringify(tempUser));
+            setLimitCuttingForm({
+                ...limitCuttingForm,
+                firstA: tempUser.limitCuttingSaves.firstA,
+                secondA: tempUser.limitCuttingSaves.secondA,
+                firstB: tempUser.limitCuttingSaves.firstB,
+                secondB: tempUser.limitCuttingSaves.secondB,
+                firstC: tempUser.limitCuttingSaves.firstC,
+                secondC: tempUser.limitCuttingSaves.secondC,
+                firstD: tempUser.limitCuttingSaves.firstD,
+                secondD: tempUser.limitCuttingSaves.secondD,
+            })
         } catch (error) {
             console.error('Error fetching users');
         }
@@ -128,21 +140,21 @@ const AdminReports = () => {
                 dealer: 'allDealersCombined',
                 limitType: 'upLimit'
             })
-            setLimitCuttingForm({
-                date: '',
-                bundleType: 'A',
-                indFirst: null,
-                indSecond: null,
-                firstA: null,
-                secondA: null,
-                firstB: null,
-                secondB: null,
-                firstC: null,
-                secondC: null,
-                firstD: null,
-                secondD: null,
-                limitType: 'upLimit'
-            })
+            // setLimitCuttingForm({
+            //     date: '',
+            //     bundleType: 'A',
+            //     indFirst: null,
+            //     indSecond: null,
+            //     firstA: null,
+            //     secondA: null,
+            //     firstB: null,
+            //     secondB: null,
+            //     firstC: null,
+            //     secondC: null,
+            //     firstD: null,
+            //     secondD: null,
+            //     limitType: 'upLimit'
+            // })
 
         }
     };
@@ -208,6 +220,20 @@ const AdminReports = () => {
         setTotalLimitSaleForm(tempUpdate);
     };
 
+    const getRespectiveFromAdminLimitCutting=(bundle)=>{
+        if(bundle=="A"){
+            return {indFirst: limitCuttingForm.firstA,indSecond: limitCuttingForm.secondA}
+        }
+        if(bundle=="B"){
+            return {indFirst: limitCuttingForm.firstB,indSecond: limitCuttingForm.secondB}
+        }
+        if(bundle=="C"){
+            return {indFirst: limitCuttingForm.firstC,indSecond: limitCuttingForm.secondC}
+        }
+        if(bundle=="D"){
+            return {indFirst: limitCuttingForm.firstD,indSecond: limitCuttingForm.secondD}
+        }
+    }
     const handleLimitCuttingChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
@@ -226,6 +252,16 @@ const AdminReports = () => {
             } catch {
                 return;
             }
+        }
+        if(name=="bundleType" && value!="all"){
+            let tempRes=getRespectiveFromAdminLimitCutting(value)
+            setLimitCuttingForm({
+                ...limitCuttingForm,
+                indFirst:tempRes.indFirst,
+                indSecond:tempRes.indSecond,
+                [name]: value,
+            })
+            return
         }
         let tempUpdate = {
             ...limitCuttingForm,
@@ -1116,6 +1152,16 @@ const AdminReports = () => {
         } catch (e) {
             alertMessage("Due to an error could not make report")
         }
+        targetUser.limitCuttingSaves={
+            ...targetUser.limitCuttingSaves,
+            firstA:limitCuttingForm.firstA,secondA:limitCuttingForm.secondA,firstB:limitCuttingForm.firstB,
+            secondB:limitCuttingForm.secondB,firstC:limitCuttingForm.firstC,
+            secondC:limitCuttingForm.secondC,
+            firstD:limitCuttingForm.firstD,
+            secondD:limitCuttingForm.secondD
+        }
+        await APIs.updateUser(targetUser)
+        fetchLoggedInUser()
     }
 
     function checkForButton() {

@@ -1,6 +1,44 @@
 const mongoose = require("mongoose");
 
 const UserSchema = mongoose.Schema({
+    limitCuttingSaves:{
+        firstA: {
+            type:Number,
+            default:null
+        },
+        secondA: {
+            type:Number,
+            default:null
+        },
+        firstB:{
+            type:Number,
+            default:null
+        },
+        secondB: {
+            type:Number,
+            default:null
+        },
+        firstC: {
+            type:Number,
+            default:null
+        },
+        firstC: {
+            type:Number,
+            default:null
+        },
+        secondC: {
+            type:Number,
+            default:null
+        },
+        firstD: {
+            type:Number,
+            default:null
+        },
+        secondD: {
+            type:Number,
+            default:null
+        },
+    },
     userId: {
         type: Number,
     },
