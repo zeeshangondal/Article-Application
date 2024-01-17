@@ -34,7 +34,13 @@ function AppNavbar() {
                     </Nav>
                     <Nav>
                         <Nav.Link as={Link} to={`/userProfile/${loggedInUser?._id}`} className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>{loggedInUser && `${loggedInUser.username}`}</Nav.Link>
+                        {loggedInUser.role == "admin" &&
+                            <>
+                                <Nav.Link as={Link} to={`/users/${loggedInUser?._id}`} className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Admin Setting</Nav.Link>
+                            </>
+                            }
                         <Nav.Link onClick={handleLogout} className="link-secondary fs-6" style={{ marginLeft: '2vh' }}>Logout</Nav.Link>
+
                     </Nav>
                 </Navbar.Collapse>
             </Navbar>

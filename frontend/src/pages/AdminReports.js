@@ -701,13 +701,13 @@ const AdminReports = () => {
         return Number(((share / 100) * price).toFixed(1))
     }
 
-    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser) => {
+    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser,billing=false) => {
         let share = Number(targetUser.commission.share)
         let pcPercentage = Number(targetUser.commission.pcPercentage)
 
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
-        if (totalLimitSaleForm.limitType == "upLimit") {
+        if (billing || totalLimitSaleForm.limitType == "upLimit" ) {
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 4) {
@@ -760,12 +760,12 @@ const AdminReports = () => {
     }
 
 
-    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser) => {
+    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser,billing) => {
         let hadd = {};
         hadd = targetUser.hadd;
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
-        if (totalLimitSaleForm.limitType == "upLimit") {
+        if (billing || totalLimitSaleForm.limitType == "upLimit" ) {
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 1) {
@@ -846,15 +846,15 @@ const AdminReports = () => {
         });
         return result;
     }
-    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser) => {
+    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser,billing=false) => {
         if (targetUser.username == "admin") {
             let savedPurchases = []
             subUsers.forEach(subUser => {
                 let tempSavedPurchases = []
                 if (subUser.commission.shareEnabled) {
-                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser)
+                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser,billing)
                 } else if (subUser.hadd.haddEnabled) {
-                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser)
+                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser,billing)
                 } else {
                     return []
                 }
@@ -1138,6 +1138,9 @@ const AdminReports = () => {
         if (billingSheetForm.limitType == "apply") {
             head1 += targetUser.haddEnabled ? "- Hadd Sale" : "- Share Sale"
         }
+        if(targetUser.username=="admin"){
+            head1 = "Bill Sheet of Draw";
+        }
 
         pdfDoc.text(head1, pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         // pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
@@ -1362,6 +1365,7 @@ const AdminReports = () => {
         }
         return result
     }
+
     const generateBillingSheet = async () => {
         const pdfDoc = new jsPDF();
         if (billingSheetForm.dealer == "allDealers") {
@@ -1466,7 +1470,6 @@ const AdminReports = () => {
 
     const updateAllUsersBalance = () => {
         function ifRewarded(username) {
-            console.log(selectedDraw.rewardedUsernames)
             if (selectedDraw.rewardedUsernames.find(d => d.username == username)) {
                 return true
             }
@@ -1512,21 +1515,21 @@ const AdminReports = () => {
             dataArray.forEach(async (d) => {
                 let user = getAUser(d.username)
                 user.balance += d.newBalance
-                // await APIs.updateUser(user)
+                await APIs.updateUser(user)
                 count++
                 resultDataArray.push({ ...d, newBalance: user.balance })
+                alert("SS")
             })
         } catch (e) {
             alert("Error Occured.")
         }
-
         let resStr = ""
         resultDataArray.forEach((d) => {
-            // selectedDraw.rewardedUsernames.push(d.username)
+            selectedDraw.rewardedUsernames.push(d.username)
             resStr += d.userId + ", " + d.username + " Updated: " + d.newBalance + "\n"
         })
         if (resultDataArray.length == dataArray.length) {
-            // selectedDraw.allRewarded=true            
+            selectedDraw.allRewarded = true
         }
         try {
             await DrawAPIs.updateDraw(selectedDraw)
@@ -1536,6 +1539,23 @@ const AdminReports = () => {
             alert("Below are udpated balances of each user \n\n" + resStr)
         } catch (e) {
 
+        }
+    }
+    const generateAdminLimitSaleBillingSheet = async () => {
+        const pdfDoc = new jsPDF();
+        let targetUser = getAUser("admin")
+        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser,true)
+        let result = calculateResultOfDistributor(targetUser, savedPurchases)
+        addBillSheetOfADistributor(pdfDoc, targetUser, result)
+
+        const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
+        const formData = new FormData();
+        formData.append('pdfContent', new Blob([pdfContent], { type: 'application/pdf' }));
+        try {
+            await savePdfOnBackend(formData);
+            successMessage("Report generated successfully")
+        } catch (e) {
+            alertMessage("Due to an error could not make report")
         }
     }
 
@@ -1724,7 +1744,6 @@ const AdminReports = () => {
                                             </Form.Control>
                                         </Col>
                                     </Row>
-
                                 </Form>
                             )}
 
@@ -1991,15 +2010,25 @@ const AdminReports = () => {
                         )}
                         {selectedOption === 'totalLimitSale' && (
                             <Card.Footer>
-                                <div className="d-flex flex-wrap justify-content-start">
-                                    <Button variant="primary btn btn-sm m-1"
-                                        onClick={() => (totalLimitSaleForm.reportType == "withoutGroup" ? generateTotalLimitSaleWihtoutGroup() : generateTotalLimitSaleGroupWise())}
-                                        disabled={!totalLimitSaleForm.date || !totalLimitSaleForm.reportType || !totalLimitSaleForm.dealer}
-                                    >
-                                        Report
-                                    </Button>
-
+                                <div className='d-flex justify-content-between'>
+                                    <div className="d-flex flex-wrap justify-content-start">
+                                        <Button variant="primary btn btn-sm m-1"
+                                            onClick={() => (totalLimitSaleForm.reportType == "withoutGroup" ? generateTotalLimitSaleWihtoutGroup() : generateTotalLimitSaleGroupWise())}
+                                            disabled={!totalLimitSaleForm.date || !totalLimitSaleForm.reportType || !totalLimitSaleForm.dealer}
+                                        >
+                                            Report
+                                        </Button>
+                                    </div>
+                                    <div className="">
+                                        <Button variant="primary btn btn-sm m-1"
+                                            onClick={() => generateAdminLimitSaleBillingSheet()}
+                                            disabled={!totalLimitSaleForm.date}
+                                        >
+                                            Admin Bill Sheet
+                                        </Button>
+                                    </div>
                                 </div>
+
                             </Card.Footer>
                         )}
                         {selectedOption === 'limitCutting' && (
@@ -2032,7 +2061,7 @@ const AdminReports = () => {
                                         </Button>
                                     </div>
                                     <div>
-                                        {!selectedDraw.allRewarded ?
+                                        {selectedDraw && !selectedDraw.allRewarded ?
                                             <Button variant="danger btn btn-sm m-1"
                                                 onClick={() => {
                                                     const userConfirmed = window.confirm("Are you sure you want to update all users' balances? You won't be able to reverse this");

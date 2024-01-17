@@ -639,7 +639,7 @@ const UserDetails = () => {
                                                         handleFormInputChange('commission', 'shareEnabled', e.target.checked)
                                                     }
                                                 />
-                                                <br/>
+                                                <br />
                                             </div>
                                         }
                                     </div>
@@ -867,38 +867,43 @@ const UserDetails = () => {
                                                 />
                                             </Form.Group>
                                         </div>
-                                        <div className="col-md-6">
-                                            <Form.Group className="mb-3" controlId="general-info-field5">
-                                                <br />
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    label="Active"
-                                                    checked={formValues.generalInfo.active}
-                                                    onChange={(e) =>
-                                                        handleFormInputChange(
-                                                            'generalInfo',
-                                                            'active',
-                                                            e.target.checked
-                                                        )
-                                                    }
-                                                />
-                                                {formValues.role != "merchent" &&
-                                                    <Form.Check
-                                                        type="checkbox"
-                                                        label="Enable Limit Sale Report View"
-                                                        checked={formValues.generalInfo.enableLimitSaleReportView}
-                                                        onChange={(e) =>
-                                                            handleFormInputChange(
-                                                                'generalInfo',
-                                                                'enableLimitSaleReportView',
-                                                                e.target.checked
-                                                            )
-                                                        }
-                                                    />
+                                        {formValues.role!="admin"&&
+                                            <>
+                                                <div className="col-md-6">
+                                                    <Form.Group className="mb-3" controlId="general-info-field5">
+                                                        <br />
+                                                        <Form.Check
+                                                            type="checkbox"
+                                                            label="Active"
+                                                            checked={formValues.generalInfo.active}
+                                                            onChange={(e) =>
+                                                                handleFormInputChange(
+                                                                    'generalInfo',
+                                                                    'active',
+                                                                    e.target.checked
+                                                                )
+                                                            }
+                                                        />
+                                                        {formValues.role != "merchent" &&
+                                                            <Form.Check
+                                                                type="checkbox"
+                                                                label="Enable Limit Sale Report View"
+                                                                checked={formValues.generalInfo.enableLimitSaleReportView}
+                                                                onChange={(e) =>
+                                                                    handleFormInputChange(
+                                                                        'generalInfo',
+                                                                        'enableLimitSaleReportView',
+                                                                        e.target.checked
+                                                                    )
+                                                                }
+                                                            />
 
-                                                }
-                                            </Form.Group>
-                                        </div>
+                                                        }
+                                                    </Form.Group>
+                                                </div>
+
+                                            </>
+                                        }
                                     </div>
                                     <Button variant="primary" type="submit" size="sm">
                                         Submit
