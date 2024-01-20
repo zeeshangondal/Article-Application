@@ -22,8 +22,7 @@ export default function Merchent() {
     const [messagePurchases, setMessagePurchases] = useState([]);
     const [oversales, setOversales] = useState([]);
     const [showOversaleModal, setShowOversaleModal] = useState(false);
-
-    const [option, setOption] = useState(2);
+    const [overSaleOption, setOverSaleOption] = useState(2)
     const [deleteAllSelected, setDeleteAllSelected] = useState(false)
 
     const [draws, setDraws] = useState([]);
@@ -374,6 +373,12 @@ export default function Merchent() {
             let oversales = purchasedData.savedOversales
             let updated = oversales.filter(purchase => purchase._id !== _id)
             purchasedData.savedOversales = [...updated]
+            let oldRecs = currentLoggedInUser.savedPurchasesFromDrawsData.filter(data => data.drawId == currentDraw._id)
+            for (let i = 0; i < oldRecs.length; i++) {
+                let oldRec = oldRecs[i]
+                let updatedOversales = oldRec.savedOversales.filter(purchase => purchase._id !== _id)
+                oldRec.savedOversales = [...updatedOversales]
+            }
             updateCurrentLoggedInUser()
             successMessage("Removed Successfully")
         } catch (e) { }
@@ -468,16 +473,46 @@ export default function Merchent() {
         }
     }
 
-    const handleInvoiceOversales=()=>{
-        let savedOversales=[]
-        savedOversales=[...(currentLoggedInUser.purchasedFromDrawData.find(data=> data.drawId==currentDraw._id).savedOversales)]
-        let oldRecs=currentLoggedInUser.savedPurchasesFromDrawsData.filter(data=> data.drawId== currentDraw._id)
-        if(oldRecs){
-            oldRecs.forEach(rec=>{
-                savedOversales=[...savedOversales, ...rec.savedOversales]
+    const handleInvoiceOversales = () => {
+        let savedOversales = []
+        savedOversales = [...(currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales)]
+        let oldRecs = currentLoggedInUser.savedPurchasesFromDrawsData.filter(data => data.drawId == currentDraw._id)
+        if (oldRecs) {
+            oldRecs.forEach(rec => {
+                savedOversales = [...savedOversales, ...rec.savedOversales]
             })
         }
-        console.log(savedOversales)
+        setOversales(savedOversales)
+    }
+    const handleTotalOversales = () => {
+        let savedOversales = []
+        savedOversales = [...(currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales)]
+        let oldRecs = currentLoggedInUser.savedPurchasesFromDrawsData.filter(data => data.drawId == currentDraw._id)
+        if (oldRecs) {
+            oldRecs.forEach(rec => {
+                savedOversales = [...savedOversales, ...rec.savedOversales]
+            })
+        }
+        const bundleMap = new Map();
+        savedOversales.forEach(item => {
+            const bundle = item.bundle;
+            const first = item.first;
+            const second = item.second;
+            if (bundleMap.has(bundle)) {
+                const existingValues = bundleMap.get(bundle);
+                bundleMap.set(bundle, {
+                    first: existingValues.first + first,
+                    second: existingValues.second + second,
+                });
+            } else {
+                bundleMap.set(bundle, { first, second });
+            }
+        });
+
+        const result = Array.from(bundleMap, ([bundle, values]) => ({ bundle, ...values }));
+        setOversales(result)
+
+
     }
 
 
@@ -660,7 +695,7 @@ export default function Merchent() {
                 </div>
                 <div className='col-5 mt-1'>
                     <Button variant='btn btn-dark  btn-sm'
-                        style={{ fontSize: "0.8rem", marginTop: "2px" }} onClick={() => setShowOversaleModal(true)}>
+                        style={{ fontSize: "0.8rem", marginTop: "2px" }} onClick={() => { setShowOversaleModal(true); handleTotalOversales(); setOverSaleOption(2) }}>
                         Oversales
                     </Button>
 
@@ -694,29 +729,53 @@ export default function Merchent() {
                 </div>
             </div>
             <div>
-                <Modal show={showOversaleModal} onHide={() => setShowOversaleModal(false)}>
+                <Modal show={showOversaleModal} onHide={() => { setOversales(currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales); setShowOversaleModal(false) }}>
                     <Modal.Header closeButton>
                         <Modal.Title>Oversales</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        <div className='d-flex justify-content-end'>
-                            <Button variant='btn btn-primary  btn-sm'
-                                style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight:"3px" }} onClick={handleInvoiceOversales}>
-                                Invoice
-                            </Button>
-                            <Button variant='btn btn-primary  btn-sm'
-                                style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => setShowOversaleModal(true)}>
-                                All Total
-                            </Button>
-
+                        <div className='d-flex justify-content-between'>
+                            <div>
+                                <h6>{overSaleOption == 1 ?
+                                    "Invoice"
+                                    :
+                                    "All Total"
+                                }</h6>
+                            </div>
+                            <div className='d-flex justify-content-end'>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
+                                    Invoice
+                                </Button>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2) }}>
+                                    All Total
+                                </Button>
+                            </div>
                         </div>
+
                         <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "3px" }}>
                             <thead>
                                 <tr>
-                                    <th className='col-3'>No</th>
-                                    <th className='col-3'>F</th>
-                                    <th className='col-3'>S</th>
-                                    <th className='col-3'></th>
+                                    {overSaleOption == 1 &&
+                                        <>
+                                            <th className='col-3'>No</th>
+                                            <th className='col-3'>F</th>
+                                            <th className='col-3'>S</th>
+                                            <th className='col-3'></th>
+
+                                        </>
+                                    }
+                                    {overSaleOption == 2 &&
+                                        <>
+                                            <th className='col-4'>No</th>
+                                            <th className='col-4'>F</th>
+                                            <th className='col-4'>S</th>
+
+                                        </>
+                                    }
+                                    
+
 
                                 </tr>
                             </thead>
@@ -729,11 +788,14 @@ export default function Merchent() {
                                             <td className='col-3'>{purchase.bundle}</td>
                                             <td className='col-3'>{purchase.first}</td>
                                             <td className='col-3'>{purchase.second}</td>
-                                            <td className='col-3'>
-                                                <div className=''>
-                                                    <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
-                                                </div>
-                                            </td>
+                                            {overSaleOption == 1 &&
+                                                <td className='col-3'>
+                                                    <div className=''>
+                                                        <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
+                                                    </div>
+                                                </td>
+
+                                            }
                                         </tr>
                                     ))}
                                 </tbody>
@@ -826,6 +888,66 @@ export default function Merchent() {
                         </div>
                     </Modal.Footer>
                 </Modal>
+
+                <Modal show={showModal} onHide={handleModalClose}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Paste SMS</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form style={{ fontSize: '0.9rem' }}>
+                            <div className=''>
+                                <Row>
+                                    <Form.Group >
+                                        <Form.Control
+                                            as='textarea'
+                                            placeholder='SMS Message'
+                                            value={message}
+                                            onChange={(e) => { setMessage(e.target.value); parseInputMessage(e.target.value) }}
+                                            rows={2}
+                                            disabled={currentDraw == null}
+                                            autocomplete="off"
+                                            spellcheck="false"
+                                        />
+                                    </Form.Group>
+                                </Row>
+                            </div>
+                            {
+                                <div className='mt-1'>
+                                    <Table striped hover size="sm" className="" style={{ fontSize: '0.9rem' }}>
+                                        <thead>
+                                            <tr>
+                                                <th>Num</th>
+                                                <th>First</th>
+                                                <th>Second</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {messagePurchases.map(purchase => (
+                                                <tr >
+                                                    <td>{purchase.bundle}</td>
+                                                    <td>{purchase.first}</td>
+                                                    <td>{purchase.second}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                    <div className='d-flex justify-content-end mt-2'>
+                                        <Button variant=' btn-secondary btn  btn-sm' style={{ marginRight: "5px" }} onClick={() => { setShowModal(false); setMessage(""); setMessagePurchases([]) }} >
+                                            Cancel
+                                        </Button>
+
+                                        <Button variant='primary btn btn-sm' onClick={handleMakeMessagePurchases} >
+                                            Confirm
+                                        </Button>
+                                    </div>
+                                </div>
+                            }
+
+                        </Form>
+                    </Modal.Body>
+                </Modal>
+
+
             </div>
 
 
