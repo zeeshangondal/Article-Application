@@ -24,12 +24,16 @@ export default function Clients() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' })
 
     const navigate = useNavigate();
+    if (!localStorageUtils.hasToken()) {
+        window.location="/login"
+    }
     useEffect(() => {
         if (!localStorageUtils.hasToken()) {
-            navigate(`/login`);
+            // navigate(`/login`);
         } else {
             if (localStorageUtils.getLoggedInUser().role === "merchent") {
-                navigate('/merchent');
+                window.location="/merchent"
+
             }
         }
     })

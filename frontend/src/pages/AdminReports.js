@@ -1534,7 +1534,7 @@ const AdminReports = () => {
                     if (purchases) {
                         let tempNewBalance = calculateResultOfDistributor(user, purchases).totalBill
                         if (tempNewBalance && !ifRewarded(user.username)) {
-                            dataArray.push({ userId: user.userId, username: user.username, newBalance: tempNewBalance })
+                            dataArray.push({ userId: user.userId, username: user.username, newBalance: tempNewBalance , role:user.role})
                         }
                     }
                 } catch (e) {
@@ -1548,45 +1548,54 @@ const AdminReports = () => {
         }
         let resStr = ""
         dataArray.forEach(d => {
-            resStr += d.userId + ", " + d.username + ": " + d.newBalance + "\n"
+            if(d.role=="distributor")
+                resStr += d.userId + ", " + d.username + ": " + d.newBalance + "\n"
         })
         if (window.confirm("Below Users will be updated. Do You confirm? \n\n" + resStr)) {
             handleUpdateBalances(dataArray)
         }
     }
+
     const handleUpdateBalances = async (dataArray) => {
-        let count = 0
         let resultDataArray = []
+    
         try {
-            dataArray.forEach(async (d) => {
-                let user = getAUser(d.username)
+            for (const d of dataArray) {
+                let user = await getAUser(d.username)
                 user.balance += d.newBalance
+                user.availableBalance += d.newBalance                
                 await APIs.updateUser(user)
-                count++
-                resultDataArray.push({ ...d, newBalance: user.balance })
-                alert("SS")
-            })
+                resultDataArray.push({ ...d, newBalance: user.availableBalance })
+            }
         } catch (e) {
-            alert("Error Occured.")
+            alert("Error Occurred.")
         }
+    
+        console.log("Result array", resultDataArray)
+        
         let resStr = ""
         resultDataArray.forEach((d) => {
             selectedDraw.rewardedUsernames.push(d.username)
             resStr += d.userId + ", " + d.username + " Updated: " + d.newBalance + "\n"
         })
-        if (resultDataArray.length == dataArray.length) {
+
+        alert("Below are updated balances of each user \n\n" + resStr)
+
+        if (resultDataArray.length === dataArray.length) {
+            alert("All balances updated")
             selectedDraw.allRewarded = true
         }
+    
         try {
             await DrawAPIs.updateDraw(selectedDraw)
             fetchLoggedInUser()
             fetchSubUsersOf()
             fetchDraws();
-            alert("Below are udpated balances of each user \n\n" + resStr)
         } catch (e) {
-
+            // Handle the error
         }
     }
+    
     const generateAdminLimitSaleBillingSheet = async () => {
         const pdfDoc = new jsPDF();
         let targetUser = getAUser("admin")

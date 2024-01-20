@@ -16,7 +16,7 @@ export default function Merchent() {
     const [showSheetModal, setShowSheetModal] = useState(false);
     const [showOversaleEditModal, setShowOversaleEditModal] = useState(false);
     const [checkedSavedPurchases, setCheckedSavedPurchases] = useState([])
-    const [timeRemaining, setTimeRemaining] = useState("")
+
     const [sheetName, setSheetName] = useState('');
     const [message, setMessage] = useState('');
     const [messagePurchases, setMessagePurchases] = useState([]);
@@ -51,11 +51,10 @@ export default function Merchent() {
         second: '',
         _id: ''
     });
-
+    
     useEffect(() => {
         fetchLoggedInUser();
         fetchDraws();
-        // setInterval(calculateRemainingTime,500)
     }, []);
 
 
@@ -244,8 +243,7 @@ export default function Merchent() {
         }
     };
 
-    const handleChangeDraw = async (event) => {
-        let value = event.target.value
+    const handleChangeDraw = async (value) => {
         setForm({ ...form, selectedDraw: value })
         if (value == '') {
             setCurrentDraw(null)
@@ -256,7 +254,6 @@ export default function Merchent() {
         let fetchedDraws = await fetchDraws()
         setCurrentDraw(fetchedDraws.find(draw => draw._id == value))
         getSavedPurchasesOfCurrentDraw(value)
-        setInterval(() => calculateRemainingTime(fetchedDraws.find(draw => draw._id == value)), 1000)
     }
 
     const getCount = () => {
@@ -323,7 +320,7 @@ export default function Merchent() {
                 const response = await articlesAPI.getFirstAndSecond(data);
                 let availableFirstPrice = response.data.firstPrice
                 let availableSecondPrice = response.data.secondPrice
-                if (currentLoggedInUser.balance < (Number(purchase.first) + Number(purchase.second))) {
+                if(currentLoggedInUser.balance< (Number(purchase.first) + Number(purchase.second))){
                     alertMessage("Insuffiecent balance for purchase")
                     return
                 }
@@ -361,7 +358,7 @@ export default function Merchent() {
             await articlesAPI.updateDigit(data)
         } catch (e) { }
     }
-
+    
     const handleRemovingOversalePurchase = (_id) => {
         try {
             let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
@@ -425,105 +422,28 @@ export default function Merchent() {
             setCheckedSavedPurchases([...checkedSavedPurchases.filter(p => p._id != purchase._id)])
         }
     }
-    const handleMultipleSavedPurchaseDelete = () => {
-        try {
-            checkedSavedPurchases.forEach(async purchase => {
+    const handleMultipleSavedPurchaseDelete=()=>{
+        try{
+            checkedSavedPurchases.forEach(async purchase=>{
                 await handleRemovingSavedPurchase(purchase._id)
             })
             setCheckedSavedPurchases([])
-        } catch (e) {
+        }catch(e){
         }
     }
-
-    function calculateRemainingTime(currentDraw) {
-        if (currentDraw) {
-            let drawDate = currentDraw.drawDate
-            let drawTime = currentDraw.drawTime
-
-            const drawDateTime = new Date(`${drawDate}T${drawTime}`);
-            if (isNaN(drawDateTime.getTime())) {
-                console.error("Invalid draw date or time format.");
-                return null;
-            }
-            const timeDifference = drawDateTime - new Date();
-            if (timeDifference <= 0) {
-                console.log("Draw date and time have already passed.");
-                return null;
-            }
-            // Calculate remaining hours, minutes, and seconds
-            const hours = Math.floor(timeDifference / (1000 * 60 * 60));
-            const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
-            let temp = hours + "hrs " + minutes + " mins " + seconds + " secs"
-            setTimeRemaining(temp)
-        }
-    }
-
-
     return (
-        <div className=''>
-            <div className='d-flex justify-content-around ' style={{ backgroundColor: "green", }}>
-                <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
-                <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.balance}</h6>
-                {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
-            </div>
-            <div className='d-flex justify-content-around' style={{ backgroundColor: "black", marginTop: "1px" }}>
-                <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
-                <h6 style={{ color: "white", fontSize: "0.8rem", }}>{timeRemaining}</h6>
-                {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
-            </div>
-            <div className='d-flex justify-content-around' style={{ backgroundColor: "black" }}>
-                <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", width: "100vw", color: "white", backgroundColor: "black", height: "4vh" }}>
-                    <option value="">Select Draw</option>
-                    {draws.map((draw) => (
-                        <option key={draw._id} value={draw._id}>
-                            {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <div className='row'>
-                <div className='col-7'>
-                    <Table striped hover size="sm" className="" style={{ fontSize: '0.8rem' }}>
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>F</th>
-                                <th>S</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {savedPurchases.map(purchase => (
-                                <tr key={purchase._id} >
-                                    <td style={{fontWeight:"bold"}}>{purchase.bundle}</td>
-                                    <td style={{fontWeight:"bold"}}>{purchase.first}</td>
-                                    <td style={{fontWeight:"bold"}}>{purchase.second}</td>
-                                    <td>
-                                        <div className=''>
-                                            <Button variant="btn btn-sm btn-danger" style={{fontSize:"0.5rem"}} onClick={() => handleRemovingSavedPurchase(purchase._id)}>D</Button>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <Form.Check
-                                            type="checkbox"
-                                            checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
-                                            onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
-                                        />
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </Table>
-
-                </div>
-                <div className='col-5'>
-                    <h5>cxc</h5>
-                </div>
-
-
-            </div>
+        <div className='m-3'>
             <CustomNotification notification={notification} setNotification={setNotification} />
+            <SearchDivBackgroundDiv>
+                <h4 className='text-center'>{`${currentLoggedInUser.generalInfo.name} - ${currentLoggedInUser.username}`}</h4>
+                <hr />
+                <div className=''>
+                    <div className='d-flex justify-content-between'>
+                        <h6>Balance: {currentLoggedInUser.balance}</h6>
+                        <h6>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6>
+                    </div>
+                </div>
+            </SearchDivBackgroundDiv>
             <div className='d-flex justify-content-between mt-3 container'>
                 <div>
                     <Form.Group >
@@ -719,12 +639,12 @@ export default function Merchent() {
                             </Table>
                         </div>
                         <div className='d-flex justify-content-end mt-4'>
-                            {checkedSavedPurchases.length > 0 &&
+                            { checkedSavedPurchases.length > 0 &&
                                 <Button variant='danger btn btn-sm mt-2' onClick={handleMultipleSavedPurchaseDelete} style={{ marginRight: '1vh' }} disabled={checkedSavedPurchases.length <= 0}>
                                     Delete Selected
                                 </Button>
                             }
-                            <Button variant='primary btn btn-sm mt-2' onClick={() => setCheckedSavedPurchases([...savedPurchases])} style={{ marginRight: '1vh' }} disabled={savedPurchases.length <= 0}>
+                            <Button variant='primary btn btn-sm mt-2' onClick={()=>setCheckedSavedPurchases([...savedPurchases])} style={{ marginRight: '1vh' }} disabled={savedPurchases.length <= 0}>
                                 Select All
                             </Button>
                             <Button variant='primary btn btn-sm mt-2' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0}>
@@ -757,7 +677,7 @@ export default function Merchent() {
                                             <td>
                                                 <Form.Check
                                                     type="checkbox"
-                                                    checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
+                                                    checked={checkedSavedPurchases.find(p=> p._id==purchase._id)}
                                                     onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
                                                 />
                                             </td>

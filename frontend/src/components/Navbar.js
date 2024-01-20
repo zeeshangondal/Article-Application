@@ -9,7 +9,6 @@ function AppNavbar() {
             localStorage.removeItem("jwt_token");
             localStorageUtils.removeLoggedInUser();
             window.location = "/login";
-
         }
     };
 

@@ -6,6 +6,13 @@ import { localStorageUtils } from '../APIs/localStorageUtils';
 export default function Login(props) {
     const navigate = useNavigate();
 
+    if (localStorageUtils.hasToken()) {
+        props.refresh()
+        if(localStorageUtils.getLoggedInUser().role=="merchent"){
+            navigate('/merchent');
+        }else
+            navigate("/")
+    }
     useEffect(() => {
         if (localStorageUtils.hasToken()) {
             props.refresh()
@@ -13,8 +20,7 @@ export default function Login(props) {
                 navigate('/merchent');
             }else
                 navigate("/")
-        }
-        
+        }  
     });
 
     const initialFormData = {
