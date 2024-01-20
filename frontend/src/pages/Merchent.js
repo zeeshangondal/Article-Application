@@ -295,6 +295,7 @@ export default function Merchent() {
         successMessage("Sheet Saved Successfully")
         setSheetName('')
         setSavedPurchases([])
+        setOversales([])
         setShowSheetModal(false)
     }
 
@@ -467,12 +468,24 @@ export default function Merchent() {
         }
     }
 
+    const handleInvoiceOversales=()=>{
+        let savedOversales=[]
+        savedOversales=[...(currentLoggedInUser.purchasedFromDrawData.find(data=> data.drawId==currentDraw._id).savedOversales)]
+        let oldRecs=currentLoggedInUser.savedPurchasesFromDrawsData.filter(data=> data.drawId== currentDraw._id)
+        if(oldRecs){
+            oldRecs.forEach(rec=>{
+                savedOversales=[...savedOversales, ...rec.savedOversales]
+            })
+        }
+        console.log(savedOversales)
+    }
+
 
     return (
         <div className=''>
             <div className='d-flex justify-content-around ' style={{ backgroundColor: "green", }}>
                 <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
-                <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser&& currentLoggedInUser.balance.toFixed(1)}</h6>
+                <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
                 {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
             </div>
             <div className='d-flex justify-content-around' style={{ backgroundColor: "black", marginTop: "1px" }}>
@@ -663,7 +676,7 @@ export default function Merchent() {
                         </Table>
                     </div>
 
-                    <div style={{ maxHeight: '120px', overflowY: 'auto', marginTop: "-7px" }}>
+                    <div style={{ maxHeight: '170px', overflowY: 'auto', marginTop: "-7px" }}>
                         <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", }}>
                             <tbody>
                                 {oversales.map(purchase => (
@@ -686,8 +699,18 @@ export default function Merchent() {
                         <Modal.Title>Oversales</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
+                        <div className='d-flex justify-content-end'>
+                            <Button variant='btn btn-primary  btn-sm'
+                                style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight:"3px" }} onClick={handleInvoiceOversales}>
+                                Invoice
+                            </Button>
+                            <Button variant='btn btn-primary  btn-sm'
+                                style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => setShowOversaleModal(true)}>
+                                All Total
+                            </Button>
 
-                        <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-3px" }}>
+                        </div>
+                        <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "3px" }}>
                             <thead>
                                 <tr>
                                     <th className='col-3'>No</th>
