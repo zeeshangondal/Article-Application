@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const DrawSchema = mongoose.Schema({
+    // messageOfUsers: {
+    //     type: [mongoose.Schema.Types.Mixed],
+    //     default: [],
+    // },
+
     rewardedUsernames: {
         type: [String], 
         default: []      
