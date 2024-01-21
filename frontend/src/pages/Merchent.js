@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import APIs from '../APIs/users';
 import articlesAPI from '../APIs/articles';
 
@@ -15,6 +15,7 @@ export default function Merchent() {
     const [showModal, setShowModal] = useState(false);
     const [showSheetModal, setShowSheetModal] = useState(false);
     const [showOversaleEditModal, setShowOversaleEditModal] = useState(false);
+    const [auto, setAuto] = useState(false);
     const [checkedSavedPurchases, setCheckedSavedPurchases] = useState([])
     const [timeRemaining, setTimeRemaining] = useState("")
     const [sheetName, setSheetName] = useState('');
@@ -24,7 +25,7 @@ export default function Merchent() {
     const [showOversaleModal, setShowOversaleModal] = useState(false);
     const [overSaleOption, setOverSaleOption] = useState(3)
     const [deleteAllSelected, setDeleteAllSelected] = useState(false)
-
+    const [currentFocused, setCurrentFocused] = useState(1)
     const [draws, setDraws] = useState([]);
     const [currentDraw, setCurrentDraw] = useState(null)
     const [savedPurchases, setSavedPurchases] = useState([]);
@@ -52,6 +53,9 @@ export default function Merchent() {
         second: '',
         _id: ''
     });
+    const bundleRef = useRef(null);
+    const firstRef = useRef(null);
+    const secondRef = useRef(null);
 
     useEffect(() => {
         fetchLoggedInUser();
@@ -110,9 +114,32 @@ export default function Merchent() {
         fetchLoggedInUser()
     }
     const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice) => {
+        if(!auto){
+            if(currentFocused<3){
+                setCurrentFocused(currentFocused+1)
+                return
+            }
+            if(currentFocused==3){
+                setCurrentFocused((1))
+            }
+        }else{
+            if(currentFocused!=1){
+                if(currentFocused==3){
+                    setCurrentFocused(1)
+                    return
+                }
+                setCurrentFocused(currentFocused+1)
+                return
+            }
+        }
         if (!first || !second || !bundle) {
             return
         }
+
+        if(first==0 && second==0){
+            return
+        }
+
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         let overSaleFirst = 0
@@ -126,7 +153,7 @@ export default function Merchent() {
             second = availableSecondPrice
         }
 
-        if ((Number(first) + Number(second)) > currentLoggedInUser.availableBalance) {
+        if ((Number(first) + Number(second)) > currentLoggedInUser.balance) {
             alert("You dont have enough balance for this purchase.")
             return
         }
@@ -169,9 +196,9 @@ export default function Merchent() {
         }
         successMessage("Purcahse added successfuly")
         await articlesAPI.updateDigit(data)
-        currentLoggedInUser.availableBalance = currentLoggedInUser.availableBalance - (Number(first) + Number(second))
+        currentLoggedInUser.balance = currentLoggedInUser.balance - (Number(first) + Number(second))
         updateCurrentLoggedInUser()
-        setForm({ ...form, bundle: '', first: '', second: '' })
+        setForm({ ...form, bundle: '' })
         // handleBundleChange(bundle)
         // setShowModal(false);
     };
@@ -352,7 +379,7 @@ export default function Merchent() {
             let target = purchases.find(purchase => purchase._id === _id)
             let updated = purchases.filter(purchase => purchase._id !== _id)
             purchasedData.savedPurchases = [...updated]
-            currentLoggedInUser.availableBalance = currentLoggedInUser.availableBalance + (Number(target.first) + Number(target.second))
+            currentLoggedInUser.balance = currentLoggedInUser.balance + (Number(target.first) + Number(target.second))
             updateCurrentLoggedInUser()
             let data = getDataForBundle(target.bundle, currentDraw)
             data = {
@@ -524,7 +551,83 @@ export default function Merchent() {
     const handleCurrentOversale = () => {
         setOversales([...currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
     }
+    function backOne() {
+        if (currentFocused == 1) {
+            let updt=form.bundle.substring(0, form.bundle.length - 1)
+            setForm({
+                ...form,
+                bundle: updt
+            })
+            handleBundleChange(updt)
+        } else if (currentFocused == 2) {
+            let updt = form.first.toString()
+            updt = updt.substring(0, updt.length - 1)
+            updt = Number(updt)
+            if (updt == 0) {
+                setForm({
+                    ...form,
+                    first: ""
+                })
+                return
+            }
+            setForm({
+                ...form,
+                first: updt
+            })
+        } else if (currentFocused == 3) {
+            let updt = form.second.toString()
+            updt = updt.substring(0, updt.length - 1)
+            updt = Number(updt)
+            if (updt == 0) {
+                setForm({
+                    ...form,
+                    second: ""
+                })
+                return
+            }
 
+            setForm({
+                ...form,
+                second: updt
+            })
+        }
+    }
+    const handleInput = (input) => {
+        if (input == "+") {
+            return
+        }
+        if (input == "<") {
+            backOne()
+            return
+        }
+        if (currentFocused == 1) {
+            if(form.bundle.length==4){
+                return 
+            }
+            setForm({
+                ...form,
+                bundle: form.bundle + input
+            })
+            handleBundleChange(form.bundle + input)
+            return
+        } else if (currentFocused == 2) {
+            let updt = form.first.toString()
+            updt += input
+            updt = Number(updt)
+            setForm({
+                ...form,
+                first: updt
+            })
+        } else if (currentFocused == 3) {
+            let updt = form.second.toString()
+            updt += input
+            updt = Number(updt)
+            setForm({
+                ...form,
+                second: updt
+            })
+        }
+    }
 
     return (
         <div className='app-container'>
@@ -611,7 +714,7 @@ export default function Merchent() {
                             <tbody>
                                 {savedPurchases.map(purchase => (
                                     <tr key={purchase._id} >
-                                        <td className='' >
+                                        <td className='col-1' >
                                             <Form.Check
                                                 type="checkbox"
                                                 checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
@@ -620,9 +723,9 @@ export default function Merchent() {
                                             />
                                         </td>
 
-                                        <td style={{ fontWeight: "bold" }}>{purchase.bundle}</td>
-                                        <td style={{ fontWeight: "bold" }}>{purchase.first}</td>
-                                        <td style={{ fontWeight: "bold" }}>{purchase.second}</td>
+                                        <td className='col-2' style={{ fontWeight: "bold" }}>{purchase.bundle}</td>
+                                        <td className='col-2' style={{ fontWeight: "bold" }}>{purchase.first}</td>
+                                        <td className='col-2' style={{ fontWeight: "bold" }}>{purchase.second}</td>
                                         {/* <td>
                                         <div className=''>
                                             <Button variant="btn btn-sm btn-danger" style={{ fontSize: "0.5rem" }} onClick={() => handleRemovingSavedPurchase(purchase._id)}>D</Button>
@@ -681,19 +784,21 @@ export default function Merchent() {
                 <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "2px" }}>
                         <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label>
-
                         <Form.Check
                             type="checkbox"
-                            // checked={deleteAllSelected}
                             style={{ marginLeft: "8px" }}
+                            checked={auto}
+                            onClick={(e)=>setAuto(e.target.checked)}
                         />
                     </div>
-                    <input
+                    <input className={"" + currentFocused == 1 ? "temp-border" : ""}
                         type='text'
+                        ref={bundleRef}
                         placeholder='Num'
-                        readOnly 
+                        readOnly
                         value={form.bundle}
-                        onChange={(e) => handleBundleChange(e.target.value)}
+                        // onChange={(e) => handleBundleChange(e.target.value)}
+                        onClick={() => { bundleRef.current.focus(); setCurrentFocused(1) }}
                         disabled={currentDraw == null}
                         style={{ width: "60px", fontSize: "0.9rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
                     />
@@ -702,12 +807,14 @@ export default function Merchent() {
                     <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "4px" }}>
                         {availableArticles ? availableArticles.firstPrice : '.'}
                     </h6>
-                    <input
-                        type='Number'
+                    <input className={"" + currentFocused == 2 ? "temp-border" : ""}
+                        type='number'
+                        ref={firstRef}
                         placeholder='F'
-                        readOnly 
+                        readOnly
                         value={form.first}
                         onChange={(e) => setForm({ ...form, first: e.target.value })}
+                        onClick={() => { firstRef.current.focus(); setCurrentFocused(2) }}
                         disabled={currentDraw == null}
                         style={{ width: '70px', fontSize: '0.9rem', fontWeight: 'bold', marginTop: "3px" }}
                     />
@@ -716,12 +823,14 @@ export default function Merchent() {
                     <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
                         {availableArticles ? availableArticles.secondPrice : "."}
                     </h6>
-                    <input
-                        type='Number'
+                    <input className={"" + currentFocused == 3 ? "temp-border" : ""}
+                        ref={secondRef}
+                        type='number'
                         placeholder='S'
-                        readOnly 
+                        readOnly
                         value={form.second}
                         onChange={(e) => setForm({ ...form, second: e.target.value })}
+                        onClick={() => { secondRef.current.focus(); setCurrentFocused(3) }}
                         disabled={currentDraw == null}
                         style={{ width: "70px", fontSize: "0.9rem", fontWeight: "bold", marginTop: "3px" }}
                     />
@@ -744,18 +853,18 @@ export default function Merchent() {
             <div>
                 <div data-v-ffceccfa="" class="keyboard-panel">
                     <div data-v-ffceccfa="" class="keyboard-wrapper">
-                        <div data-v-ffceccfa="" class="num">1</div>
-                        <div data-v-ffceccfa="" class="num">2</div>
-                        <div data-v-ffceccfa="" class="num">3</div>
-                        <div data-v-ffceccfa="" class="num">4</div>
-                        <div data-v-ffceccfa="" class="num">5</div>
-                        <div data-v-ffceccfa="" class="num">6</div>
-                        <div data-v-ffceccfa="" class="num">7</div>
-                        <div data-v-ffceccfa="" class="num">8</div>
-                        <div data-v-ffceccfa="" class="num">9</div>
-                        <div data-v-ffceccfa="" id="key-plus1" class="num">+</div>
-                        <div data-v-ffceccfa="" class="num">0</div>
-                        <div data-v-ffceccfa="" class="num" style={{fontWeight:"bold"}}>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("1")}>1</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("2")}>2</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("3")}>3</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("4")}>4</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("5")}>5</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("6")}>6</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("7")}>7</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("8")}>8</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("9")}>9</div>
+                        <div data-v-ffceccfa="" id="key-plus1" class="num" onClick={() => handleInput("+")}>+</div>
+                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("0")}>0</div>
+                        <div data-v-ffceccfa="" class="num" style={{ fontWeight: "bold" }} onClick={() => handleInput("<")}>
                             {"<"}
                         </div>
                     </div>
