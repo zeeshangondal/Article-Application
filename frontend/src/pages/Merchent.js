@@ -22,7 +22,7 @@ export default function Merchent() {
     const [messagePurchases, setMessagePurchases] = useState([]);
     const [oversales, setOversales] = useState([]);
     const [showOversaleModal, setShowOversaleModal] = useState(false);
-    const [overSaleOption, setOverSaleOption] = useState(2)
+    const [overSaleOption, setOverSaleOption] = useState(3)
     const [deleteAllSelected, setDeleteAllSelected] = useState(false)
 
     const [draws, setDraws] = useState([]);
@@ -89,8 +89,8 @@ export default function Merchent() {
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === selectedDraw)
 
         try {
-            setSavedPurchases([...purchasedDrawData.savedPurchases])
-            setOversales([...purchasedDrawData.savedOversales])
+            setSavedPurchases([...purchasedDrawData.savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)])
+            setOversales([...purchasedDrawData.savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
         } catch (e) {
             setSavedPurchases([])
         }
@@ -389,6 +389,9 @@ export default function Merchent() {
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         let overSaleFirst = oversaleForm.first
         let overSaleSecond = oversaleForm.second
+        if (overSaleFirst == 0 && overSaleSecond == 0) {
+            return
+        }
         let bundle = oversaleForm.bundle
         if (purchasedDrawData) {
             purchasedDrawData.savedOversales.push({
@@ -482,6 +485,7 @@ export default function Merchent() {
                 savedOversales = [...savedOversales, ...rec.savedOversales]
             })
         }
+        savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
         setOversales(savedOversales)
     }
     const handleTotalOversales = () => {
@@ -508,11 +512,14 @@ export default function Merchent() {
                 bundleMap.set(bundle, { first, second });
             }
         });
-
-        const result = Array.from(bundleMap, ([bundle, values]) => ({ bundle, ...values }));
+        let result = Array.from(bundleMap, ([bundle, values]) => ({ bundle, ...values }));
+        result = result.sort((a, b) => {
+            return Number('1' + a.bundle) - Number('1' + b.bundle);
+        });
         setOversales(result)
-
-
+    }
+    const handleCurrentOversale = () => {
+        setOversales([...currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
     }
 
 
@@ -596,7 +603,7 @@ export default function Merchent() {
                             </thead>
                         </Table>
                     </div>
-                    <div style={{ maxHeight: '120px', overflowY: 'auto', marginTop: "-15px" }}>
+                    <div style={{ maxHeight: '180px', overflowY: 'auto', marginTop: "-15px" }}>
                         <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
                             <tbody>
                                 {savedPurchases.map(purchase => (
@@ -623,124 +630,131 @@ export default function Merchent() {
                             </tbody>
                         </Table>
                     </div>
-
-                    <div className='d-flex justify-content-start mt-3'>
-                        <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "-10px" }}>
-                                <Button variant='primary btn btn-sm mt-2' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0}
-                                    style={{ fontSize: "0.7rem" }}
-
-                                >
-                                    Save
-                                </Button>
-
-                            </h6>
-
-                            <input
-                                type='text'
-                                placeholder='Num'
-                                value={form.bundle}
-                                onChange={(e) => handleBundleChange(e.target.value)}
-                                disabled={currentDraw == null}
-                                style={{ width: "40px", fontSize: "0.8rem", marginLeft: "4px", fontWeight: "bold", marginTop: "-2px" }}
-                            />
-                        </div>
-                        <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "4px" }}>
-                                {availableArticles ? availableArticles.firstPrice : '.'}
-                            </h6>
-
-                            <input
-                                type='Number'
-                                placeholder='F'
-                                value={form.first}
-                                onChange={(e) => setForm({ ...form, first: e.target.value })}
-                                disabled={currentDraw == null}
-                                style={{ width: '40px', fontSize: '0.8rem', fontWeight: 'bold', marginTop: "3px" }}
-                            />
-                        </div>
-
-                        <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
-                                {availableArticles ? availableArticles.secondPrice : "."}
-                            </h6>
-
-                            <input
-                                type='Number'
-                                placeholder='S'
-                                value={form.second}
-                                onChange={(e) => setForm({ ...form, second: e.target.value })}
-                                disabled={currentDraw == null}
-                                style={{ width: "40px", fontSize: "0.8rem", fontWeight: "bold", marginTop: "3px" }}
-
-                            />
-                        </div>
-                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <Button variant='primary btn btn-sm'
-                                style={{ fontSize: "0.7rem" }}
-                                onClick={() => setShowModal(true)}>
-                                SMS
+                </div>
+                <div className='col-5 mt-1 bg-dark' style={{ marginLeft: "-11px" }}>
+                    <div className=''>
+                        <div className='d-flex justify-content-between  '>
+                            <Button variant='btn btn-primary  btn-sm'
+                                style={{ fontSize: "0.7rem", marginTop: "0px" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
+                                Oversales
+                            </Button>
+                            <Button variant='primary btn btn-sm ' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0} style={{ fontSize: "0.7rem", marginRight: "8px" }}>
+                                Save
                             </Button>
 
-
-                            <Button variant='primary btn btn-sm'
-                                style={{ width: "40px", fontSize: "0.7rem", marginTop: "2px" }}
-                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} >
-                                Add
-                            </Button>
+                        </div>
+                        <div >
+                            <Table boarded hover size="sm" className="mt-2" style={{ fontSize: '0.8rem', marginTop: "-5px", }}>
+                                <thead>
+                                    <tr>
+                                        <th className='col-2'>No</th>
+                                        <th className='col-2'>F</th>
+                                        <th className='col-2'>S</th>
+                                    </tr>
+                                </thead>
+                            </Table>
                         </div>
 
-
+                        <div style={{ maxHeight: '170px', overflowY: 'auto', marginTop: "-7px" }}>
+                            <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", fontWeight: "bold" }}>
+                                <tbody>
+                                    {oversales.map(purchase => (
+                                        <tr  >
+                                            <td>{purchase.bundle}</td>
+                                            <td>{purchase.first}</td>
+                                            <td>{purchase.second}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </div>
                     </div>
                 </div>
-                <div className='col-5 mt-1'>
-                    <Button variant='btn btn-dark  btn-sm'
-                        style={{ fontSize: "0.8rem", marginTop: "2px" }} onClick={() => { setShowOversaleModal(true); handleTotalOversales(); setOverSaleOption(2) }}>
-                        Oversales
+            </div>
+            <div style={{ marginTop: "-11px" }}>
+                <hr />
+            </div>
+            <div className='d-flex justify-content-start' style={{ marginTop: "-12px" }}>
+                <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "8px" }}>
+                        <Form.Label style={{ marginLeft: '0px' }}>Auto</Form.Label>
+
+                        <Form.Check
+                            type="checkbox"
+                            // checked={deleteAllSelected}
+                            style={{ marginLeft: "8px" }}
+                        />
+                    </div>
+
+
+                    <input
+                        type='text'
+                        placeholder='Num'
+                        value={form.bundle}
+                        onChange={(e) => handleBundleChange(e.target.value)}
+                        disabled={currentDraw == null}
+                        style={{ width: "60px", fontSize: "0.8rem", marginLeft: "4px", fontWeight: "bold", marginTop: "-5px" }}
+                    />
+                </div>
+                <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "4px" }}>
+                        {availableArticles ? availableArticles.firstPrice : '.'}
+                    </h6>
+
+                    <input
+                        type='Number'
+                        placeholder='F'
+                        value={form.first}
+                        onChange={(e) => setForm({ ...form, first: e.target.value })}
+                        disabled={currentDraw == null}
+                        style={{ width: '70px', fontSize: '0.8rem', fontWeight: 'bold', marginTop: "3px" }}
+                    />
+                </div>
+
+                <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
+                        {availableArticles ? availableArticles.secondPrice : "."}
+                    </h6>
+
+                    <input
+                        type='Number'
+                        placeholder='S'
+                        value={form.second}
+                        onChange={(e) => setForm({ ...form, second: e.target.value })}
+                        disabled={currentDraw == null}
+                        style={{ width: "70px", fontSize: "0.8rem", fontWeight: "bold", marginTop: "3px" }}
+
+                    />
+                </div>
+                <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Button variant='primary btn btn-sm'
+                        style={{ fontSize: "0.7rem" }}
+                        onClick={() => setShowModal(true)}>
+                        SMS
                     </Button>
 
-                    <div >
-                        <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", }}>
-                            <thead>
-                                <tr>
-                                    <th className='col-2'>No</th>
-                                    <th className='col-2'>F</th>
-                                    <th className='col-2'>S</th>
-                                </tr>
-                            </thead>
-                        </Table>
-                    </div>
 
-                    <div style={{ maxHeight: '170px', overflowY: 'auto', marginTop: "-7px" }}>
-                        <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", }}>
-                            <tbody>
-                                {oversales.map(purchase => (
-                                    <tr  >
-                                        <td>{purchase.bundle}</td>
-                                        <td>{purchase.first}</td>
-                                        <td>{purchase.second}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-
-                    </div>
-
+                    <Button variant='primary btn btn-sm'
+                        style={{ width: "40px", fontSize: "0.7rem", marginTop: "2px" }}
+                        onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} >
+                        Add
+                    </Button>
                 </div>
             </div>
             <div>
-                <Modal show={showOversaleModal} onHide={() => { setOversales(currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales); setShowOversaleModal(false) }}>
+                <Modal show={showOversaleModal} onHide={() => { handleCurrentOversale(); setShowOversaleModal(false) }}>
                     <Modal.Header closeButton>
                         <Modal.Title>Oversales</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <div className='d-flex justify-content-between'>
                             <div>
-                                <h6>{overSaleOption == 1 ?
-                                    "Invoice"
-                                    :
-                                    "All Total"
-                                }</h6>
+                                <h6>
+                                    {overSaleOption == 1 && "Invoice"}
+                                    {overSaleOption == 2 && "All Total"}
+                                    {overSaleOption == 3 && "Current"}
+
+                                </h6>
                             </div>
                             <div className='d-flex justify-content-end'>
                                 <Button variant='btn btn-primary  btn-sm'
@@ -748,16 +762,21 @@ export default function Merchent() {
                                     Invoice
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2) }}>
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2) }}>
                                     All Total
                                 </Button>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
+                                    Current
+                                </Button>
+
                             </div>
                         </div>
 
                         <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "3px" }}>
                             <thead>
                                 <tr>
-                                    {overSaleOption == 1 &&
+                                    {(overSaleOption == 1 || overSaleOption == 3) &&
                                         <>
                                             <th className='col-3'>No</th>
                                             <th className='col-3'>F</th>
@@ -774,7 +793,7 @@ export default function Merchent() {
 
                                         </>
                                     }
-                                    
+
 
 
                                 </tr>
@@ -788,7 +807,7 @@ export default function Merchent() {
                                             <td className='col-3'>{purchase.bundle}</td>
                                             <td className='col-3'>{purchase.first}</td>
                                             <td className='col-3'>{purchase.second}</td>
-                                            {overSaleOption == 1 &&
+                                            {(overSaleOption == 1 || overSaleOption == 3) &&
                                                 <td className='col-3'>
                                                     <div className=''>
                                                         <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
