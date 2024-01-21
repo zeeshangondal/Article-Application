@@ -17,6 +17,9 @@ export default function Merchent() {
     const [showOversaleEditModal, setShowOversaleEditModal] = useState(false);
     const [auto, setAuto] = useState(false);
     const [checkedSavedPurchases, setCheckedSavedPurchases] = useState([])
+    const [checkedOversales, setCheckedOversales] = useState([])
+    const [deleteAllCheckedOversalesInput, setDeleteAllCheckedOversalesInput] = useState(false)
+
     const [timeRemaining, setTimeRemaining] = useState("")
     const [sheetName, setSheetName] = useState('');
     const [message, setMessage] = useState('');
@@ -114,21 +117,21 @@ export default function Merchent() {
         fetchLoggedInUser()
     }
     const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice) => {
-        if(!auto){
-            if(currentFocused<3){
-                setCurrentFocused(currentFocused+1)
+        if (!auto) {
+            if (currentFocused < 3) {
+                setCurrentFocused(currentFocused + 1)
                 return
             }
-            if(currentFocused==3){
+            if (currentFocused == 3) {
                 setCurrentFocused((1))
             }
-        }else{
-            if(currentFocused!=1){
-                if(currentFocused==3){
+        } else {
+            if (currentFocused != 1) {
+                if (currentFocused == 3) {
                     setCurrentFocused(1)
                     return
                 }
-                setCurrentFocused(currentFocused+1)
+                setCurrentFocused(currentFocused + 1)
                 return
             }
         }
@@ -136,7 +139,7 @@ export default function Merchent() {
             return
         }
 
-        if(first==0 && second==0){
+        if (first == 0 && second == 0) {
             return
         }
 
@@ -394,6 +397,39 @@ export default function Merchent() {
         } catch (e) { }
     }
 
+    const handleCheckedOverSaleDeletes = async() => {
+        if (!window.confirm("You are deleting " + checkedOversales.length + " entries. Are you sure?")) {
+            return
+        }
+        try {
+            checkedOversales.forEach(purchase => {
+                let _id = purchase._id
+                let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+                let oversales = purchasedData.savedOversales
+                let updated = oversales.filter(purchase => purchase._id !== _id)
+                purchasedData.savedOversales = [...updated]
+                let oldRecs = currentLoggedInUser.savedPurchasesFromDrawsData.filter(data => data.drawId == currentDraw._id)
+                for (let i = 0; i < oldRecs.length; i++) {
+                    let oldRec = oldRecs[i]
+                    let updatedOversales = oldRec.savedOversales.filter(purchase => purchase._id !== _id)
+                    oldRec.savedOversales = [...updatedOversales]
+                }
+            })
+            updateCurrentLoggedInUser()
+            successMessage("Removed Successfully")
+            setCheckedOversales([])
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            await sleep(3000);
+            if (overSaleOption == 3) {
+                handleCurrentOversale()
+            } else if (overSaleOption == 1) {
+                handleInvoiceOversales()
+            }
+        } catch (e) { }
+
+    }
     const handleRemovingOversalePurchase = (_id) => {
         if (!window.confirm("Do you want to remove this?")) {
             return;
@@ -467,6 +503,13 @@ export default function Merchent() {
             setCheckedSavedPurchases([...checkedSavedPurchases, purchase])
         } else {
             setCheckedSavedPurchases([...checkedSavedPurchases.filter(p => p._id != purchase._id)])
+        }
+    }
+    function handleCheckedOversales(oversale, checked) {
+        if (checked) {
+            setCheckedOversales([...checkedOversales, oversale])
+        } else {
+            setCheckedOversales([...checkedOversales.filter(p => p._id != oversale._id)])
         }
     }
     const handleMultipleSavedPurchaseDelete = () => {
@@ -553,7 +596,7 @@ export default function Merchent() {
     }
     function backOne() {
         if (currentFocused == 1) {
-            let updt=form.bundle.substring(0, form.bundle.length - 1)
+            let updt = form.bundle.substring(0, form.bundle.length - 1)
             setForm({
                 ...form,
                 bundle: updt
@@ -601,8 +644,8 @@ export default function Merchent() {
             return
         }
         if (currentFocused == 1) {
-            if(form.bundle.length==4){
-                return 
+            if (form.bundle.length == 4) {
+                return
             }
             setForm({
                 ...form,
@@ -700,7 +743,6 @@ export default function Merchent() {
                                             style={{ marginLeft: "8px" }}
 
                                         />
-
                                     </th>
                                     <th className='col-2'>No</th>
                                     <th className='col-2'>F</th>
@@ -709,7 +751,7 @@ export default function Merchent() {
                             </thead>
                         </Table>
                     </div>
-                    <div style={{ maxHeight: '180px', overflowY: 'auto', marginTop: "-15px" }}>
+                    <div style={{ height: '180px', overflowY: 'auto', marginTop: "-15px" }}>
                         <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
                             <tbody>
                                 {savedPurchases.map(purchase => (
@@ -761,7 +803,7 @@ export default function Merchent() {
                             </Table>
                         </div>
 
-                        <div style={{ maxHeight: '170px', overflowY: 'auto', marginTop: "-7px" }}>
+                        <div style={{ height: '170px', overflowY: 'auto', marginTop: "-7px" }}>
                             <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", fontWeight: "bold" }}>
                                 <tbody>
                                     {oversales.map(purchase => (
@@ -788,7 +830,7 @@ export default function Merchent() {
                             type="checkbox"
                             style={{ marginLeft: "8px" }}
                             checked={auto}
-                            onClick={(e)=>setAuto(e.target.checked)}
+                            onClick={(e) => setAuto(e.target.checked)}
                         />
                     </div>
                     <input className={"" + currentFocused == 1 ? "temp-border" : ""}
@@ -875,6 +917,7 @@ export default function Merchent() {
                     <Modal.Header closeButton>
                         <Modal.Title>Oversales</Modal.Title>
                     </Modal.Header>
+
                     <Modal.Body>
                         <div className='d-flex justify-content-between'>
                             <div>
@@ -885,6 +928,12 @@ export default function Merchent() {
                                 </h6>
                             </div>
                             <div className='d-flex justify-content-end'>
+                                <Button variant='btn btn-danger  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                    onClick={() => { handleCheckedOverSaleDeletes(); }}
+                                >
+                                    Delete
+                                </Button>
                                 <Button variant='btn btn-primary  btn-sm'
                                     style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
                                     Invoice
@@ -905,10 +954,25 @@ export default function Merchent() {
                                 <tr>
                                     {(overSaleOption == 1 || overSaleOption == 3) &&
                                         <>
+                                            <th className='col-1'>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={deleteAllCheckedOversalesInput}
+                                                    onClick={(e) => {
+                                                        if (e.target.checked) {
+                                                            setCheckedOversales([...oversales]);
+                                                        } else {
+                                                            setCheckedOversales([]);
+                                                        }
+                                                        setDeleteAllCheckedOversalesInput(e.target.checked)
+                                                    }}
+                                                    style={{ marginLeft: "8px" }}
+                                                />
+                                            </th>
                                             <th className='col-3'>No</th>
                                             <th className='col-3'>F</th>
                                             <th className='col-3'>S</th>
-                                            <th className='col-3'></th>
+                                            <th className='col-2'></th>
 
                                         </>
                                     }
@@ -917,31 +981,47 @@ export default function Merchent() {
                                             <th className='col-4'>No</th>
                                             <th className='col-4'>F</th>
                                             <th className='col-4'>S</th>
-
                                         </>
                                     }
                                 </tr>
                             </thead>
                         </Table>
-                        <div style={{ maxHeight: '190px', overflowY: 'auto', marginTop: "-17px" }}>
+                        <div style={{ height: '190px', overflowY: 'auto', marginTop: "-17px" }}>
                             <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
-                                <tbody>
-                                    {oversales.map(purchase => (
-                                        <tr  >
-                                            <td className='col-3'>{purchase.bundle}</td>
-                                            <td className='col-3'>{purchase.first}</td>
-                                            <td className='col-3'>{purchase.second}</td>
-                                            {(overSaleOption == 1 || overSaleOption == 3) &&
-                                                <td className='col-3'>
+                                {overSaleOption == 2 ?
+                                    <tbody>
+                                        {oversales.map(purchase => (
+                                            <tr>
+                                                <td className='col-4'>{purchase.bundle}</td>
+                                                <td className='col-4'>{purchase.first}</td>
+                                                <td className='col-4'>{purchase.second}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    :
+                                    <tbody>
+                                        {oversales.map(purchase => (
+                                            <tr>
+                                                <td className='col-1' >
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        checked={checkedOversales.find(p => p._id == purchase._id)}
+                                                        onChange={e => handleCheckedOversales(purchase, e.target.checked)}
+                                                        style={{ marginLeft: "8px" }}
+                                                    />
+                                                </td>
+                                                <td className='col-3'>{purchase.bundle}</td>
+                                                <td className='col-3'>{purchase.first}</td>
+                                                <td className='col-3'>{purchase.second}</td>
+                                                <td className='col-2'>
                                                     <div className=''>
                                                         <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
                                                     </div>
                                                 </td>
-
-                                            }
-                                        </tr>
-                                    ))}
-                                </tbody>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                }
                             </Table>
 
                         </div>
