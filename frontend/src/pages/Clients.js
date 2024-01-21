@@ -4,6 +4,7 @@ import APIs from '../APIs/users';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { Link, Route, Routes, useParams, useNavigate } from 'react-router-dom';
 import { localStorageUtils } from '../APIs/localStorageUtils';
+import { formatNumberWithTwoDecimals } from '../Utils/Utils';
 
 const initialUserData = {
     name: '',
@@ -181,18 +182,18 @@ export default function Clients() {
                 {localStorageUtils.getLoggedInUser().role != "admin" &&
                     <div>
                         {window.innerWidth <= 600 ?
-                            <div className='d-flex mb-2 justify-content-between' style={{fontSize:'0.5rem'}}>
-                                <p>BALANCE: {currentLoggedInUser.balance}</p>
-                                <p>AVAILABLE BALANCE: {getAvailableBalance()}</p>
-                                <p>MERCHENT: {getMerchentsBalance()}</p>
-                                <p>DISTRIBUTERS: {getDistributorsBalance()}</p>
+                            <div className='d-flex mb-2 justify-content-between' style={{fontSize:'0.7rem'}}>
+                                <p>BALANCE: {formatNumberWithTwoDecimals(currentLoggedInUser.balance)}</p>
+                                {/* <p>CLIENTS BALANCE: {getAvailableBalance()}</p> */}
+                                <p>MERCHENTS: {formatNumberWithTwoDecimals(getMerchentsBalance())}</p>
+                                <p>DISTRIBUTERS: {formatNumberWithTwoDecimals(getDistributorsBalance())}</p>
                             </div>
                             :
                             <div className='d-flex mb-2 justify-content-between'>
-                                <p>BALANCE: {currentLoggedInUser.balance}</p>
-                                <p>AVAILABLE BALANCE: {getAvailableBalance()}</p>
-                                <p>MERCHENT: {getMerchentsBalance()}</p>
-                                <p>DISTRIBUTERS: {getDistributorsBalance()}</p>
+                                <p>BALANCE: {formatNumberWithTwoDecimals(currentLoggedInUser.balance)}</p>
+                                {/* <p>CLIENTS BALANCE: {getAvailableBalance()}</p> */}
+                                <p>MERCHENTS: {formatNumberWithTwoDecimals(getMerchentsBalance())}</p>
+                                <p>DISTRIBUTERS: {formatNumberWithTwoDecimals(getDistributorsBalance())}</p>
                             </div>
                         }
                     </div>

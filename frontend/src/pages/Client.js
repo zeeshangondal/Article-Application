@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import APIs from '../APIs/users';
 import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { Button, Col, Form, Modal, Row, Table } from 'react-bootstrap';
-import { formatDate } from '../Utils/Utils';
+import { formatDate, formatNumberWithTwoDecimals } from '../Utils/Utils';
 import { localStorageUtils } from '../APIs/localStorageUtils';
 import { useNavigate } from 'react-router-dom';
 
@@ -256,22 +256,23 @@ const UserDetails = () => {
 
     const handleCreditFormSubmit = async () => {
         let obj = { ...formValues }
+        let mainUser=localStorageUtils.getLoggedInUser()
         if (creditTransaction.txType == 1) {
             let transaction = {
                 amount: creditTransaction.amount,
                 description: creditTransaction.description,
                 debit: obj.debit,
                 credit: obj.credit + Number(creditTransaction.amount),
-                date: (new Date()).toISOString().split('T')[0],
+                date: (new Date()).toISOString().split('T')[0], 
                 balanceUpline: obj.balanceUpline
             }
             obj = {
                 ...obj,
                 credit: obj.credit + Number(creditTransaction.amount),
                 balance: obj.balance + Number(creditTransaction.amount),
-                availableBalance: obj.availableBalance + Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
+            mainUser.balance-=Number(creditTransaction.amount)
         } else if (creditTransaction.txType == 2) {
             let transaction = {
                 amount: creditTransaction.amount,
@@ -285,13 +286,16 @@ const UserDetails = () => {
                 ...obj,
                 credit: obj.credit - Number(creditTransaction.amount),
                 balance: obj.balance - Number(creditTransaction.amount),
-                availableBalance: obj.availableBalance - Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
+            mainUser.balance+=Number(creditTransaction.amount)
         }
         try {
             await APIs.updateUser(obj)
             await fetchUserDetails()
+            if(mainUser.role!="admin"){
+                await APIs.updateUser(mainUser)            
+            }
             setCreditTransaction({ ...initialCreditTransaction })
             handleModelClose()
         } catch (e) {
@@ -301,6 +305,7 @@ const UserDetails = () => {
 
     const handleDebitFormSubmit = async () => {
         let obj = { ...formValues }
+        let mainUser=localStorageUtils.getLoggedInUser()
         let transaction = {
             amount: debitTransaction.amount,
             description: debitTransaction.description,
@@ -331,10 +336,9 @@ const UserDetails = () => {
                     debit: obj.debit - Number(debitTransaction.amount),
                     balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
                     balance: obj.balance - Number(debitTransaction.amount),
-                    availableBalance: obj.availableBalance - Number(debitTransaction.amount),
-
                     transactionHistory: [...obj.transactionHistory, transaction]
                 }
+                mainUser.balance+=Number(debitTransaction.amount)
             } else {
                 transaction = {
                     ...transaction,
@@ -353,6 +357,9 @@ const UserDetails = () => {
         try {
             await APIs.updateUser(obj)
             await fetchUserDetails()
+            if(mainUser.role!="admin"){
+                await APIs.updateUser(mainUser)            
+            }
             setDebitTransaction({ ...initialDebitTransaction })
             handleModelClose()
         } catch (e) {
@@ -437,18 +444,15 @@ const UserDetails = () => {
                                     <th>CREDIT</th>
                                     <th>BALANCE</th>
                                     <th>BALANCE UPLINE</th>
-                                    <th>AVAILABLE BALANCE</th>
-
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>{userDetails.debit}</td>
                                     <td>{userDetails.credit}</td>
-                                    <td style={{ color: (userDetails.balance > 0 ? 'green' : 'red') }} >{userDetails.balance}</td>
-                                    <td style={{ color: (userDetails.balanceUpline > 0 ? 'green' : 'red') }}>{userDetails.balanceUpline}</td>
-                                    <td style={{ color: (userDetails.availableBalance > 0 ? 'green' : 'red') }} >{userDetails.availableBalance}</td>
-
+                                    <td style={{ color: (userDetails.balance > 0 ? 'green' : 'red') }} >{formatNumberWithTwoDecimals(userDetails.balance)}</td>
+                                    <td style={{ color: (userDetails.balanceUpline > 0 ? 'green' : 'red') }}>{formatNumberWithTwoDecimals(userDetails.balanceUpline)}</td>
+                                 
                                 </tr>
                             </tbody>
                         </Table>
@@ -550,11 +554,11 @@ const UserDetails = () => {
                                 {getTransactionsInDateRange().map(t => (
                                     <tr>
                                         {userDetails.role != "merchent" &&
-                                            <td>{t.amount}</td>
+                                            <td>{formatNumberWithTwoDecimals(t.amount)}</td>
                                         }
-                                        <td>{t.debit}</td>
-                                        <td>{t.credit}</td>
-                                        <td>{t.balanceUpline}</td>
+                                        <td>{formatNumberWithTwoDecimals(t.debit)}</td>
+                                        <td>{formatNumberWithTwoDecimals(t.credit)}</td>
+                                        <td>{formatNumberWithTwoDecimals(t.balanceUpline)}</td>
                                         <td>{formatDate(t.date)}</td>
                                         <td>{t.description}</td>
                                     </tr>

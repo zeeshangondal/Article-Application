@@ -61,11 +61,15 @@ export default function Merchent() {
     const secondRef = useRef(null);
 
     useEffect(() => {
+        document.body.style.overflow = 'hidden';
+
         fetchLoggedInUser();
         fetchDraws();
         // setInterval(calculateRemainingTime,500)
+        return () => {
+            document.body.style.overflow = 'auto'; // Set to 'auto' or 'visible' based on your preference
+        };
     }, []);
-
 
     const fetchDraws = async () => {
         try {
@@ -397,7 +401,7 @@ export default function Merchent() {
         } catch (e) { }
     }
 
-    const handleCheckedOverSaleDeletes = async() => {
+    const handleCheckedOverSaleDeletes = async () => {
         if (!window.confirm("You are deleting " + checkedOversales.length + " entries. Are you sure?")) {
             return
         }
@@ -913,7 +917,7 @@ export default function Merchent() {
                 </div>
             </div>
             <div>
-                <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]);handleCurrentOversale(); setShowOversaleModal(false) }}>
+                <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]); handleCurrentOversale(); setShowOversaleModal(false) }}>
                     <Modal.Header closeButton>
                         <Modal.Title>Oversales</Modal.Title>
                     </Modal.Header>

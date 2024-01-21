@@ -9,7 +9,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
 import { columnStyles, styles } from './pdfTableStyle';
-import { formatTime } from '../Utils/Utils';
+import { formatNumberWithTwoDecimals, formatTime } from '../Utils/Utils';
 
 const AdminReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
@@ -376,9 +376,9 @@ const AdminReports = () => {
 
                 pdfDoc.setFontSize(10);
                 pdfDoc.setFont("helvetica", "bold");
-                pdfDoc.text("Total First: " + sectionTableData.totalFirst, 15, pdfDoc.autoTable.previous.finalY + 5);
-                pdfDoc.text("Total Second: " + sectionTableData.totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 5);
-                pdfDoc.text("Total: " + sectionTableData.total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(sectionTableData.totalFirst), 15, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(sectionTableData.totalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.text("Total: " + formatNumberWithTwoDecimals(sectionTableData.total), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.setFont("helvetica", "normal");
             }
         }
@@ -413,9 +413,9 @@ const AdminReports = () => {
         }
         if (count > 1) {
             pdfDoc.setFontSize(12);
-            pdfDoc.text("Total First: " + wtotalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
-            pdfDoc.text("Total Second: " + wtotalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
-            pdfDoc.text("Total: " + wtotal, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(wtotalFirst), 15, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(wtotalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.text("Total: " + formatNumberWithTwoDecimals(wtotal), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
         }
         return wtotal;
     }
@@ -539,9 +539,9 @@ const AdminReports = () => {
         // Display totals
         pdfDoc.setFontSize(10);
         pdfDoc.setFont("helvetica", "bold");
-        pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(totalFirst), 15, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(totalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: " + formatNumberWithTwoDecimals(total), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.setFont("helvetica", "normal");
 
     }
@@ -606,9 +606,9 @@ const AdminReports = () => {
 
         pdfDoc.setFontSize(10);
         pdfDoc.setFont("helvetica", "bold");
-        pdfDoc.text("Total First: " + totalFirst, 15, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total Second: " + totalSecond, pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
-        pdfDoc.text("Total: " + total, pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(totalFirst), 15, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(totalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total: " + formatNumberWithTwoDecimals(total), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.setFont("helvetica", "normal");
 
         const filename = 'sample.pdf';
@@ -888,9 +888,9 @@ const AdminReports = () => {
             subUsers.forEach(subUser => {
                 let tempSavedPurchases = []
                 if (subUser.commission.shareEnabled) {
-                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser,billing)
+                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser,billing).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
                 } else if (subUser.hadd.haddEnabled) {
-                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser,billing)
+                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser,billing).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
                 } else {
                     return []
                 }
@@ -899,9 +899,9 @@ const AdminReports = () => {
             return aggregateSavedPurchases(savedPurchases)
         } else {
             if (targetUser.commission.shareEnabled) {
-                return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser)
+                return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
             } else if (targetUser.hadd.haddEnabled) {
-                return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser)
+                return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
             } else {
                 return []
             }
@@ -929,7 +929,9 @@ const AdminReports = () => {
                 secondTotal += Number(purchase.second)
             })
         })
-        total += firstTotal + secondTotal
+        firstTotal=formatNumberWithTwoDecimals(firstTotal)
+        secondTotal=formatNumberWithTwoDecimals(secondTotal)
+        total += formatNumberWithTwoDecimals(firstTotal + secondTotal)
 
         subUsers.forEach(user => {
             if (user.role == "distributor") {
@@ -1125,7 +1127,6 @@ const AdminReports = () => {
             return updatedSavedPurchases;
         }
     }
-
     const generateLimitCuttingGroupWise = async () => {
         let targetUser = {}
         targetUser = getAUser(currentLoggedInUser.username)
@@ -1380,26 +1381,26 @@ const AdminReports = () => {
     }
     const calculateResultOfDistributor = (targetUser, savedPurchases) => {
         let { ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal } = calculateTotalsInFormat(savedPurchases)
-        let ABCTotalSale = ABCFirstTotal + ABCSecondTotal;
-        let DTotalSale = DFirstTotal + DSecondTotal;
-        let commission = Number(((Number(targetUser.commission.commision) / 100) * ABCTotalSale).toFixed(1))
-        let PCCommission = Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1))
-        let totalSale = ABCTotalSale + DTotalSale
-        let totalCommission = commission + PCCommission
-        let extraSale = totalSale - totalCommission
-        let ABCExtraSale = ABCTotalSale - commission
-        let DExtraSale = DTotalSale - PCCommission
+        let ABCTotalSale = formatNumberWithTwoDecimals(ABCFirstTotal + ABCSecondTotal);
+        let DTotalSale = formatNumberWithTwoDecimals(DFirstTotal + DSecondTotal);
+        let commission = formatNumberWithTwoDecimals(Number(((Number(targetUser.commission.commision) / 100) * ABCTotalSale).toFixed(1)))
+        let PCCommission = formatNumberWithTwoDecimals(Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1)))
+        let totalSale = formatNumberWithTwoDecimals(ABCTotalSale + DTotalSale)
+        let totalCommission = formatNumberWithTwoDecimals(commission + PCCommission)
+        let extraSale = formatNumberWithTwoDecimals(totalSale - totalCommission)
+        let ABCExtraSale = formatNumberWithTwoDecimals(ABCTotalSale - commission)
+        let DExtraSale = formatNumberWithTwoDecimals(DTotalSale - PCCommission)
 
         let prize = calculatePrize(targetUser, savedPurchases)
-        let bill = extraSale - prize.totalPrize
-        let ABCBill = ABCExtraSale - prize.ABCPrize
-        let DBill = DExtraSale - prize.DPrize
-        let ABCShare = ABCBill * (Number(targetUser.commission.share) / 100)
-        let DShare = DBill * (Number(targetUser.commission.pcShare) / 100)
-        let totalShare = ABCShare + DShare
-        let totalABCBill = ABCBill - ABCShare
-        let totalDBill = DBill - DShare
-        let totalBill = totalABCBill + totalDBill
+        let bill = formatNumberWithTwoDecimals(extraSale - prize.totalPrize)
+        let ABCBill = formatNumberWithTwoDecimals(ABCExtraSale - prize.ABCPrize)
+        let DBill = formatNumberWithTwoDecimals(DExtraSale - prize.DPrize)
+        let ABCShare = (ABCBill * (Number(targetUser.commission.share) / 100))
+        let DShare = formatNumberWithTwoDecimals(DBill * (Number(targetUser.commission.pcShare) / 100))
+        let totalShare = formatNumberWithTwoDecimals(ABCShare + DShare)
+        let totalABCBill = formatNumberWithTwoDecimals(ABCBill - ABCShare)
+        let totalDBill = formatNumberWithTwoDecimals(DBill - DShare)
+        let totalBill = formatNumberWithTwoDecimals(totalABCBill + totalDBill)
         totalBill = -totalBill              /// plus should indicate balance to be added in user's account
         let result = {
             ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,

@@ -9,7 +9,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { savePdfOnBackend } from '../APIs/utils';
 import { columnStyles, styles } from './pdfTableStyle';
-import { formatTime } from '../Utils/Utils';
+import { formatNumberWithTwoDecimals, formatTime } from '../Utils/Utils';
 
 
 
@@ -1260,32 +1260,32 @@ const MerchentReports = () => {
             })
         })
         // console.log(ABCFirstTotalPrize , ABCSecondTotalPrize,DFirstTotalPrize ,DSecondTotalPrize )
-        let ABCPrize = ABCFirstTotalPrize + ABCSecondTotalPrize
-        let DPrize = DFirstTotalPrize + DSecondTotalPrize
-        return { ABCPrize, DPrize, totalPrize: ABCPrize + DPrize }
+        let ABCPrize = formatNumberWithTwoDecimals(ABCFirstTotalPrize + ABCSecondTotalPrize)
+        let DPrize = formatNumberWithTwoDecimals(DFirstTotalPrize + DSecondTotalPrize)
+        return { ABCPrize, DPrize, totalPrize: formatNumberWithTwoDecimals(ABCPrize + DPrize) }
     }
     const calculateResultOfMerchent = (targetUser, savedPurchases) => {
         let { ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal } = calculateTotalsInFormat(savedPurchases)
-        let ABCTotalSale = ABCFirstTotal + ABCSecondTotal;
-        let DTotalSale = DFirstTotal + DSecondTotal;
-        let commission = Number(((Number(targetUser.commission.commision) / 100) * ABCTotalSale).toFixed(1))
-        let PCCommission = Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1))
-        let totalSale = ABCTotalSale + DTotalSale
-        let totalCommission = commission + PCCommission
-        let extraSale = totalSale - totalCommission
-        let ABCExtraSale = ABCTotalSale - commission
-        let DExtraSale = DTotalSale - PCCommission
+        let ABCTotalSale = formatNumberWithTwoDecimals(ABCFirstTotal + ABCSecondTotal);
+        let DTotalSale = formatNumberWithTwoDecimals(DFirstTotal + DSecondTotal);
+        let commission = formatNumberWithTwoDecimals(Number(((Number(targetUser.commission.commision) / 100) * ABCTotalSale).toFixed(1)))
+        let PCCommission =formatNumberWithTwoDecimals( Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1)))
+        let totalSale = formatNumberWithTwoDecimals(ABCTotalSale + DTotalSale)
+        let totalCommission = formatNumberWithTwoDecimals(commission + PCCommission)
+        let extraSale = formatNumberWithTwoDecimals(totalSale - totalCommission)
+        let ABCExtraSale = formatNumberWithTwoDecimals(ABCTotalSale - commission)
+        let DExtraSale = formatNumberWithTwoDecimals(DTotalSale - PCCommission)
 
         let prize = calculatePrize(targetUser, savedPurchases)
-        let bill = extraSale - prize.totalPrize
-        let ABCBill = ABCExtraSale - prize.ABCPrize
-        let DBill = DExtraSale - prize.DPrize
-        let ABCShare = ABCBill * (Number(targetUser.commission.share) / 100)
-        let DShare = DBill * (Number(targetUser.commission.pcShare) / 100)
-        let totalShare = ABCShare + DShare
-        let totalABCBill = ABCBill - ABCShare
-        let totalDBill = DBill - DShare
-        let totalBill = totalABCBill + totalDBill
+        let bill = formatNumberWithTwoDecimals(extraSale - prize.totalPrize)
+        let ABCBill = formatNumberWithTwoDecimals(ABCExtraSale - prize.ABCPrize)
+        let DBill = formatNumberWithTwoDecimals(DExtraSale - prize.DPrize)
+        let ABCShare = formatNumberWithTwoDecimals(ABCBill * (Number(targetUser.commission.share) / 100))
+        let DShare = formatNumberWithTwoDecimals(DBill * (Number(targetUser.commission.pcShare) / 100))
+        let totalShare = formatNumberWithTwoDecimals(ABCShare + DShare)
+        let totalABCBill = formatNumberWithTwoDecimals(ABCBill - ABCShare)
+        let totalDBill = formatNumberWithTwoDecimals(DBill - DShare)
+        let totalBill = formatNumberWithTwoDecimals(totalABCBill + totalDBill)
         totalBill=-totalBill              /// plus should indicate balance to be added in user's account
 
         let result = {

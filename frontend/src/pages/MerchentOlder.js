@@ -516,7 +516,6 @@ export default function Merchent() {
                                             <div className=''>
                                                 <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
                                             </div>
-
                                         </div>
                                     </td>
                                 </tr>
