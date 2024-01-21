@@ -354,6 +354,9 @@ export default function SearchBundle() {
     };
 
     const handleRemovingPurchase = async (_id) => {
+        if(!window.confirm("Do you want to delete this?")){
+            return
+        }
         try {
             let user = getAUser(targetSheetData.user.username)
             let purchasedData = user.savedPurchasesFromDrawsData.find(data => data.drawId == selectedDraw._id && data._id == targetSheetData.sheet._id)
@@ -361,11 +364,10 @@ export default function SearchBundle() {
             let target = purchases.find(purchase => purchase._id === _id)
             let updated = purchases.filter(purchase => purchase._id !== _id)
             purchasedData.savedPurchases = [...updated]
-            user.availableBalance = user.availableBalance + (Number(target.first) + Number(target.second))
+            user.balance = user.balance + (Number(target.first) + Number(target.second))
 
 
             let data = getDataForBundle(target.bundle, selectedDraw)
-            console.log(data)
             data = {
                 ...data,
                 purchaseFirst: target.first,

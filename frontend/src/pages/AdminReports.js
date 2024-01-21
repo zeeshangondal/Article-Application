@@ -1550,7 +1550,7 @@ const AdminReports = () => {
         let resStr = ""
         dataArray.forEach(d => {
             if(d.role=="distributor")
-                resStr += d.userId + ", " + d.username + ": " + d.newBalance + "\n"
+                resStr += d.userId + ", " + d.username + ": " + formatNumberWithTwoDecimals(d.newBalance) + "\n"
         })
         if (window.confirm("Below Users will be updated. Do You confirm? \n\n" + resStr)) {
             handleUpdateBalances(dataArray)
@@ -1564,9 +1564,8 @@ const AdminReports = () => {
             for (const d of dataArray) {
                 let user = await getAUser(d.username)
                 user.balance += d.newBalance
-                user.availableBalance += d.newBalance                
                 await APIs.updateUser(user)
-                resultDataArray.push({ ...d, newBalance: user.availableBalance })
+                resultDataArray.push({ ...d, newBalance: formatNumberWithTwoDecimals(user.balance) })
             }
         } catch (e) {
             alert("Error Occurred.")

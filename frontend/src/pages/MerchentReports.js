@@ -1075,7 +1075,7 @@ const MerchentReports = () => {
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
         let head1="Bill Sheet";
-        pdfDoc.text("Bill Sheet"+(billingSheetForm.type=="apply"? " - General":" - Oversale"), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Bill Sheet"+(billingSheetForm.type=="general"? " - General":" - Oversale"), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
         pdfDoc.text("Dealer Code:", x2, y); pdfDoc.text(targetUser.userId + "", x2 + 27, y);
