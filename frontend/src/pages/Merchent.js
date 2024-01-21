@@ -368,6 +368,9 @@ export default function Merchent() {
     }
 
     const handleRemovingOversalePurchase = (_id) => {
+        if (!window.confirm("Do you want to remove this?")) {
+            return;
+        }
         try {
             let purchasedData = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
             let oversales = purchasedData.savedOversales
@@ -524,7 +527,7 @@ export default function Merchent() {
 
 
     return (
-        <div className=''>
+        <div className='app-container'>
             <div className='d-flex justify-content-around ' style={{ backgroundColor: "green", }}>
                 <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
                 <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
@@ -676,8 +679,8 @@ export default function Merchent() {
             </div>
             <div className='d-flex justify-content-start' style={{ marginTop: "-12px" }}>
                 <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "8px" }}>
-                        <Form.Label style={{ marginLeft: '0px' }}>Auto</Form.Label>
+                    <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "2px" }}>
+                        <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label>
 
                         <Form.Check
                             type="checkbox"
@@ -685,45 +688,42 @@ export default function Merchent() {
                             style={{ marginLeft: "8px" }}
                         />
                     </div>
-
-
                     <input
                         type='text'
                         placeholder='Num'
+                        readOnly 
                         value={form.bundle}
                         onChange={(e) => handleBundleChange(e.target.value)}
                         disabled={currentDraw == null}
-                        style={{ width: "60px", fontSize: "0.8rem", marginLeft: "4px", fontWeight: "bold", marginTop: "-5px" }}
+                        style={{ width: "60px", fontSize: "0.9rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
                     />
                 </div>
                 <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "4px" }}>
                         {availableArticles ? availableArticles.firstPrice : '.'}
                     </h6>
-
                     <input
                         type='Number'
                         placeholder='F'
+                        readOnly 
                         value={form.first}
                         onChange={(e) => setForm({ ...form, first: e.target.value })}
                         disabled={currentDraw == null}
-                        style={{ width: '70px', fontSize: '0.8rem', fontWeight: 'bold', marginTop: "3px" }}
+                        style={{ width: '70px', fontSize: '0.9rem', fontWeight: 'bold', marginTop: "3px" }}
                     />
                 </div>
-
                 <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
                         {availableArticles ? availableArticles.secondPrice : "."}
                     </h6>
-
                     <input
                         type='Number'
                         placeholder='S'
+                        readOnly 
                         value={form.second}
                         onChange={(e) => setForm({ ...form, second: e.target.value })}
                         disabled={currentDraw == null}
-                        style={{ width: "70px", fontSize: "0.8rem", fontWeight: "bold", marginTop: "3px" }}
-
+                        style={{ width: "70px", fontSize: "0.9rem", fontWeight: "bold", marginTop: "3px" }}
                     />
                 </div>
                 <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -742,6 +742,26 @@ export default function Merchent() {
                 </div>
             </div>
             <div>
+                <div data-v-ffceccfa="" class="keyboard-panel">
+                    <div data-v-ffceccfa="" class="keyboard-wrapper">
+                        <div data-v-ffceccfa="" class="num">1</div>
+                        <div data-v-ffceccfa="" class="num">2</div>
+                        <div data-v-ffceccfa="" class="num">3</div>
+                        <div data-v-ffceccfa="" class="num">4</div>
+                        <div data-v-ffceccfa="" class="num">5</div>
+                        <div data-v-ffceccfa="" class="num">6</div>
+                        <div data-v-ffceccfa="" class="num">7</div>
+                        <div data-v-ffceccfa="" class="num">8</div>
+                        <div data-v-ffceccfa="" class="num">9</div>
+                        <div data-v-ffceccfa="" id="key-plus1" class="num">+</div>
+                        <div data-v-ffceccfa="" class="num">0</div>
+                        <div data-v-ffceccfa="" class="num" style={{fontWeight:"bold"}}>
+                            {"<"}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
                 <Modal show={showOversaleModal} onHide={() => { handleCurrentOversale(); setShowOversaleModal(false) }}>
                     <Modal.Header closeButton>
                         <Modal.Title>Oversales</Modal.Title>
@@ -753,7 +773,6 @@ export default function Merchent() {
                                     {overSaleOption == 1 && "Invoice"}
                                     {overSaleOption == 2 && "All Total"}
                                     {overSaleOption == 3 && "Current"}
-
                                 </h6>
                             </div>
                             <div className='d-flex justify-content-end'>
@@ -772,7 +791,6 @@ export default function Merchent() {
 
                             </div>
                         </div>
-
                         <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "3px" }}>
                             <thead>
                                 <tr>
@@ -793,9 +811,6 @@ export default function Merchent() {
 
                                         </>
                                     }
-
-
-
                                 </tr>
                             </thead>
                         </Table>
