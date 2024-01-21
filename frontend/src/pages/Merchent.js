@@ -913,7 +913,7 @@ export default function Merchent() {
                 </div>
             </div>
             <div>
-                <Modal show={showOversaleModal} onHide={() => { handleCurrentOversale(); setShowOversaleModal(false) }}>
+                <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]);handleCurrentOversale(); setShowOversaleModal(false) }}>
                     <Modal.Header closeButton>
                         <Modal.Title>Oversales</Modal.Title>
                     </Modal.Header>
@@ -939,7 +939,7 @@ export default function Merchent() {
                                     Invoice
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2) }}>
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
                                     All Total
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
