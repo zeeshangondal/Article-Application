@@ -120,24 +120,27 @@ export default function Merchent() {
         await APIs.updateUser(currentLoggedInUser)
         fetchLoggedInUser()
     }
-    const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice) => {
-        if (!auto) {
-            if (currentFocused < 3) {
-                setCurrentFocused(currentFocused + 1)
-                return
-            }
-            if (currentFocused == 3) {
-                setCurrentFocused((1))
-            }
-        } else {
-            if (currentFocused != 1) {
-                if (currentFocused == 3) {
-                    setCurrentFocused(1)
+    const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false) => {
+        if (!messagePurchase) {
+            if (!auto) {
+                if (currentFocused < 3) {
+                    setCurrentFocused(currentFocused + 1)
                     return
                 }
-                setCurrentFocused(currentFocused + 1)
-                return
+                if (currentFocused == 3) {
+                    setCurrentFocused((1))
+                }
+            } else {
+                if (currentFocused != 1) {
+                    if (currentFocused == 3) {
+                        setCurrentFocused(1)
+                        return
+                    }
+                    setCurrentFocused(currentFocused + 1)
+                    return
+                }
             }
+
         }
         if (!first || !second || !bundle) {
             return
@@ -355,7 +358,7 @@ export default function Merchent() {
     }
     const handleMakeMessagePurchases = async () => {
         let allDone = true
-        messagePurchases.forEach(async (purchase) => {
+        for (const purchase of messagePurchases) {
             try {
                 // await handleBundleChange(purchase.bundle)
                 const data = getDataForBundle(purchase.bundle, currentDraw);
@@ -363,21 +366,20 @@ export default function Merchent() {
                 let availableFirstPrice = response.data.firstPrice
                 let availableSecondPrice = response.data.secondPrice
                 if (currentLoggedInUser.balance < (Number(purchase.first) + Number(purchase.second))) {
-                    alertMessage("Insuffiecent balance for purchase\n" + "Num: " + purchase.bundle + " , First: " + purchase.first + " , Second: " + purchase.second)
+                    alertMessage("Insufficient balance for purchase\n" + "Num: " + purchase.bundle + " , First: " + purchase.first + " , Second: " + purchase.second)
                     return
                 }
-                await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice)
+                await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice, true)
             } catch (e) {
                 allDone = false
                 let msg = `Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
                 alert(msg)
             }
-        })
+        }
         if (allDone) {
             setMessagePurchases([])
         }
         successMessage("Purchases Added")
-
     }
     const handleRemovingSavedPurchase = async (_id) => {
         try {
@@ -675,509 +677,1024 @@ export default function Merchent() {
             })
         }
     }
+    function getRowColor(bundle) {
+        if (bundle.length == 1) {
+            return "orange"
+        }
+        if (bundle.length == 2) {
+            return "#8699A2"
+        }
+        if (bundle.length == 3) {
+            return "yellow"
+        }
+        if (bundle.length == 4) {
+            return "cyan"
+        }
+
+
+
+    }
 
     return (
         <div className='app-container'>
-            <div className='d-flex justify-content-around ' style={{ backgroundColor: "green", }}>
-                <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
-                <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
-                {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
-            </div>
-            <div className='d-flex justify-content-around' style={{ backgroundColor: "black", marginTop: "1px" }}>
-                <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
-                <h6 style={{ color: "white", fontSize: "0.8rem", }}>{timeRemaining}</h6>
-                {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
-            </div>
-            <div className='d-flex justify-content-around' style={{ backgroundColor: "black" }}>
-                <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", width: "100vw", color: "white", backgroundColor: "black", height: "4vh" }}>
-                    <option value="">Select Draw</option>
-                    {draws.map((draw) => (
-                        <option key={draw._id} value={draw._id}>
-                            {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <div className='row' >
-                <div className='col-7'>
-                    <div className='row'>
-                        <div className='col-8'>
-                            <Table bordered hover size="sm" className="" style={{ fontSize: '0.7rem', marginLeft: "10px" }}>
-                                <thead>
-                                    <tr>
-                                        <th>Co</th>
-                                        <th>F</th>
-                                        <th>S</th>
-                                        <th>T</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr >
-                                        <td style={{ fontWeight: "bold" }}>{getCount()}</td>
-                                        <td style={{ fontWeight: "bold" }}>{getTotalFirsts()}</td>
-                                        <td style={{ fontWeight: "bold" }}>{getTotalSeconds()}</td>
-                                        <td style={{ fontWeight: "bold" }}>{getTotalBoth()}</td>
-                                    </tr>
-                                </tbody>
-                            </Table>
-                        </div>
-                        <div className='col-4' style={{ marginTop: "20px" }}>
-                            <div className='d-flex justify-content-end' >
-                                <Button variant="btn btn-sm btn-danger" style={{ fontSize: "0.7rem" }} onClick={handleMultipleSavedPurchaseDelete} disabled={checkedSavedPurchases.length <= 0}>Delete</Button>
+            {window.innerWidth <= 700 ?
+                <div>
+                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "green", }}>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
+                        {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
+                    </div>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "black", marginTop: "1px" }}>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{timeRemaining}</h6>
+                        {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
+                    </div>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "black" }}>
+                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", width: "100vw", color: "white", backgroundColor: "black", height: "4vh" }}>
+                            <option value="">Select Draw</option>
+                            {draws.map((draw) => (
+                                <option key={draw._id} value={draw._id}>
+                                    {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className='row' >
+                        <div className='col-7'>
+                            <div className='row'>
+                                <div className='col-8'>
+                                    <Table bordered hover size="sm" className="" style={{ fontSize: '0.7rem', marginLeft: "10px" }}>
+                                        <thead>
+                                            <tr>
+                                                <th>Co</th>
+                                                <th>F</th>
+                                                <th>S</th>
+                                                <th>T</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr >
+                                                <td style={{ fontWeight: "bold" }}>{getCount()}</td>
+                                                <td style={{ fontWeight: "bold" }}>{getTotalFirsts()}</td>
+                                                <td style={{ fontWeight: "bold" }}>{getTotalSeconds()}</td>
+                                                <td style={{ fontWeight: "bold" }}>{getTotalBoth()}</td>
+                                            </tr>
+                                        </tbody>
+                                    </Table>
+                                </div>
+                                <div className='col-4' style={{ marginTop: "20px" }}>
+                                    <div className='d-flex justify-content-end' >
+                                        <Button variant="btn btn-sm btn-danger" style={{ fontSize: "0.7rem" }} onClick={handleMultipleSavedPurchaseDelete} disabled={checkedSavedPurchases.length <= 0}>Delete</Button>
+                                    </div>
+
+                                </div>
                             </div>
+                            <div style={{ marginTop: "-15px" }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
+                                    <thead>
+                                        <tr>
+                                            <th className='col-1'>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={deleteAllSelected}
+                                                    onClick={(e) => {
+                                                        if (e.target.checked) {
+                                                            setCheckedSavedPurchases([...savedPurchases]);
+                                                        } else {
+                                                            setCheckedSavedPurchases([]);
+                                                        }
+                                                        setDeleteAllSelected(e.target.checked)
+                                                    }}
+                                                    style={{ marginLeft: "8px" }}
 
-                        </div>
-                    </div>
-                    <div style={{ marginTop: "-15px" }}>
-                        <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
-                            <thead>
-                                <tr>
-                                    <th className='col-1'>
-                                        <Form.Check
-                                            type="checkbox"
-                                            checked={deleteAllSelected}
-                                            onClick={(e) => {
-                                                if (e.target.checked) {
-                                                    setCheckedSavedPurchases([...savedPurchases]);
-                                                } else {
-                                                    setCheckedSavedPurchases([]);
-                                                }
-                                                setDeleteAllSelected(e.target.checked)
-                                            }}
-                                            style={{ marginLeft: "8px" }}
+                                                />
+                                            </th>
+                                            <th className='col-2'>No</th>
+                                            <th className='col-2'>F</th>
+                                            <th className='col-2'>S</th>
+                                        </tr>
+                                    </thead>
+                                </Table>
+                            </div>
+                            <div style={{ height: '180px', overflowY: 'auto', marginTop: "-15px" }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
+                                    <tbody>
+                                        {savedPurchases.map(purchase => (
+                                            <tr key={purchase._id} >
+                                                <td className='col-1' >
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
+                                                        onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
+                                                        style={{ marginLeft: "8px", backgroundColor: getRowColor(purchase.bundle) }}
+                                                    />
+                                                </td>
 
-                                        />
-                                    </th>
-                                    <th className='col-2'>No</th>
-                                    <th className='col-2'>F</th>
-                                    <th className='col-2'>S</th>
-                                </tr>
-                            </thead>
-                        </Table>
-                    </div>
-                    <div style={{ height: '180px', overflowY: 'auto', marginTop: "-15px" }}>
-                        <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
-                            <tbody>
-                                {savedPurchases.map(purchase => (
-                                    <tr key={purchase._id} >
-                                        <td className='col-1' >
-                                            <Form.Check
-                                                type="checkbox"
-                                                checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
-                                                onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
-                                                style={{ marginLeft: "8px" }}
-                                            />
-                                        </td>
-
-                                        <td className='col-2' style={{ fontWeight: "bold" }}>{purchase.bundle}</td>
-                                        <td className='col-2' style={{ fontWeight: "bold" }}>{purchase.first}</td>
-                                        <td className='col-2' style={{ fontWeight: "bold" }}>{purchase.second}</td>
-                                        {/* <td>
+                                                <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+                                                {/* <td>
                                         <div className=''>
                                             <Button variant="btn btn-sm btn-danger" style={{ fontSize: "0.5rem" }} onClick={() => handleRemovingSavedPurchase(purchase._id)}>D</Button>
                                         </div>
                                     </td> */}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-                    </div>
-                </div>
-                <div className='col-5 mt-1 bg-dark' style={{ marginLeft: "-11px" }}>
-                    <div className=''>
-                        <div className='d-flex justify-content-between  '>
-                            <Button variant='btn btn-primary  btn-sm'
-                                style={{ fontSize: "0.7rem", marginTop: "0px" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
-                                Oversales
-                            </Button>
-                            <Button variant='primary btn btn-sm ' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0} style={{ fontSize: "0.7rem", marginRight: "8px" }}>
-                                Save
-                            </Button>
-
-                        </div>
-                        <div >
-                            <Table boarded hover size="sm" className="mt-2" style={{ fontSize: '0.8rem', marginTop: "-5px", }}>
-                                <thead>
-                                    <tr>
-                                        <th className='col-2'>No</th>
-                                        <th className='col-2'>F</th>
-                                        <th className='col-2'>S</th>
-                                    </tr>
-                                </thead>
-                            </Table>
-                        </div>
-
-                        <div style={{ height: '170px', overflowY: 'auto', marginTop: "-7px" }}>
-                            <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", fontWeight: "bold" }}>
-                                <tbody>
-                                    {oversales.map(purchase => (
-                                        <tr  >
-                                            <td>{purchase.bundle}</td>
-                                            <td>{purchase.first}</td>
-                                            <td>{purchase.second}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </Table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div style={{ marginTop: "-11px" }}>
-                <hr />
-            </div>
-            <div className='d-flex justify-content-start' style={{ marginTop: "-12px" }}>
-                <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "2px" }}>
-                        <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label>
-                        <Form.Check
-                            type="checkbox"
-                            style={{ marginLeft: "8px" }}
-                            checked={auto}
-                            onClick={(e) => setAuto(e.target.checked)}
-                        />
-                    </div>
-                    <input className={"" + currentFocused == 1 ? "temp-border" : ""}
-                        type='text'
-                        ref={bundleRef}
-                        placeholder='Num'
-                        readOnly
-                        value={form.bundle}
-                        // onChange={(e) => handleBundleChange(e.target.value)}
-                        onClick={() => { bundleRef.current.focus(); setCurrentFocused(1) }}
-                        disabled={currentDraw == null}
-                        style={{ width: "60px", fontSize: "0.9rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
-                    />
-                </div>
-                <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "4px" }}>
-                        {availableArticles ? availableArticles.firstPrice : '.'}
-                    </h6>
-                    <input className={"" + currentFocused == 2 ? "temp-border" : ""}
-                        type='number'
-                        ref={firstRef}
-                        placeholder='F'
-                        readOnly
-                        value={form.first}
-                        onChange={(e) => setForm({ ...form, first: e.target.value })}
-                        onClick={() => { firstRef.current.focus(); setCurrentFocused(2) }}
-                        disabled={currentDraw == null}
-                        style={{ width: '70px', fontSize: '0.9rem', fontWeight: 'bold', marginTop: "3px" }}
-                    />
-                </div>
-                <div className='col-3' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
-                        {availableArticles ? availableArticles.secondPrice : "."}
-                    </h6>
-                    <input className={"" + currentFocused == 3 ? "temp-border" : ""}
-                        ref={secondRef}
-                        type='number'
-                        placeholder='S'
-                        readOnly
-                        value={form.second}
-                        onChange={(e) => setForm({ ...form, second: e.target.value })}
-                        onClick={() => { secondRef.current.focus(); setCurrentFocused(3) }}
-                        disabled={currentDraw == null}
-                        style={{ width: "70px", fontSize: "0.9rem", fontWeight: "bold", marginTop: "3px" }}
-                    />
-                </div>
-                <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <Button variant='primary btn btn-sm'
-                        style={{ fontSize: "0.7rem" }}
-                        onClick={() => setShowModal(true)}>
-                        SMS
-                    </Button>
-
-
-                    <Button variant='primary btn btn-sm'
-                        style={{ width: "40px", fontSize: "0.7rem", marginTop: "2px" }}
-                        onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} >
-                        Add
-                    </Button>
-                </div>
-            </div>
-            <div>
-                <div data-v-ffceccfa="" class="keyboard-panel">
-                    <div data-v-ffceccfa="" class="keyboard-wrapper">
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("1")}>1</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("2")}>2</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("3")}>3</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("4")}>4</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("5")}>5</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("6")}>6</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("7")}>7</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("8")}>8</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("9")}>9</div>
-                        <div data-v-ffceccfa="" id="key-plus1" class="num" onClick={() => handleInput("+")}>+</div>
-                        <div data-v-ffceccfa="" class="num" onClick={() => handleInput("0")}>0</div>
-                        <div data-v-ffceccfa="" class="num" style={{ fontWeight: "bold" }} onClick={() => handleInput("<")}>
-                            {"<"}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]); handleCurrentOversale(); setShowOversaleModal(false) }}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Oversales</Modal.Title>
-                    </Modal.Header>
-
-                    <Modal.Body>
-                        <div className='d-flex justify-content-between'>
-                            <div>
-                                <h6>
-                                    {overSaleOption == 1 && "Invoice"}
-                                    {overSaleOption == 2 && "All Total"}
-                                    {overSaleOption == 3 && "Current"}
-                                </h6>
-                            </div>
-                            <div className='d-flex justify-content-end'>
-                                <Button variant='btn btn-danger  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
-                                    onClick={() => { handleCheckedOverSaleDeletes(); }}
-                                >
-                                    Delete
-                                </Button>
-                                <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
-                                    Invoice
-                                </Button>
-                                <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
-                                    All Total
-                                </Button>
-                                <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
-                                    Current
-                                </Button>
-
-                            </div>
-                        </div>
-                        <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "3px" }}>
-                            <thead>
-                                <tr>
-                                    {(overSaleOption == 1 || overSaleOption == 3) &&
-                                        <>
-                                            <th className='col-1'>
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    checked={deleteAllCheckedOversalesInput}
-                                                    onClick={(e) => {
-                                                        if (e.target.checked) {
-                                                            setCheckedOversales([...oversales]);
-                                                        } else {
-                                                            setCheckedOversales([]);
-                                                        }
-                                                        setDeleteAllCheckedOversalesInput(e.target.checked)
-                                                    }}
-                                                    style={{ marginLeft: "8px" }}
-                                                />
-                                            </th>
-                                            <th className='col-3'>No</th>
-                                            <th className='col-3'>F</th>
-                                            <th className='col-3'>S</th>
-                                            <th className='col-2'></th>
-
-                                        </>
-                                    }
-                                    {overSaleOption == 2 &&
-                                        <>
-                                            <th className='col-4'>No</th>
-                                            <th className='col-4'>F</th>
-                                            <th className='col-4'>S</th>
-                                        </>
-                                    }
-                                </tr>
-                            </thead>
-                        </Table>
-                        <div style={{ height: '190px', overflowY: 'auto', marginTop: "-17px" }}>
-                            <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
-                                {overSaleOption == 2 ?
-                                    <tbody>
-                                        {oversales.map(purchase => (
-                                            <tr>
-                                                <td className='col-4'>{purchase.bundle}</td>
-                                                <td className='col-4'>{purchase.first}</td>
-                                                <td className='col-4'>{purchase.second}</td>
                                             </tr>
                                         ))}
                                     </tbody>
-                                    :
-                                    <tbody>
-                                        {oversales.map(purchase => (
-                                            <tr>
-                                                <td className='col-1' >
-                                                    <Form.Check
-                                                        type="checkbox"
-                                                        checked={checkedOversales.find(p => p._id == purchase._id)}
-                                                        onChange={e => handleCheckedOversales(purchase, e.target.checked)}
-                                                        style={{ marginLeft: "8px" }}
-                                                    />
-                                                </td>
-                                                <td className='col-3'>{purchase.bundle}</td>
-                                                <td className='col-3'>{purchase.first}</td>
-                                                <td className='col-3'>{purchase.second}</td>
-                                                <td className='col-2'>
-                                                    <div className=''>
-                                                        <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                }
-                            </Table>
-
+                                </Table>
+                            </div>
                         </div>
-                        <div className='mt-3'>
-                            <Form>
-                                <Row>
-                                    <Col>
-                                        <Form.Group >
-                                            <Form.Control
-                                                type='text'
-                                                placeholder='No'
-                                                value={oversaleForm.bundle}
-                                                onChange={(e) => isValidBundle(e.target.value) && setOversaleForm({ ...oversaleForm, bundle: e.target.value })}
-                                                style={{ fontSize: "0.8rem" }}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col>
-                                        <Form.Group >
-                                            <Form.Control
-                                                type='number'
-                                                placeholder='F'
-                                                value={oversaleForm.first}
-                                                onChange={(e) => setOversaleForm({ ...oversaleForm, first: e.target.value })}
-                                                style={{ fontSize: "0.8rem" }}
-
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col>
-                                        <Form.Group >
-                                            <Form.Control
-                                                type='number'
-                                                placeholder='S'
-                                                value={oversaleForm.second}
-                                                onChange={(e) => setOversaleForm({ ...oversaleForm, second: e.target.value })}
-                                                style={{ fontSize: "0.8rem" }}
-
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col>
-                                        <Button variant='primary btn ' onClick={handleAddNewOversale} disabled={!oversaleForm.first || !oversaleForm.second || !oversaleForm.bundle}>
-                                            Add
-                                        </Button>
-                                    </Col>
-                                </Row>
-                            </Form>
-
-                        </div>
-                    </Modal.Body>
-                </Modal>
-
-
-            </div>
-            <CustomNotification notification={notification} setNotification={setNotification} />
-
-
-            <div className='container'>
-
-
-                <Modal show={showSheetModal} onHide={handleSheetModalClose}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Save Purchases</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form style={{ fontSize: '0.8rem' }}>
-                            <Row>
-                                <Col>
-                                    <Form.Group >
-                                        <Form.Control
-                                            type='text'
-                                            placeholder='Sheet Name'
-                                            value={sheetName}
-                                            onChange={(e) => setSheetName(e.target.value)}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                        </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <div className='d-flex justify-content-between'>
-                            <Button variant='primary btn' disabled={!sheetName} onClick={handleConfirmSavePurchases}>
-                                Save
-                            </Button>
-                        </div>
-                    </Modal.Footer>
-                </Modal>
-
-                <Modal show={showModal} onHide={handleModalClose}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>Paste SMS</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <Form style={{ fontSize: '0.9rem' }}>
+                        <div className='col-5 mt-1 bg-dark' style={{ marginLeft: "-11px" }}>
                             <div className=''>
-                                <Row>
-                                    <Form.Group >
-                                        <Form.Control
-                                            as='textarea'
-                                            placeholder='SMS Message'
-                                            value={message}
-                                            onChange={(e) => { setMessage(e.target.value); parseInputMessage(e.target.value) }}
-                                            rows={2}
-                                            disabled={currentDraw == null}
-                                            autocomplete="off"
-                                            spellcheck="false"
-                                        />
-                                    </Form.Group>
-                                </Row>
-                            </div>
-                            {
-                                <div className='mt-1'>
-                                    <Table striped hover size="sm" className="" style={{ fontSize: '0.9rem' }}>
+                                <div className='d-flex justify-content-between  '>
+                                    <Button variant='btn btn-primary  btn-sm'
+                                        style={{ fontSize: "0.7rem", marginTop: "0px" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
+                                        Oversales
+                                    </Button>
+                                    <Button variant='primary btn btn-sm ' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0} style={{ fontSize: "0.7rem", marginRight: "8px" }}>
+                                        Save
+                                    </Button>
+
+                                </div>
+                                <div >
+                                    <Table boarded hover size="sm" className="mt-2" style={{ fontSize: '0.8rem', marginTop: "-5px", }}>
                                         <thead>
                                             <tr>
-                                                <th>Num</th>
-                                                <th>First</th>
-                                                <th>Second</th>
+                                                <th className='col-2'>No</th>
+                                                <th className='col-2'>F</th>
+                                                <th className='col-2'>S</th>
                                             </tr>
                                         </thead>
+                                    </Table>
+                                </div>
+
+                                <div style={{ height: '170px', overflowY: 'auto', marginTop: "-7px" }}>
+                                    <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", fontWeight: "bold" }}>
                                         <tbody>
-                                            {messagePurchases.map(purchase => (
-                                                <tr >
-                                                    <td>{purchase.bundle}</td>
-                                                    <td>{purchase.first}</td>
-                                                    <td>{purchase.second}</td>
+                                            {oversales.map(purchase => (
+                                                <tr  >
+                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </Table>
-                                    <div className='d-flex justify-content-end mt-2'>
-                                        <Button variant=' btn-secondary btn  btn-sm' style={{ marginRight: "5px" }} onClick={() => { setShowModal(false); setMessage(""); setMessagePurchases([]) }} >
-                                            Cancel
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ marginTop: "-11px" }}>
+                        <hr />
+                    </div>
+                    <div className='d-flex justify-content-start' style={{ marginTop: "-12px" }}>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "2px" }}>
+                                <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label>
+                                <Form.Check
+                                    type="checkbox"
+                                    style={{ marginLeft: "8px" }}
+                                    checked={auto}
+                                    onClick={(e) => setAuto(e.target.checked)}
+                                />
+                            </div>
+                            <input className={"" + currentFocused == 1 ? "temp-border" : ""}
+                                type='text'
+                                ref={bundleRef}
+                                placeholder='Num'
+                                readOnly
+                                value={form.bundle}
+                                // onChange={(e) => handleBundleChange(e.target.value)}
+                                onClick={() => { bundleRef.current.focus(); setCurrentFocused(1) }}
+                                disabled={currentDraw == null}
+                                style={{ width: "60px", fontSize: "0.9rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
+                            />
+                        </div>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "12px" }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "4px" }}>
+                                {availableArticles ? availableArticles.firstPrice : '.'}
+                            </h6>
+                            <input className={"" + currentFocused == 2 ? "temp-border" : ""}
+                                type='number'
+                                ref={firstRef}
+                                placeholder='F'
+                                readOnly
+                                value={form.first}
+                                onChange={(e) => setForm({ ...form, first: e.target.value })}
+                                onClick={() => { firstRef.current.focus(); setCurrentFocused(2) }}
+                                disabled={currentDraw == null}
+                                style={{ width: '70px', fontSize: '0.9rem', fontWeight: 'bold', marginTop: "3px" }}
+                            />
+                        </div>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "19px" }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
+                                {availableArticles ? availableArticles.secondPrice : "."}
+                            </h6>
+                            <input className={"" + currentFocused == 3 ? "temp-border" : ""}
+                                ref={secondRef}
+                                type='number'
+                                placeholder='S'
+                                readOnly
+                                value={form.second}
+                                onChange={(e) => setForm({ ...form, second: e.target.value })}
+                                onClick={() => { secondRef.current.focus(); setCurrentFocused(3) }}
+                                disabled={currentDraw == null}
+                                style={{ width: "70px", fontSize: "0.9rem", fontWeight: "bold", marginTop: "3px" }}
+                            />
+                        </div>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
+                                .
+                            </h6>
+
+
+                            <Button variant='primary btn btn-sm'
+                                style={{ width: "40px", fontSize: "0.7rem", marginTop: "2px" }}
+                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} >
+                                Add
+                            </Button>
+                        </div>
+
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
+                                .
+                            </h6>
+
+                            <Button variant='primary btn btn-sm'
+                                style={{ fontSize: "0.8rem", marginTop: "0px" }}
+                                onClick={() => setShowModal(true)}>
+                                SMS
+                            </Button>
+                        </div>
+
+                    </div>
+                    <div>
+                        <div data-v-ffceccfa="" class="keyboard-panel">
+                            <div data-v-ffceccfa="" class="keyboard-wrapper">
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("1")}>1</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("2")}>2</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("3")}>3</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("4")}>4</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("5")}>5</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("6")}>6</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("7")}>7</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("8")}>8</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("9")}>9</div>
+                                <div data-v-ffceccfa="" id="key-plus1" class="num" onClick={() => handleInput("+")}>+</div>
+                                <div data-v-ffceccfa="" class="num" onClick={() => handleInput("0")}>0</div>
+                                <div data-v-ffceccfa="" class="num" style={{ fontWeight: "bold" }} onClick={() => handleInput("<")}>
+                                    {"<"}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]); handleCurrentOversale(); setShowOversaleModal(false) }}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Oversales</Modal.Title>
+                            </Modal.Header>
+
+                            <Modal.Body>
+                                <div className='d-flex justify-content-between'>
+                                    <div>
+                                        <h6>
+                                            {overSaleOption == 1 && "Invoice"}
+                                            {overSaleOption == 2 && "All Total"}
+                                            {overSaleOption == 3 && "Current"}
+                                        </h6>
+                                    </div>
+                                    <div className='d-flex justify-content-end'>
+                                        <Button variant='btn btn-danger  btn-sm'
+                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                            onClick={() => { handleCheckedOverSaleDeletes(); }}
+                                        >
+                                            Delete
+                                        </Button>
+                                        <Button variant='btn btn-primary  btn-sm'
+                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
+                                            Invoice
+                                        </Button>
+                                        <Button variant='btn btn-primary  btn-sm'
+                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
+                                            All Total
+                                        </Button>
+                                        <Button variant='btn btn-primary  btn-sm'
+                                            style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
+                                            Current
                                         </Button>
 
-                                        <Button variant='primary btn btn-sm' onClick={handleMakeMessagePurchases} >
-                                            Confirm
-                                        </Button>
                                     </div>
                                 </div>
-                            }
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "3px" }}>
+                                    <thead>
+                                        <tr>
+                                            {(overSaleOption == 1 || overSaleOption == 3) &&
+                                                <>
+                                                    <th className='col-1'>
+                                                        <Form.Check
+                                                            type="checkbox"
+                                                            checked={deleteAllCheckedOversalesInput}
+                                                            onClick={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setCheckedOversales([...oversales]);
+                                                                } else {
+                                                                    setCheckedOversales([]);
+                                                                }
+                                                                setDeleteAllCheckedOversalesInput(e.target.checked)
+                                                            }}
+                                                            style={{ marginLeft: "8px" }}
+                                                        />
+                                                    </th>
+                                                    <th className='col-3'>No</th>
+                                                    <th className='col-3'>F</th>
+                                                    <th className='col-3'>S</th>
+                                                    <th className='col-2'></th>
 
-                        </Form>
-                    </Modal.Body>
-                </Modal>
+                                                </>
+                                            }
+                                            {overSaleOption == 2 &&
+                                                <>
+                                                    <th className='col-4'>No</th>
+                                                    <th className='col-4'>F</th>
+                                                    <th className='col-4'>S</th>
+                                                </>
+                                            }
+                                        </tr>
+                                    </thead>
+                                </Table>
+                                <div style={{ height: '190px', overflowY: 'auto', marginTop: "-17px" }}>
+                                    <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
+                                        {overSaleOption == 2 ?
+                                            <tbody>
+                                                {oversales.map(purchase => (
+                                                    <tr>
+                                                        <td className='col-4'>{purchase.bundle}</td>
+                                                        <td className='col-4'>{purchase.first}</td>
+                                                        <td className='col-4'>{purchase.second}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            :
+                                            <tbody>
+                                                {oversales.map(purchase => (
+                                                    <tr>
+                                                        <td className='col-1' >
+                                                            <Form.Check
+                                                                type="checkbox"
+                                                                checked={checkedOversales.find(p => p._id == purchase._id)}
+                                                                onChange={e => handleCheckedOversales(purchase, e.target.checked)}
+                                                                style={{ padding: "2px", backgroundColor: getRowColor(purchase.bundle) }}
+                                                            />
+                                                        </td>
+                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+                                                        <td className='col-2'>
+                                                            <div className=''>
+                                                                <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        }
+                                    </Table>
+
+                                </div>
+                                <div className='mt-3'>
+                                    <Form>
+                                        <Row>
+                                            <Col>
+                                                <Form.Group >
+                                                    <Form.Control
+                                                        type='text'
+                                                        placeholder='No'
+                                                        value={oversaleForm.bundle}
+                                                        onChange={(e) => isValidBundle(e.target.value) && setOversaleForm({ ...oversaleForm, bundle: e.target.value })}
+                                                        style={{ fontSize: "0.8rem" }}
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col>
+                                                <Form.Group >
+                                                    <Form.Control
+                                                        type='number'
+                                                        placeholder='F'
+                                                        value={oversaleForm.first}
+                                                        onChange={(e) => setOversaleForm({ ...oversaleForm, first: e.target.value })}
+                                                        style={{ fontSize: "0.8rem" }}
+
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col>
+                                                <Form.Group >
+                                                    <Form.Control
+                                                        type='number'
+                                                        placeholder='S'
+                                                        value={oversaleForm.second}
+                                                        onChange={(e) => setOversaleForm({ ...oversaleForm, second: e.target.value })}
+                                                        style={{ fontSize: "0.8rem" }}
+
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col>
+                                                <Button variant='primary btn ' onClick={handleAddNewOversale} disabled={!oversaleForm.first || !oversaleForm.second || !oversaleForm.bundle}>
+                                                    Add
+                                                </Button>
+                                            </Col>
+                                        </Row>
+                                    </Form>
+
+                                </div>
+                            </Modal.Body>
+                        </Modal>
 
 
-            </div>
+                    </div>
+                    <CustomNotification notification={notification} setNotification={setNotification} />
 
 
+                    <div className='container'>
+
+
+                        <Modal show={showSheetModal} onHide={handleSheetModalClose}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Save Purchases</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <Form style={{ fontSize: '0.8rem' }}>
+                                    <Row>
+                                        <Col>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    type='text'
+                                                    placeholder='Sheet Name'
+                                                    value={sheetName}
+                                                    onChange={(e) => setSheetName(e.target.value)}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                </Form>
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <div className='d-flex justify-content-between'>
+                                    <Button variant='primary btn' disabled={!sheetName} onClick={handleConfirmSavePurchases}>
+                                        Save
+                                    </Button>
+                                </div>
+                            </Modal.Footer>
+                        </Modal>
+
+                        <Modal show={showModal} onHide={handleModalClose}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Paste SMS</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <Form style={{ fontSize: '0.9rem' }}>
+                                    <div className=''>
+                                        <Row>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    as='textarea'
+                                                    placeholder='SMS Message'
+                                                    value={message}
+                                                    onChange={(e) => { setMessage(e.target.value); parseInputMessage(e.target.value) }}
+                                                    rows={2}
+                                                    disabled={currentDraw == null}
+                                                    autocomplete="off"
+                                                    spellcheck="false"
+                                                />
+                                            </Form.Group>
+                                        </Row>
+                                    </div>
+                                    {
+                                        <div className='mt-1'>
+                                            <Table striped hover size="sm" className="" style={{ fontSize: '0.9rem' }}>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Num</th>
+                                                        <th>First</th>
+                                                        <th>Second</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {messagePurchases.map(purchase => (
+                                                        <tr >
+                                                            <td>{purchase.bundle}</td>
+                                                            <td>{purchase.first}</td>
+                                                            <td>{purchase.second}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                            <div className='d-flex justify-content-end mt-2'>
+                                                <Button variant=' btn-secondary btn  btn-sm' style={{ marginRight: "5px" }} onClick={() => { setShowModal(false); setMessage(""); setMessagePurchases([]) }} >
+                                                    Cancel
+                                                </Button>
+
+                                                <Button variant='primary btn btn-sm' onClick={handleMakeMessagePurchases} >
+                                                    Confirm
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    }
+
+                                </Form>
+                            </Modal.Body>
+                        </Modal>
+
+
+                    </div>
+                </div>
+                :
+                <div>
+                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "green", }}>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
+                    </div>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "black", marginTop: "1px" }}>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{timeRemaining}</h6>
+                    </div>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "black" }}>
+                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", width: "100vw", color: "white", backgroundColor: "black", height: "4vh" }}>
+                            <option value="">Select Draw</option>
+                            {draws.map((draw) => (
+                                <option key={draw._id} value={draw._id}>
+                                    {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className='row' >
+                        <div className='col-7'>
+                            <div className='row'>
+                                <div className='col-8'>
+                                    <Table bordered hover size="sm" className="" style={{ fontSize: '0.9rem', marginLeft: "10px" }}>
+                                        <thead>
+                                            <tr>
+                                                <th>Co</th>
+                                                <th>F</th>
+                                                <th>S</th>
+                                                <th>T</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr >
+                                                <td style={{ fontWeight: "bold" }}>{getCount()}</td>
+                                                <td style={{ fontWeight: "bold" }}>{getTotalFirsts()}</td>
+                                                <td style={{ fontWeight: "bold" }}>{getTotalSeconds()}</td>
+                                                <td style={{ fontWeight: "bold" }}>{getTotalBoth()}</td>
+                                            </tr>
+                                        </tbody>
+                                    </Table>
+                                </div>
+                                <div className='col-4' style={{ marginTop: "20px" }}>
+                                    <div className='d-flex justify-content-end' >
+                                        <Button variant="btn btn-sm btn-danger" style={{ fontSize: "1rem", marginRight:"5px" }} onClick={handleMultipleSavedPurchaseDelete} disabled={checkedSavedPurchases.length <= 0}>Delete</Button>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div style={{ marginTop: "-15px" }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
+                                    <thead>
+                                        <tr>
+                                            <th className='col-1'>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={deleteAllSelected}
+                                                    onClick={(e) => {
+                                                        if (e.target.checked) {
+                                                            setCheckedSavedPurchases([...savedPurchases]);
+                                                        } else {
+                                                            setCheckedSavedPurchases([]);
+                                                        }
+                                                        setDeleteAllSelected(e.target.checked)
+                                                    }}
+                                                    className='text-center'
+                                                />
+                                            </th>
+                                            <th className='col-2'>No</th>
+                                            <th className='col-2'>F</th>
+                                            <th className='col-2'>S</th>
+                                        </tr>
+                                    </thead>
+                                </Table>
+                            </div>
+                            <div style={{ height: '310px', overflowY: 'auto', marginTop: "-15px" }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
+                                    <tbody>
+                                        {savedPurchases.map(purchase => (
+                                            <tr key={purchase._id} >
+                                                <td className='col-1' >
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
+                                                        onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
+                                                        style={{ backgroundColor: getRowColor(purchase.bundle) }}
+                                                        className='text-center'
+                                                    />
+                                                </td>
+
+                                                <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+                                                {/* <td>
+                                        <div className=''>
+                                            <Button variant="btn btn-sm btn-danger" style={{ fontSize: "0.5rem" }} onClick={() => handleRemovingSavedPurchase(purchase._id)}>D</Button>
+                                        </div>
+                                    </td> */}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </div>
+                        </div>
+                        <div className='col-5 mt-1 bg-dark' style={{ marginLeft: "-11px" }}>
+                            <div className=''>
+                                <div className='d-flex justify-content-between  '>
+                                    <Button variant='btn btn-primary  btn-sm'
+                                        style={{ fontSize: "1rem", marginTop: "0px" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
+                                        Oversales
+                                    </Button>
+                                    <Button variant='primary btn btn-sm ' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0} style={{ fontSize: "1rem", marginRight: "8px" }}>
+                                        Save
+                                    </Button>
+
+                                </div>
+                                <div >
+                                    <Table boarded hover size="sm" className="mt-2" style={{ fontSize: '1rem', marginTop: "-5px", }}>
+                                        <thead>
+                                            <tr>
+                                                <th className='col-2'>No</th>
+                                                <th className='col-2'>F</th>
+                                                <th className='col-2'>S</th>
+                                            </tr>
+                                        </thead>
+                                    </Table>
+                                </div>
+
+                                <div style={{ height: '310px', overflowY: 'auto', marginTop: "-7px" }}>
+                                    <Table boarded hover size="sm" className="" style={{ fontSize: '1rem', marginTop: "-5px", fontWeight: "bold" }}>
+                                        <tbody>
+                                            {oversales.map(purchase => (
+                                                <tr  >
+                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style={{ marginTop: "-11px" }}>
+                        <hr />
+                    </div>
+                    <div className='d-flex justify-content-start' style={{ marginTop: "-12px", marginLeft:"-50px" }}>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '1rem', marginTop: "2px" }}>
+                                <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label>
+                                <Form.Check
+                                    type="checkbox"
+                                    style={{ marginLeft: "8px" }}
+                                    checked={auto}
+                                    onClick={(e) => setAuto(e.target.checked)}
+                                />
+                            </div>
+                            <input className={"" + currentFocused == 1 ? "temp-border" : ""}
+                                type='text'
+                                ref={bundleRef}
+                                placeholder='Num'
+                                value={form.bundle}
+                                onChange={(e) => handleBundleChange(e.target.value)}
+                                onClick={() => { bundleRef.current.focus(); setCurrentFocused(1) }}
+                                disabled={currentDraw == null}
+                                style={{ width: "90px", fontSize: "1rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
+                            />
+                        </div>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "-110px" }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '1rem', marginTop: "4px" }}>
+                                {availableArticles ? availableArticles.firstPrice : '.'}
+                            </h6>
+                            <input className={"" + currentFocused == 2 ? "temp-border" : ""}
+                                type='number'
+                                ref={firstRef}
+                                placeholder='F'
+                                value={form.first}
+                                onChange={(e) => setForm({ ...form, first: e.target.value })}
+                                onClick={() => { firstRef.current.focus(); setCurrentFocused(2) }}
+                                disabled={currentDraw == null}
+                                style={{ width: '90px', fontSize: '1rem', fontWeight: 'bold', marginTop: "3px" }}
+                            />
+                        </div>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "-110px" }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "1rem", marginTop: "4px" }}>
+                                {availableArticles ? availableArticles.secondPrice : "."}
+                            </h6>
+                            <input className={"" + currentFocused == 3 ? "temp-border" : ""}
+                                ref={secondRef}
+                                type='number'
+                                placeholder='S'
+                                value={form.second}
+                                onChange={(e) => setForm({ ...form, second: e.target.value })}
+                                onClick={() => { secondRef.current.focus(); setCurrentFocused(3) }}
+                                disabled={currentDraw == null}
+                                style={{ width: "90px", fontSize: "1rem", fontWeight: "bold", marginTop: "3px" }}
+                            />
+                        </div>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' , marginLeft:"-110px"}}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
+                                .
+                            </h6>
+
+                            <Button variant='primary btn btn-sm'
+                                style={{  fontSize: "1rem", marginTop: "2px" }}
+                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} >
+                                Add
+                            </Button>
+                        </div>
+
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "1rem", marginTop: "4px" }}>
+                                .
+                            </h6>
+
+                            <Button variant='primary btn btn-sm'
+                                style={{ fontSize: "1rem", marginTop: "-5px" }}
+                                onClick={() => setShowModal(true)}>
+                                SMS
+                            </Button>
+                        </div>
+
+                    </div>
+                    
+                    <div>
+                        <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]); handleCurrentOversale(); setShowOversaleModal(false) }}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Oversales</Modal.Title>
+                            </Modal.Header>
+
+                            <Modal.Body>
+                                <div className='d-flex justify-content-between'>
+                                    <div>
+                                        <h6>
+                                            {overSaleOption == 1 && "Invoice"}
+                                            {overSaleOption == 2 && "All Total"}
+                                            {overSaleOption == 3 && "Current"}
+                                        </h6>
+                                    </div>
+                                    <div className='d-flex justify-content-end'>
+                                        <Button variant='btn btn-danger  btn-sm'
+                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                            onClick={() => { handleCheckedOverSaleDeletes(); }}
+                                        >
+                                            Delete
+                                        </Button>
+                                        <Button variant='btn btn-primary  btn-sm'
+                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
+                                            Invoice
+                                        </Button>
+                                        <Button variant='btn btn-primary  btn-sm'
+                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
+                                            All Total
+                                        </Button>
+                                        <Button variant='btn btn-primary  btn-sm'
+                                            style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
+                                            Current
+                                        </Button>
+
+                                    </div>
+                                </div>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "3px" }}>
+                                    <thead>
+                                        <tr>
+                                            {(overSaleOption == 1 || overSaleOption == 3) &&
+                                                <>
+                                                    <th className='col-1'>
+                                                        <Form.Check
+                                                            type="checkbox"
+                                                            checked={deleteAllCheckedOversalesInput}
+                                                            onClick={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setCheckedOversales([...oversales]);
+                                                                } else {
+                                                                    setCheckedOversales([]);
+                                                                }
+                                                                setDeleteAllCheckedOversalesInput(e.target.checked)
+                                                            }}
+                                                            style={{ marginLeft: "8px" }}
+                                                        />
+                                                    </th>
+                                                    <th className='col-3'>No</th>
+                                                    <th className='col-3'>F</th>
+                                                    <th className='col-3'>S</th>
+                                                    <th className='col-2'></th>
+
+                                                </>
+                                            }
+                                            {overSaleOption == 2 &&
+                                                <>
+                                                    <th className='col-4'>No</th>
+                                                    <th className='col-4'>F</th>
+                                                    <th className='col-4'>S</th>
+                                                </>
+                                            }
+                                        </tr>
+                                    </thead>
+                                </Table>
+                                <div style={{ height: '190px', overflowY: 'auto', marginTop: "-17px" }}>
+                                    <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
+                                        {overSaleOption == 2 ?
+                                            <tbody>
+                                                {oversales.map(purchase => (
+                                                    <tr>
+                                                        <td className='col-4'>{purchase.bundle}</td>
+                                                        <td className='col-4'>{purchase.first}</td>
+                                                        <td className='col-4'>{purchase.second}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            :
+                                            <tbody>
+                                                {oversales.map(purchase => (
+                                                    <tr>
+                                                        <td className='col-1' >
+                                                            <Form.Check
+                                                                type="checkbox"
+                                                                checked={checkedOversales.find(p => p._id == purchase._id)}
+                                                                onChange={e => handleCheckedOversales(purchase, e.target.checked)}
+                                                                style={{ padding: "2px", backgroundColor: getRowColor(purchase.bundle) }}
+                                                            />
+                                                        </td>
+                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+                                                        <td className='col-2'>
+                                                            <div className=''>
+                                                                <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        }
+                                    </Table>
+
+                                </div>
+                                <div className='mt-3'>
+                                    <Form>
+                                        <Row>
+                                            <Col>
+                                                <Form.Group >
+                                                    <Form.Control
+                                                        type='text'
+                                                        placeholder='No'
+                                                        value={oversaleForm.bundle}
+                                                        onChange={(e) => isValidBundle(e.target.value) && setOversaleForm({ ...oversaleForm, bundle: e.target.value })}
+                                                        style={{ fontSize: "0.8rem" }}
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col>
+                                                <Form.Group >
+                                                    <Form.Control
+                                                        type='number'
+                                                        placeholder='F'
+                                                        value={oversaleForm.first}
+                                                        onChange={(e) => setOversaleForm({ ...oversaleForm, first: e.target.value })}
+                                                        style={{ fontSize: "0.8rem" }}
+
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col>
+                                                <Form.Group >
+                                                    <Form.Control
+                                                        type='number'
+                                                        placeholder='S'
+                                                        value={oversaleForm.second}
+                                                        onChange={(e) => setOversaleForm({ ...oversaleForm, second: e.target.value })}
+                                                        style={{ fontSize: "0.8rem" }}
+
+                                                    />
+                                                </Form.Group>
+                                            </Col>
+                                            <Col>
+                                                <Button variant='primary btn ' onClick={handleAddNewOversale} disabled={!oversaleForm.first || !oversaleForm.second || !oversaleForm.bundle}>
+                                                    Add
+                                                </Button>
+                                            </Col>
+                                        </Row>
+                                    </Form>
+
+                                </div>
+                            </Modal.Body>
+                        </Modal>
+
+
+                    </div>
+                    <CustomNotification notification={notification} setNotification={setNotification} />
+
+
+                    <div className='container'>
+
+
+                        <Modal show={showSheetModal} onHide={handleSheetModalClose}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Save Purchases</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <Form style={{ fontSize: '0.8rem' }}>
+                                    <Row>
+                                        <Col>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    type='text'
+                                                    placeholder='Sheet Name'
+                                                    value={sheetName}
+                                                    onChange={(e) => setSheetName(e.target.value)}
+                                                />
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                </Form>
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <div className='d-flex justify-content-between'>
+                                    <Button variant='primary btn' disabled={!sheetName} onClick={handleConfirmSavePurchases}>
+                                        Save
+                                    </Button>
+                                </div>
+                            </Modal.Footer>
+                        </Modal>
+
+                        <Modal show={showModal} onHide={handleModalClose}>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Paste SMS</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <Form style={{ fontSize: '0.9rem' }}>
+                                    <div className=''>
+                                        <Row>
+                                            <Form.Group >
+                                                <Form.Control
+                                                    as='textarea'
+                                                    placeholder='SMS Message'
+                                                    value={message}
+                                                    onChange={(e) => { setMessage(e.target.value); parseInputMessage(e.target.value) }}
+                                                    rows={2}
+                                                    disabled={currentDraw == null}
+                                                    autocomplete="off"
+                                                    spellcheck="false"
+                                                />
+                                            </Form.Group>
+                                        </Row>
+                                    </div>
+                                    {
+                                        <div className='mt-1'>
+                                            <Table striped hover size="sm" className="" style={{ fontSize: '0.9rem' }}>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Num</th>
+                                                        <th>First</th>
+                                                        <th>Second</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {messagePurchases.map(purchase => (
+                                                        <tr >
+                                                            <td>{purchase.bundle}</td>
+                                                            <td>{purchase.first}</td>
+                                                            <td>{purchase.second}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                            <div className='d-flex justify-content-end mt-2'>
+                                                <Button variant=' btn-secondary btn  btn-sm' style={{ marginRight: "5px" }} onClick={() => { setShowModal(false); setMessage(""); setMessagePurchases([]) }} >
+                                                    Cancel
+                                                </Button>
+
+                                                <Button variant='primary btn btn-sm' onClick={handleMakeMessagePurchases} >
+                                                    Confirm
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    }
+
+                                </Form>
+                            </Modal.Body>
+                        </Modal>
+                    </div>
+                </div>
+            }
         </div >
     );
 }
