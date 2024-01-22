@@ -8,7 +8,9 @@ import { localStorageUtils } from '../APIs/localStorageUtils';
 import DrawAPIs from '../APIs/draws';
 import { formatDate, formatTime } from '../Utils/Utils';
 import CustomNotification from '../components/CustomNotification';
-
+import { beepLogin,beepDrawSelected } from '../components/beeps';
+import loginAudio from "../components/Audiofiles/login.mp3"
+import drawAudio from "../components/Audiofiles/drawSelected.mp3"
 
 export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
@@ -59,11 +61,23 @@ export default function Merchent() {
     const bundleRef = useRef(null);
     const firstRef = useRef(null);
     const secondRef = useRef(null);
+    const loginAudioRef = useRef(null);
+    const drawAudioRef = useRef(null);
 
+    if (!localStorageUtils.hasToken()) {
+        window.location = "/login"
+    }
+
+    
     useEffect(() => {
-        if(window.innerWidth<700){
+        try{
+            loginAudioRef?.current?.play();
+        }catch(e){}
+
+
+        if (window.innerWidth < 700) {
             document.body.style.overflow = 'hidden';
-        }else{
+        } else {
             document.body.style.overflowX = 'hidden';
         }
         fetchLoggedInUser();
@@ -72,6 +86,7 @@ export default function Merchent() {
         return () => {
             document.body.style.overflow = 'auto'; // Set to 'auto' or 'visible' based on your preference
         };
+
     }, []);
 
     const fetchDraws = async () => {
@@ -123,8 +138,22 @@ export default function Merchent() {
         await APIs.updateUser(currentLoggedInUser)
         fetchLoggedInUser()
     }
+    function isCurrentFocusedNotEmpty() {
+        if (currentFocused == 1) {
+            return form.bundle && 1
+        }
+        if (currentFocused == 2) {
+            return form.first && 1
+        }
+        if (currentFocused == 3) {
+            return form.second && 1
+        }
+    }
     const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false) => {
         if (!messagePurchase) {
+            if (!isCurrentFocusedNotEmpty()) {
+                return
+            }
             if (!auto) {
                 if (currentFocused < 3) {
                     setCurrentFocused(currentFocused + 1)
@@ -290,6 +319,10 @@ export default function Merchent() {
 
     const handleChangeDraw = async (event) => {
         let value = event.target.value
+
+        if(value==form.selectedDraw){
+            return
+        }
         setForm({ ...form, selectedDraw: value })
         if (value == '') {
             setCurrentDraw(null)
@@ -300,6 +333,7 @@ export default function Merchent() {
         let fetchedDraws = await fetchDraws()
         setCurrentDraw(fetchedDraws.find(draw => draw._id == value))
         getSavedPurchasesOfCurrentDraw(value)
+        drawAudioRef?.current?.play()
         setInterval(() => calculateRemainingTime(fetchedDraws.find(draw => draw._id == value)), 1000)
     }
 
@@ -693,13 +727,44 @@ export default function Merchent() {
         if (bundle.length == 4) {
             return "cyan"
         }
-
-
-
     }
+    const handleKeyDown = (event, nextInputRef) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevents the default behavior of the Enter key (e.g., form submission)
+            if (!auto) {
+                nextInputRef.current.focus();
+                if (currentFocused < 3) {
+                    setCurrentFocused(currentFocused + 1)
+                } else {
+                    setCurrentFocused(1)
+                    handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)
+                }
+            } else {
+                if (currentFocused != 1) {
+                    if (currentFocused < 3) {
+                        setCurrentFocused(currentFocused + 1)
+                        nextInputRef.current.focus();
+                    } else {
+                        setCurrentFocused(1)
+                        bundleRef.current.focus();
+                    }
+                } else {
+                    handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)
+                    // setForm({...form, bundle:""})
+                }
+            }
+        }
+    };
 
     return (
         <div className='app-container'>
+            <audio controls ref={loginAudioRef} style={{ display: 'none' }}>
+                <source src={loginAudio} type="audio/mp3" />
+            </audio>
+            <audio controls ref={drawAudioRef} style={{ display: 'none' }}>
+                <source src={drawAudio} type="audio/mp3" />
+            </audio>
+
             {window.innerWidth <= 700 ?
                 <div>
                     <div className='d-flex justify-content-around ' style={{ backgroundColor: "#6200ea", }}>
@@ -708,8 +773,8 @@ export default function Merchent() {
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
                     <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop:"6px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop:"6px" }}>{timeRemaining}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop: "6px" }}>{timeRemaining}</h6>
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
                     <div className='d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
@@ -807,14 +872,14 @@ export default function Merchent() {
                                 </Table>
                             </div>
                         </div>
-                        <div className='col-5 mt-2 ' style={{ marginLeft: "-11px", backgroundColor:"purple" }}>
+                        <div className='col-5 mt-2 ' style={{ marginLeft: "-11px", backgroundColor: "purple" }}>
                             <div className=''>
                                 <div className='d-flex justify-content-between  mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
-                                        style={{ fontSize: "0.7rem", marginTop: "0px", border:"none" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
+                                        style={{ fontSize: "0.7rem", marginTop: "0px", border: "none" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
                                         Oversales
                                     </Button>
-                                    <Button variant='primary btn btn-sm' style={{border:"none"}} onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0} style={{ fontSize: "0.7rem", marginRight: "8px" }}>
+                                    <Button variant='primary btn btn-sm' style={{ border: "none" }} onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0} style={{ fontSize: "0.7rem", marginRight: "8px" }}>
                                         Save
                                     </Button>
 
@@ -913,7 +978,7 @@ export default function Merchent() {
 
                             <Button variant='primary btn btn-sm'
                                 style={{ width: "40px", fontSize: "0.7rem", marginTop: "2px" }}
-                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} >
+                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles?.firstPrice, availableArticles?.secondPrice)} >
                                 Add
                             </Button>
                         </div>
@@ -1258,7 +1323,7 @@ export default function Merchent() {
                                 <div className='col-4' style={{ marginTop: "20px" }}>
                                     <div className='d-flex justify-content-end' >
                                         <Button variant='primary btn btn-sm'
-                                            style={{ fontSize: "1rem", marginRight:"10px" }}
+                                            style={{ fontSize: "1rem", marginRight: "10px" }}
                                             onClick={() => setShowModal(true)}>
                                             SMS
                                         </Button>
@@ -1322,7 +1387,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                         </div>
-                        <div className='col-5 mt-1 ' style={{ marginLeft: "-11px", backgroundColor:"purple" }}>
+                        <div className='col-5 mt-1 ' style={{ marginLeft: "-11px", backgroundColor: "purple" }}>
                             <div className=''>
                                 <div className='d-flex justify-content-between mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
@@ -1351,8 +1416,8 @@ export default function Merchent() {
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >
-                                                    <td className='col-2' style={{ backgroundColor: getRowColor(purchase.bundle), marginLeft:"10px" }}>{purchase.bundle}</td>
-                                                    <td className='col-2' style={{ backgroundColor: getRowColor(purchase.bundle)}}>{purchase.first}</td>
+                                                    <td className='col-2' style={{ backgroundColor: getRowColor(purchase.bundle), marginLeft: "10px" }}>{purchase.bundle}</td>
+                                                    <td className='col-2' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
                                                     <td className='col-2' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
                                                 </tr>
                                             ))}
@@ -1368,10 +1433,14 @@ export default function Merchent() {
                     <div className='d-flex justify-content-start' style={{ marginTop: "-12px", marginLeft: "-20px" }}>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '1rem', marginTop: "2px" }}>
-                                <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label>
+                                {/* <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label> */}
+                                <label htmlFor="autoCheckbox" style={{ marginLeft: '0px', }} className="">
+                                    Auto
+                                </label>
                                 <Form.Check
+                                    id="autoCheckbox"
                                     type="checkbox"
-                                    style={{ marginLeft: "8px" }}
+                                    style={{ marginLeft: "1px" }}
                                     checked={auto}
                                     onClick={(e) => setAuto(e.target.checked)}
                                 />
@@ -1384,7 +1453,8 @@ export default function Merchent() {
                                 onChange={(e) => handleBundleChange(e.target.value)}
                                 onClick={() => { bundleRef.current.focus(); setCurrentFocused(1) }}
                                 disabled={currentDraw == null}
-                                style={{ width: "90px", fontSize: "1rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
+                                style={{ width: "90px", fontSize: "1rem", marginLeft: "4px", fontWeight: "bold", marginTop: "7px" }}
+                                onKeyDown={(event) => form.bundle && handleKeyDown(event, firstRef)}
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "-110px" }}>
@@ -1400,6 +1470,7 @@ export default function Merchent() {
                                 onClick={() => { firstRef.current.focus(); setCurrentFocused(2) }}
                                 disabled={currentDraw == null}
                                 style={{ width: '90px', fontSize: '1rem', fontWeight: 'bold', marginTop: "3px" }}
+                                onKeyDown={(event) => form.first && handleKeyDown(event, secondRef)}
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "-110px" }}>
@@ -1415,6 +1486,7 @@ export default function Merchent() {
                                 onClick={() => { secondRef.current.focus(); setCurrentFocused(3) }}
                                 disabled={currentDraw == null}
                                 style={{ width: "90px", fontSize: "1rem", fontWeight: "bold", marginTop: "3px" }}
+                                onKeyDown={(event) => form.second && handleKeyDown(event, bundleRef)}
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "-110px" }}>
@@ -1424,7 +1496,7 @@ export default function Merchent() {
 
                             <Button variant='primary btn btn-sm'
                                 style={{ fontSize: "1rem", marginTop: "2px" }}
-                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} >
+                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles?.firstPrice, availableArticles?.secondPrice)} >
                                 Add
                             </Button>
                         </div>

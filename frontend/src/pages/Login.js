@@ -42,6 +42,7 @@ export default function Login(props) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
         const loginObj = await APIs.login(formData);
         if (!loginObj.con) {
             setErrorMessage(loginObj.msg);
