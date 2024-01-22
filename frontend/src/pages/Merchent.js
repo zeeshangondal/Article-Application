@@ -8,9 +8,9 @@ import { localStorageUtils } from '../APIs/localStorageUtils';
 import DrawAPIs from '../APIs/draws';
 import { formatDate, formatTime } from '../Utils/Utils';
 import CustomNotification from '../components/CustomNotification';
-import { beepLogin,beepDrawSelected } from '../components/beeps';
 import loginAudio from "../components/Audiofiles/login.mp3"
 import drawAudio from "../components/Audiofiles/drawSelected.mp3"
+import oversaleAudio from "../components/Audiofiles/oversale.mp3"
 
 export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
@@ -63,6 +63,7 @@ export default function Merchent() {
     const secondRef = useRef(null);
     const loginAudioRef = useRef(null);
     const drawAudioRef = useRef(null);
+    const oversaleAudioRef = useRef(null);
 
     if (!localStorageUtils.hasToken()) {
         window.location = "/login"
@@ -208,6 +209,7 @@ export default function Merchent() {
                 purchasedDrawData.savedOversales.push({
                     bundle, first: overSaleFirst, second: overSaleSecond
                 })
+                oversaleAudioRef?.current?.play()
             }
         } else {
             purchasedDrawData = {
@@ -223,6 +225,7 @@ export default function Merchent() {
                         bundle, first: overSaleFirst, second: overSaleSecond
                     }]
                 }
+                oversaleAudioRef?.current?.play()
             }
             purchasedFromDrawData.push(purchasedDrawData)
 
@@ -464,7 +467,8 @@ export default function Merchent() {
             function sleep(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
-            await sleep(3000);
+            await sleep(2000);
+            oversaleAudioRef?.current?.play()
             if (overSaleOption == 3) {
                 handleCurrentOversale()
             } else if (overSaleOption == 1) {
@@ -517,6 +521,7 @@ export default function Merchent() {
         }
         successMessage("Oversale added successfuly")
         updateCurrentLoggedInUser()
+        oversaleAudioRef?.current?.play()
         // setOversales([...purchasedDrawData.savedOversales])
     };
 
@@ -763,6 +768,9 @@ export default function Merchent() {
             </audio>
             <audio controls ref={drawAudioRef} style={{ display: 'none' }}>
                 <source src={drawAudio} type="audio/mp3" />
+            </audio>
+            <audio controls ref={oversaleAudioRef} style={{ display: 'none' }}>
+                <source src={oversaleAudio} type="audio/mp3" />
             </audio>
 
             {window.innerWidth <= 700 ?
