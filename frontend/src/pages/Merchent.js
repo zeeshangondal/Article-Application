@@ -11,6 +11,7 @@ import CustomNotification from '../components/CustomNotification';
 import loginAudio from "../components/Audiofiles/login.mp3"
 import drawAudio from "../components/Audiofiles/drawSelected.mp3"
 import oversaleAudio from "../components/Audiofiles/oversale.mp3"
+import errorAudio from "../components/Audiofiles/Error.mp3"
 
 export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
@@ -64,6 +65,7 @@ export default function Merchent() {
     const loginAudioRef = useRef(null);
     const drawAudioRef = useRef(null);
     const oversaleAudioRef = useRef(null);
+    const errorAudioRef = useRef(null);
 
     if (!localStorageUtils.hasToken()) {
         window.location = "/login"
@@ -85,7 +87,9 @@ export default function Merchent() {
         fetchDraws();
         // setInterval(calculateRemainingTime,500)
         return () => {
-            document.body.style.overflow = 'auto'; // Set to 'auto' or 'visible' based on your preference
+            document.body.style.overflow = 'auto'; 
+            // localStorage.removeItem("jwt_token");
+            // localStorageUtils.removeLoggedInUser();
         };
 
     }, []);
@@ -150,7 +154,7 @@ export default function Merchent() {
             return form.second && 1
         }
     }
-    const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false) => {
+    const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false,showGreen=true) => {
         if (!messagePurchase) {
             if (!isCurrentFocusedNotEmpty()) {
                 return
@@ -197,7 +201,8 @@ export default function Merchent() {
         }
 
         if ((Number(first) + Number(second)) > currentLoggedInUser.balance) {
-            alert("You dont have enough balance for this purchase.")
+            // errorAudioRef?.current?.play()
+            alertMessage("You dont have enough balance for this purchase.")
             return
         }
 
@@ -239,7 +244,9 @@ export default function Merchent() {
             type: "-",
             askingUser: localStorageUtils.getLoggedInUser()._id
         }
-        successMessage("Purcahse added successfuly")
+        if(showGreen){
+            successMessage("Purcahse added successfuly")
+        }
         await articlesAPI.updateDigit(data)
         currentLoggedInUser.balance = currentLoggedInUser.balance - (Number(first) + Number(second))
         updateCurrentLoggedInUser()
@@ -251,6 +258,7 @@ export default function Merchent() {
         setNotification({ ...notification, color: "", show: true, message: msg })
     }
     function alertMessage(msg) {
+        errorAudioRef?.current?.play()
         setNotification({ ...notification, color: "danger", show: true, message: msg })
     }
 
@@ -397,6 +405,7 @@ export default function Merchent() {
         }
     }
     const handleMakeMessagePurchases = async () => {
+        let count=0
         let allDone = true
         for (const purchase of messagePurchases) {
             try {
@@ -409,17 +418,19 @@ export default function Merchent() {
                     alertMessage("Insufficient balance for purchase\n" + "Num: " + purchase.bundle + " , First: " + purchase.first + " , Second: " + purchase.second)
                     return
                 }
-                await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice, true)
+                await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice, true,false)
+                count++
+                successMessage(count+"/"+messagePurchases.length+" Purchases Added")
             } catch (e) {
                 allDone = false
                 let msg = `Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
+                errorAudioRef?.current?.play()
                 alert(msg)
             }
         }
         if (allDone) {
             setMessagePurchases([])
         }
-        successMessage("Purchases Added")
     }
     const handleRemovingSavedPurchase = async (_id) => {
         try {
@@ -529,7 +540,9 @@ export default function Merchent() {
         setNotification({ ...notification, color: "", show: true, message: msg })
     }
     function alertMessage(msg) {
+        errorAudioRef?.current?.play()
         setNotification({ ...notification, color: "danger", show: true, message: msg })
+
     }
 
     const handleEditOversale = () => {
@@ -771,6 +784,9 @@ export default function Merchent() {
             </audio>
             <audio controls ref={oversaleAudioRef} style={{ display: 'none' }}>
                 <source src={oversaleAudio} type="audio/mp3" />
+            </audio>
+            <audio controls ref={errorAudioRef} style={{ display: 'none' }}>
+                <source src={errorAudio} type="audio/mp3" />
             </audio>
 
             {window.innerWidth <= 700 ?
