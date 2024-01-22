@@ -61,8 +61,11 @@ export default function Merchent() {
     const secondRef = useRef(null);
 
     useEffect(() => {
-        document.body.style.overflow = 'hidden';
-
+        if(window.innerWidth<700){
+            document.body.style.overflow = 'hidden';
+        }else{
+            document.body.style.overflowX = 'hidden';
+        }
         fetchLoggedInUser();
         fetchDraws();
         // setInterval(calculateRemainingTime,500)
@@ -699,18 +702,18 @@ export default function Merchent() {
         <div className='app-container'>
             {window.innerWidth <= 700 ?
                 <div>
-                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "green", }}>
+                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "#6200ea", }}>
                         <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
                         <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
-                    <div className='d-flex justify-content-around' style={{ backgroundColor: "black", marginTop: "1px" }}>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{timeRemaining}</h6>
+                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop:"6px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop:"6px" }}>{timeRemaining}</h6>
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
-                    <div className='d-flex justify-content-around' style={{ backgroundColor: "black" }}>
-                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", width: "100vw", color: "white", backgroundColor: "black", height: "4vh" }}>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
+                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", width: "100vw", color: "white", backgroundColor: "purple", height: "4vh" }}>
                             <option value="">Select Draw</option>
                             {draws.map((draw) => (
                                 <option key={draw._id} value={draw._id}>
@@ -804,14 +807,14 @@ export default function Merchent() {
                                 </Table>
                             </div>
                         </div>
-                        <div className='col-5 mt-1 bg-dark' style={{ marginLeft: "-11px" }}>
+                        <div className='col-5 mt-2 ' style={{ marginLeft: "-11px", backgroundColor:"purple" }}>
                             <div className=''>
-                                <div className='d-flex justify-content-between  '>
+                                <div className='d-flex justify-content-between  mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
-                                        style={{ fontSize: "0.7rem", marginTop: "0px" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
+                                        style={{ fontSize: "0.7rem", marginTop: "0px", border:"none" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
                                         Oversales
                                     </Button>
-                                    <Button variant='primary btn btn-sm ' onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0} style={{ fontSize: "0.7rem", marginRight: "8px" }}>
+                                    <Button variant='primary btn btn-sm' style={{border:"none"}} onClick={() => setShowSheetModal(true)} disabled={savedPurchases.length <= 0} style={{ fontSize: "0.7rem", marginRight: "8px" }}>
                                         Save
                                     </Button>
 
@@ -1211,16 +1214,16 @@ export default function Merchent() {
                 </div>
                 :
                 <div>
-                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "green", }}>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
+                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "#6200ea", }}>
+                        <h6 style={{ color: "white", fontSize: "1rem", }}>{currentLoggedInUser.username}</h6>
+                        <h6 style={{ color: "white", fontSize: "1rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
                     </div>
-                    <div className='d-flex justify-content-around' style={{ backgroundColor: "black", marginTop: "1px" }}>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{timeRemaining}</h6>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "purple", marginTop: "1px" }}>
+                        <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
+                        <h6 style={{ color: "white", fontSize: "1rem", }}>{timeRemaining}</h6>
                     </div>
-                    <div className='d-flex justify-content-around' style={{ backgroundColor: "black" }}>
-                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", width: "100vw", color: "white", backgroundColor: "black", height: "4vh" }}>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
+                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "1rem", width: "100vw", color: "white", backgroundColor: "purple", height: "4vh" }}>
                             <option value="">Select Draw</option>
                             {draws.map((draw) => (
                                 <option key={draw._id} value={draw._id}>
@@ -1233,7 +1236,7 @@ export default function Merchent() {
                         <div className='col-7'>
                             <div className='row'>
                                 <div className='col-8'>
-                                    <Table bordered hover size="sm" className="" style={{ fontSize: '0.9rem', marginLeft: "10px" }}>
+                                    <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', marginLeft: "10px" }}>
                                         <thead>
                                             <tr>
                                                 <th>Co</th>
@@ -1254,9 +1257,14 @@ export default function Merchent() {
                                 </div>
                                 <div className='col-4' style={{ marginTop: "20px" }}>
                                     <div className='d-flex justify-content-end' >
-                                        <Button variant="btn btn-sm btn-danger" style={{ fontSize: "1rem", marginRight:"5px" }} onClick={handleMultipleSavedPurchaseDelete} disabled={checkedSavedPurchases.length <= 0}>Delete</Button>
-                                    </div>
+                                        <Button variant='primary btn btn-sm'
+                                            style={{ fontSize: "1rem", marginRight:"10px" }}
+                                            onClick={() => setShowModal(true)}>
+                                            SMS
+                                        </Button>
 
+                                        <Button variant="btn btn-sm btn-danger" style={{ fontSize: "1rem", marginRight: "5px" }} onClick={handleMultipleSavedPurchaseDelete} disabled={checkedSavedPurchases.length <= 0}>Delete</Button>
+                                    </div>
                                 </div>
                             </div>
                             <div style={{ marginTop: "-15px" }}>
@@ -1314,9 +1322,9 @@ export default function Merchent() {
                                 </Table>
                             </div>
                         </div>
-                        <div className='col-5 mt-1 bg-dark' style={{ marginLeft: "-11px" }}>
+                        <div className='col-5 mt-1 ' style={{ marginLeft: "-11px", backgroundColor:"purple" }}>
                             <div className=''>
-                                <div className='d-flex justify-content-between  '>
+                                <div className='d-flex justify-content-between mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
                                         style={{ fontSize: "1rem", marginTop: "0px" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
                                         Oversales
@@ -1343,9 +1351,9 @@ export default function Merchent() {
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >
-                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
-                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
-                                                    <td style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+                                                    <td className='col-2' style={{ backgroundColor: getRowColor(purchase.bundle), marginLeft:"10px" }}>{purchase.bundle}</td>
+                                                    <td className='col-2' style={{ backgroundColor: getRowColor(purchase.bundle)}}>{purchase.first}</td>
+                                                    <td className='col-2' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -1357,7 +1365,7 @@ export default function Merchent() {
                     <div style={{ marginTop: "-11px" }}>
                         <hr />
                     </div>
-                    <div className='d-flex justify-content-start' style={{ marginTop: "-12px", marginLeft:"-50px" }}>
+                    <div className='d-flex justify-content-start' style={{ marginTop: "-12px", marginLeft: "-20px" }}>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '1rem', marginTop: "2px" }}>
                                 <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label>
@@ -1409,19 +1417,19 @@ export default function Merchent() {
                                 style={{ width: "90px", fontSize: "1rem", fontWeight: "bold", marginTop: "3px" }}
                             />
                         </div>
-                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' , marginLeft:"-110px"}}>
+                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "-110px" }}>
                             <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
                                 .
                             </h6>
 
                             <Button variant='primary btn btn-sm'
-                                style={{  fontSize: "1rem", marginTop: "2px" }}
+                                style={{ fontSize: "1rem", marginTop: "2px" }}
                                 onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)} >
                                 Add
                             </Button>
                         </div>
 
-                        <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        {/* <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "1rem", marginTop: "4px" }}>
                                 .
                             </h6>
@@ -1431,10 +1439,10 @@ export default function Merchent() {
                                 onClick={() => setShowModal(true)}>
                                 SMS
                             </Button>
-                        </div>
+                        </div> */}
 
                     </div>
-                    
+
                     <div>
                         <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]); handleCurrentOversale(); setShowOversaleModal(false) }}>
                             <Modal.Header closeButton>
@@ -1452,7 +1460,7 @@ export default function Merchent() {
                                     </div>
                                     <div className='d-flex justify-content-end'>
                                         <Button variant='btn btn-danger  btn-sm'
-                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                            style={{ fontSize: "1rem", marginTop: "-20px", marginRight: "3px" }}
                                             onClick={() => { handleCheckedOverSaleDeletes(); }}
                                         >
                                             Delete
@@ -1472,7 +1480,7 @@ export default function Merchent() {
 
                                     </div>
                                 </div>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "3px" }}>
+                                <Table bordered hover size="" className="" style={{ fontSize: '1rem', marginTop: "3px" }}>
                                     <thead>
                                         <tr>
                                             {(overSaleOption == 1 || overSaleOption == 3) &&
@@ -1509,8 +1517,8 @@ export default function Merchent() {
                                         </tr>
                                     </thead>
                                 </Table>
-                                <div style={{ height: '190px', overflowY: 'auto', marginTop: "-17px" }}>
-                                    <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
+                                <div style={{ height: '320px', overflowY: 'auto', marginTop: "-17px" }}>
+                                    <Table bordered hover size="" className="" style={{ fontSize: '1rem', }}>
                                         {overSaleOption == 2 ?
                                             <tbody>
                                                 {oversales.map(purchase => (
