@@ -93,7 +93,7 @@ const DistributorReports = () => {
         try {
             const response = await DrawAPIs.getAllDraws();
             let filteredDraws = response.draws
-            // let filteredDraws = response.draws.filter(draw => draw.drawStatus == false || draw.drawExpired )
+            filteredDraws = response.draws.filter(draw => draw.drawStatus == false || draw.drawExpired )
             setDraws(filteredDraws);
             return filteredDraws
         } catch (error) {

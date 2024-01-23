@@ -12,11 +12,6 @@ import { columnStyles, styles } from './pdfTableStyle';
 import { formatNumberWithTwoDecimals, formatTime } from '../Utils/Utils';
 
 
-
-
-
-
-
 const MerchentReports = () => {
     const [selectedOption, setSelectedOption] = useState("totalSale");
     const [draws, setDraws] = useState([]);
@@ -116,7 +111,7 @@ const MerchentReports = () => {
         try {
             const response = await DrawAPIs.getAllDraws();
             let filteredDraws = response.draws
-            // let filteredDraws = response.draws.filter(draw => draw.drawStatus == false || draw.drawExpired )
+            filteredDraws = response.draws.filter(draw => draw.drawStatus == false || draw.drawExpired )
             setDraws(filteredDraws);
             return filteredDraws
         } catch (error) {
