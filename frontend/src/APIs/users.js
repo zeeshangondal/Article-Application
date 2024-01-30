@@ -2,6 +2,7 @@ import axios from 'axios';
 import { localStorageUtils } from './localStorageUtils';
 
 const API_URL = 'http://localhost:3005/user';
+// const API_URL = 'https://pzprize.com/user';
 
 // Create User Service
 const createUser = async (userData) => {

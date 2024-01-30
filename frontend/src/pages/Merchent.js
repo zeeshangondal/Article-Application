@@ -22,7 +22,7 @@ export default function Merchent() {
     const [checkedSavedPurchases, setCheckedSavedPurchases] = useState([])
     const [checkedOversales, setCheckedOversales] = useState([])
     const [deleteAllCheckedOversalesInput, setDeleteAllCheckedOversalesInput] = useState(false)
-
+    const [isPurchaseMade, setIsPurchaseMade]=useState(false)
     const [timeRemaining, setTimeRemaining] = useState("")
     const [sheetName, setSheetName] = useState('');
     const [message, setMessage] = useState('');
@@ -36,6 +36,7 @@ export default function Merchent() {
     const [currentDraw, setCurrentDraw] = useState(null)
     const [savedPurchases, setSavedPurchases] = useState([]);
     const [availableArticles, setAvailableArticles] = useState(null)
+    const [articleDataFetched, setArticleDataFetched]= useState(false)
     const [notification, setNotification] = useState({
         color: "",
         message: "Success",
@@ -155,6 +156,9 @@ export default function Merchent() {
         }
     }
     const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false,showGreen=true) => {
+        if(isPurchaseMade || !articleDataFetched){
+            return
+        }
         if (!messagePurchase) {
             if (!isCurrentFocusedNotEmpty()) {
                 return
@@ -186,7 +190,7 @@ export default function Merchent() {
         if (first == 0 && second == 0) {
             return
         }
-
+        setIsPurchaseMade(true)
         let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
         let overSaleFirst = 0
@@ -247,10 +251,18 @@ export default function Merchent() {
         if(showGreen){
             successMessage("Purcahse added successfuly")
         }
-        await articlesAPI.updateDigit(data)
-        currentLoggedInUser.balance = currentLoggedInUser.balance - (Number(first) + Number(second))
-        updateCurrentLoggedInUser()
+        if(first>0 || second>0){
+            setSavedPurchases([...savedPurchases,{_id:"", bundle,first,second}])
+        }
+        if(overSaleFirst > 0 || overSaleSecond > 0){
+            setOversales([...oversales,{_id: "",bundle, first: overSaleFirst, second: overSaleSecond}])
+        }
         setForm({ ...form, bundle: '' })
+        currentLoggedInUser.balance = currentLoggedInUser.balance - (Number(first) + Number(second))
+        setCurrentLoggedInUser(currentLoggedInUser)
+        await articlesAPI.updateDigit(data)
+        updateCurrentLoggedInUser()
+        setIsPurchaseMade(false)
         // handleBundleChange(bundle)
         // setShowModal(false);
     };
@@ -316,13 +328,15 @@ export default function Merchent() {
 
     const handleBundleChange = async (bundle) => {
         if (isValidBundle(bundle)) {
+            setArticleDataFetched(false)
             setForm({ ...form, bundle: bundle });
 
             if (bundle.length > 0) {
                 const data = getDataForBundle(bundle, currentDraw);
                 const response = await articlesAPI.getFirstAndSecond(data);
                 setAvailableArticles({ ...response.data });
-                return;
+                setArticleDataFetched(true)
+                return({ ...response.data });
             }
             setAvailableArticles(null);
         }
@@ -448,7 +462,7 @@ export default function Merchent() {
                 purchaseSecond: target.second,
                 type: "+"
             }
-            handleBundleChange(target.bundle)
+            await handleBundleChange(target.bundle)
             successMessage("Removed Successfully")
             await articlesAPI.updateDigit(data)
         } catch (e) { }
@@ -573,14 +587,14 @@ export default function Merchent() {
             setCheckedOversales([...checkedOversales.filter(p => p._id != oversale._id)])
         }
     }
-    const handleMultipleSavedPurchaseDelete = () => {
+    const handleMultipleSavedPurchaseDelete = async() => {
         try {
             if (!window.confirm("You are deleting " + checkedSavedPurchases.length + " entries. Do you confirm ?")) {
                 return
             }
-            checkedSavedPurchases.forEach(async purchase => {
+            for(let purchase of checkedSavedPurchases){
                 await handleRemovingSavedPurchase(purchase._id)
-            })
+            }
             setCheckedSavedPurchases([])
         } catch (e) {
         }

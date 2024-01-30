@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const API_URL = 'http://localhost:3005/article';
+// const API_URL = 'https://pzprize.com/article';
 
 // Create Digit Service
 const createDigit = async (digitData) => {
