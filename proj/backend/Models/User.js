@@ -1,42 +1,48 @@
 const mongoose = require("mongoose");
 
 const UserSchema = mongoose.Schema({
-    limitCuttingSaves:{
+    messagesData: [
+        {
+            drawId: { type: String },
+            messages: [String]
+        }
+    ],
+    limitCuttingSaves: {
         firstA: {
-            type:Number,
-            default:null
+            type: Number,
+            default: null
         },
         secondA: {
-            type:Number,
-            default:null
+            type: Number,
+            default: null
         },
-        firstB:{
-            type:Number,
-            default:null
+        firstB: {
+            type: Number,
+            default: null
         },
         secondB: {
-            type:Number,
-            default:null
+            type: Number,
+            default: null
         },
         firstC: {
-            type:Number,
-            default:null
+            type: Number,
+            default: null
         },
         firstC: {
-            type:Number,
-            default:null
+            type: Number,
+            default: null
         },
         secondC: {
-            type:Number,
-            default:null
+            type: Number,
+            default: null
         },
         firstD: {
-            type:Number,
-            default:null
+            type: Number,
+            default: null
         },
         secondD: {
-            type:Number,
-            default:null
+            type: Number,
+            default: null
         },
     },
     userId: {
@@ -81,7 +87,7 @@ const UserSchema = mongoose.Schema({
         share: { type: Number, default: 0 },
         pcPercentage: { type: Number, default: 0 },
         pcShare: { type: Number, default: 0 },
-        
+
         shareEnabled: {
             type: Boolean,
             default: false
@@ -100,7 +106,7 @@ const UserSchema = mongoose.Schema({
             type: Boolean,
             default: false
         },
-    
+
     },
     generalInfo: {
         name: { type: String, default: '' },
@@ -160,7 +166,7 @@ const UserSchema = mongoose.Schema({
     },
 
 
-    
+
     transactionHistory: [{
         description: {
             type: String,

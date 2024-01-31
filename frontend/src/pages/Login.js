@@ -69,9 +69,6 @@ export default function Login(props) {
                             <input type="password" className="form-control mt-3" name="password" value={formData.password} onChange={handleChange} required />
                         </div>
                         <div className="d-flex justify-content-end" style={{ marginTop: '5vh' }}>
-                            <button type="button" className="btn btn-secondary m-1" onClick={handleReset}>
-                                Reset
-                            </button>
                             <button type="submit" className="btn btn-primary m-1">
                                 Log In
                             </button>
