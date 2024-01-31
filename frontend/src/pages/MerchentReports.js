@@ -111,7 +111,7 @@ const MerchentReports = () => {
         try {
             const response = await DrawAPIs.getAllDraws();
             let filteredDraws = response.draws
-            filteredDraws = response.draws.filter(draw => draw.drawStatus == false || draw.drawExpired )
+            filteredDraws = [...response.draws]
             setDraws(filteredDraws);
             return filteredDraws
         } catch (error) {
@@ -150,9 +150,13 @@ const MerchentReports = () => {
     const handleTotalSaleChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
-            let tempDraw = draws.find(draw => draw.drawDate == value)
+            let tempDraw = draws.find(draw => draw.drawDate == value )
             if (!tempDraw) {
                 alertMessage("No Record of Draw")
+                return
+            }
+            if( tempDraw.drawStatus == true || tempDraw.drawExpired){
+                alertMessage("Draw is active")
                 return
             }
             setSelectedDraw(tempDraw)

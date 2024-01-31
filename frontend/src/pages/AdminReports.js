@@ -109,7 +109,7 @@ const AdminReports = () => {
         try {
             const response = await DrawAPIs.getAllDraws();
             let filteredDraws = response.draws
-            filteredDraws = response.draws.filter(draw => draw.drawStatus == false || draw.drawExpired )
+            filteredDraws = [...response.draws]
             setDraws(filteredDraws);
             return filteredDraws
         } catch (error) {

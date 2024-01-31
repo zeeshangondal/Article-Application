@@ -91,6 +91,8 @@ export default function Merchent() {
             document.body.style.overflow = 'auto';
             // localStorage.removeItem("jwt_token");
             // localStorageUtils.removeLoggedInUser();
+            if(intervalId)
+                clearInterval(intervalId);
         };
 
     }, []);
@@ -346,11 +348,15 @@ export default function Merchent() {
         }
     };
 
+    const [intervalId,setIntervalId]=useState(null)
     const handleChangeDraw = async (event) => {
         let value = event.target.value
 
         if (value == form.selectedDraw) {
             return
+        }
+        if(intervalId){
+            clearInterval(intervalId);
         }
         setForm({ ...form, selectedDraw: value })
         if (value == '') {
@@ -363,7 +369,8 @@ export default function Merchent() {
         setCurrentDraw(fetchedDraws.find(draw => draw._id == value))
         getSavedPurchasesOfCurrentDraw(value)
         drawAudioRef?.current?.play()
-        setInterval(() => calculateRemainingTime(fetchedDraws.find(draw => draw._id == value)), 1000)
+        const newIntervalId=setInterval(() => calculateRemainingTime(fetchedDraws.find(draw => draw._id == value)), 1000)
+        setIntervalId(newIntervalId);
     }
 
     const getCount = () => {
