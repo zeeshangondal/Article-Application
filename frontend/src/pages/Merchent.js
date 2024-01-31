@@ -22,7 +22,7 @@ export default function Merchent() {
     const [checkedSavedPurchases, setCheckedSavedPurchases] = useState([])
     const [checkedOversales, setCheckedOversales] = useState([])
     const [deleteAllCheckedOversalesInput, setDeleteAllCheckedOversalesInput] = useState(false)
-    const [isPurchaseMade, setIsPurchaseMade]=useState(false)
+    const [isPurchaseMade, setIsPurchaseMade] = useState(false)
     const [timeRemaining, setTimeRemaining] = useState("")
     const [sheetName, setSheetName] = useState('');
     const [message, setMessage] = useState('');
@@ -36,7 +36,7 @@ export default function Merchent() {
     const [currentDraw, setCurrentDraw] = useState(null)
     const [savedPurchases, setSavedPurchases] = useState([]);
     const [availableArticles, setAvailableArticles] = useState(null)
-    const [articleDataFetched, setArticleDataFetched]= useState(false)
+    const [articleDataFetched, setArticleDataFetched] = useState(false)
     const [notification, setNotification] = useState({
         color: "",
         message: "Success",
@@ -72,11 +72,11 @@ export default function Merchent() {
         window.location = "/login"
     }
 
-    
+
     useEffect(() => {
-        try{
+        try {
             loginAudioRef?.current?.play();
-        }catch(e){}
+        } catch (e) { }
 
 
         if (window.innerWidth < 700) {
@@ -88,7 +88,7 @@ export default function Merchent() {
         fetchDraws();
         // setInterval(calculateRemainingTime,500)
         return () => {
-            document.body.style.overflow = 'auto'; 
+            document.body.style.overflow = 'auto';
             // localStorage.removeItem("jwt_token");
             // localStorageUtils.removeLoggedInUser();
         };
@@ -145,18 +145,20 @@ export default function Merchent() {
         fetchLoggedInUser()
     }
     function isCurrentFocusedNotEmpty() {
+        let first = form.first + ""
+        let second = form.second + ""
         if (currentFocused == 1) {
             return form.bundle && 1
         }
         if (currentFocused == 2) {
-            return form.first && 1
+            return first && 1
         }
         if (currentFocused == 3) {
-            return form.second && 1
+            return second && 1
         }
     }
-    const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false,showGreen=true) => {
-        if(isPurchaseMade || !articleDataFetched){
+    const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false, showGreen = true) => {
+        if (isPurchaseMade || !articleDataFetched) {
             return
         }
         if (!messagePurchase) {
@@ -183,11 +185,13 @@ export default function Merchent() {
             }
 
         }
-        if (!first || !second || !bundle) {
+        let firstStr = first + ""
+        let secondStr = second + ""
+        if (!firstStr || !secondStr || !bundle) {
             return
         }
 
-        if (first == 0 && second == 0) {
+        if (first <= 0 && second <= 0) {
             return
         }
         setIsPurchaseMade(true)
@@ -248,14 +252,14 @@ export default function Merchent() {
             type: "-",
             askingUser: localStorageUtils.getLoggedInUser()._id
         }
-        if(showGreen){
+        if (showGreen) {
             successMessage("Purcahse added successfuly")
         }
-        if(first>0 || second>0){
-            setSavedPurchases([...savedPurchases,{_id:"", bundle,first,second}])
+        if (first > 0 || second > 0) {
+            setSavedPurchases([...savedPurchases, { _id: "", bundle, first, second }])
         }
-        if(overSaleFirst > 0 || overSaleSecond > 0){
-            setOversales([...oversales,{_id: "",bundle, first: overSaleFirst, second: overSaleSecond}])
+        if (overSaleFirst > 0 || overSaleSecond > 0) {
+            setOversales([...oversales, { _id: "", bundle, first: overSaleFirst, second: overSaleSecond }])
         }
         setForm({ ...form, bundle: '' })
         currentLoggedInUser.balance = currentLoggedInUser.balance - (Number(first) + Number(second))
@@ -336,7 +340,7 @@ export default function Merchent() {
                 const response = await articlesAPI.getFirstAndSecond(data);
                 setAvailableArticles({ ...response.data });
                 setArticleDataFetched(true)
-                return({ ...response.data });
+                return ({ ...response.data });
             }
             setAvailableArticles(null);
         }
@@ -345,7 +349,7 @@ export default function Merchent() {
     const handleChangeDraw = async (event) => {
         let value = event.target.value
 
-        if(value==form.selectedDraw){
+        if (value == form.selectedDraw) {
             return
         }
         setForm({ ...form, selectedDraw: value })
@@ -398,28 +402,29 @@ export default function Merchent() {
     }
 
     function parseInputMessage(message) {
-        if (message.length == 0) {
-            setMessagePurchases([])
-            return
+        if (message.length === 0) {
+            setMessagePurchases([]);
+            return;
         }
         try {
-            let tempMessagePurchases = []
-            let tempMessage = message.replace(/\s/g, '');
-            let lines = tempMessage.split(",")
+            let tempMessagePurchases = [];
+            let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.'); // Replacing commas with dots
+            let lines = tempMessage.split(",");
             lines.forEach(line => {
-                let lineSplits = line.split(".")
-                let second = Number((lineSplits[lineSplits.length - 1]).slice(1))
-                let first = Number((lineSplits[lineSplits.length - 2]).slice(1))
+                let lineSplits = line.split(".");
+                let second = Number((lineSplits[lineSplits.length - 1]).slice(1));
+                let first = Number((lineSplits[lineSplits.length - 2]).slice(1));
                 for (let i = 0; i < lineSplits.length - 2; i++) {
-                    tempMessagePurchases.push({ bundle: lineSplits[i], first, second })
+                    tempMessagePurchases.push({ bundle: lineSplits[i], first, second });
                 }
-            })
-            setMessagePurchases([...tempMessagePurchases])
+            });
+            setMessagePurchases([...tempMessagePurchases]);
         } catch (e) {
+            // Handle the error
         }
     }
     const handleMakeMessagePurchases = async () => {
-        let count=0
+        let count = 0
         let allDone = true
         for (const purchase of messagePurchases) {
             try {
@@ -432,9 +437,9 @@ export default function Merchent() {
                     alertMessage("Insufficient balance for purchase\n" + "Num: " + purchase.bundle + " , First: " + purchase.first + " , Second: " + purchase.second)
                     return
                 }
-                await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice, true,false)
+                await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice, true, false)
                 count++
-                successMessage(count+"/"+messagePurchases.length+" Purchases Added")
+                successMessage(count + "/" + messagePurchases.length + " Purchases Added")
             } catch (e) {
                 allDone = false
                 let msg = `Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
@@ -444,6 +449,15 @@ export default function Merchent() {
         }
         if (allDone) {
             setMessagePurchases([])
+            let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
+            if (currentLoggedInUser.messagesData.find(data => data.drawId == currentDraw._id)) {
+                console.log("EXISTS")
+                currentLoggedInUser.messagesData.find(data => data.drawId == currentDraw._id).messages.push(tempMessage)
+            } else {
+                console.log("NOT EXISTS", tempMessage)
+                currentLoggedInUser.messagesData.push({ drawId: currentDraw._id, messages: [tempMessage] })
+            }
+            updateCurrentLoggedInUser()
         }
     }
     const handleRemovingSavedPurchase = async (_id) => {
@@ -587,12 +601,12 @@ export default function Merchent() {
             setCheckedOversales([...checkedOversales.filter(p => p._id != oversale._id)])
         }
     }
-    const handleMultipleSavedPurchaseDelete = async() => {
+    const handleMultipleSavedPurchaseDelete = async () => {
         try {
             if (!window.confirm("You are deleting " + checkedSavedPurchases.length + " entries. Do you confirm ?")) {
                 return
             }
-            for(let purchase of checkedSavedPurchases){
+            for (let purchase of checkedSavedPurchases) {
                 await handleRemovingSavedPurchase(purchase._id)
             }
             setCheckedSavedPurchases([])
@@ -787,6 +801,28 @@ export default function Merchent() {
             }
         }
     };
+    function getTotalMessageCount() {
+        let res = currentLoggedInUser?.messagesData?.find(data => data.drawId == currentDraw?._id)?.messages?.length
+        if (!res) {
+            return 0
+        }
+        return res
+    }
+    function getMessageRepeatCount() {
+        let messages = currentLoggedInUser?.messagesData?.find(data => data.drawId == currentDraw?._id)?.messages
+        if (messages) {
+            let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
+            let sameMessages = messages.filter(msg => msg == tempMessage)
+            if (sameMessages) {
+                return sameMessages.length
+            } else {
+                return 0
+            }
+        } else {
+            return 0
+        }
+
+    }
 
     return (
         <div className='app-container'>
@@ -1259,6 +1295,10 @@ export default function Merchent() {
                                 <Modal.Title>Paste SMS</Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
+                                <div className='d-flex justify-content-between'>
+                                    <h6>Total: {getTotalMessageCount()}</h6>
+                                    <h6>Reapted: {getMessageRepeatCount()}</h6>
+                                </div>
                                 <Form style={{ fontSize: '0.9rem' }}>
                                     <div className=''>
                                         <Row>
@@ -1758,6 +1798,11 @@ export default function Merchent() {
                                 <Modal.Title>Paste SMS</Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
+                            <div className='d-flex justify-content-between'>
+                                    <h6>Total: {getTotalMessageCount()}</h6>
+                                    <h6>Reapted: {getMessageRepeatCount()}</h6>
+                                </div>
+
                                 <Form style={{ fontSize: '0.9rem' }}>
                                     <div className=''>
                                         <Row>
