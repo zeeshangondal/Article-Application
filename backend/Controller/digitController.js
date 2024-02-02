@@ -149,8 +149,77 @@ const updateDigit = async (req, res) => {
         console.error(err);
         res.status(500).send({ message: "Error", err });
     }
+}
+
+
+const removeBulkPurchase = async (req, res) => {
+    let { draw_id, user_id, purchases } = req.body
+    try {
+        let user = await User.findById(user_id);
+        let parentUser = await getTheMainCreatorOfUser(user._id.toString())
+        let purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)
+        let fetchedDigits = {};
+        for (const purchase of purchases) {
+            let {bundle,first,second,firstLimitOfDraw,secondLimitOfDraw}=purchase
+
+            let parentData = getFirstAndSecondDigitRefs(bundle, parentUser.toObject())
+            let firstDigit = fetchedDigits[purchase.firstDigitId] || await Digit.findById(purchase.firstDigitId);
+            let secondDigit = fetchedDigits[purchase.secondDigitId] || await Digit.findById(purchase.secondDigitId);
+            let parentFirstDigit = fetchedDigits[parentData.firstDigit.toString()] || await Digit.findById(parentData.firstDigit.toString());
+            let parentSecondDigit = fetchedDigits[parentData.secondDigit.toString()] || await Digit.findById(parentData.secondDigit.toString());
+
+            // Store fetched digits in the fetchedDigits object
+            fetchedDigits[purchase.firstDigitId] = firstDigit;
+            fetchedDigits[purchase.secondDigitId] = secondDigit;
+            fetchedDigits[parentData.firstDigit.toString()] = parentFirstDigit;
+            fetchedDigits[parentData.secondDigit.toString()] = parentSecondDigit;
+
+            
+            let remaingForParent = (Number(firstDigit.articles[bundle]) + Number(first)) - firstLimitOfDraw
+            let forFirstDigit = first
+            if (remaingForParent > 0) {
+                forFirstDigit = first - remaingForParent
+            }
+            firstDigit.articles[bundle] = Number(firstDigit.articles[bundle]) + Number(forFirstDigit)
+            parentFirstDigit.articles[bundle] = Number(parentFirstDigit.articles[bundle]) + Number(remaingForParent)
+            firstDigit.markModified('articles');
+            // await firstDigit.save()
+            if (remaingForParent > 0) {
+                parentFirstDigit.markModified('articles');
+                // await parentFirstDigit.save()
+            }
+
+            remaingForParent = (Number(secondDigit.articles[bundle]) + Number(second)) - secondLimitOfDraw
+            let forSecondDigit = second
+            if (remaingForParent > 0) {
+                forSecondDigit = second - remaingForParent
+            }
+            secondDigit.articles[bundle] = Number(secondDigit.articles[bundle]) + Number(forSecondDigit)
+            parentSecondDigit.articles[bundle] = Number(parentSecondDigit.articles[bundle]) + Number(remaingForParent)
+            secondDigit.markModified('articles');
+            // await secondDigit.save()
+            if (remaingForParent > 0) {
+                parentSecondDigit.markModified('articles');
+                // await parentSecondDigit.save()
+            }
+            user.balance = user.balance + (Number(first) + Number(second))
+            purchasedFromDrawData.savedPurchases=purchasedFromDrawData.savedPurchases.filter(purs=> purs._id!=purchase._id)
+        }
+        let savePromises = [];
+        Object.values(fetchedDigits).forEach(digit => {
+            if (digit.isModified()) { // Check if any modifications were made
+                savePromises.push(digit.save());
+            }
+        });
+        await Promise.all(savePromises);        
+        let updatedUser = await user.save()
+        res.status(200).send({ message: "Success", user: updatedUser });
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ message: "Error", err });
+    }
 };
-//draw _id, user _id, [bundle, first, second, firstDigitId,secondDigitId]  
+
 const makeBulkPurchase = async (req, res) => {
     let { draw_id, user_id, purchases } = req.body
     try {
@@ -186,10 +255,6 @@ const makeBulkPurchase = async (req, res) => {
             fetchedDigits[parentData.firstDigit.toString()] = parentFirstDigit;
             fetchedDigits[parentData.secondDigit.toString()] = parentSecondDigit;
 
-            // console.log(firstDigit?"First Digit":"Not first Digit")
-            // console.log(secondDigit?"Second Digit":"Not Second Digit")
-            // console.log(parentFirstDigit?"Parent First Digit":" Parent Not first Digit")
-            // console.log(parentSecondDigit?"Parent  Second Digit":"Parent  Not Second Digit")
             let overFirst = 0, overSecond = 0;
             if (first > Number(firstDigit.articles[bundle]) + Number(parentFirstDigit.articles[bundle])) {
                 overFirst = first - Number(firstDigit.articles[bundle]) + Number(parentFirstDigit.articles[bundle])
@@ -199,7 +264,8 @@ const makeBulkPurchase = async (req, res) => {
                 overSecond = second - Number(secondDigit.articles[bundle]) + Number(parentSecondDigit.articles[bundle])
                 second = second - overSecond
             }
-            if (user.balance < first + second) {
+            if (user.balance < Number(first) + Number(second)) {
+                // console.log("Balance: "+user.balance, "first: "+first, "second: "+second )
                 inSufCount++
                 continue
             }
@@ -213,40 +279,32 @@ const makeBulkPurchase = async (req, res) => {
                 if (parentFirstDigit.articles[bundle] >= first) {
                     parentFirstDigit.articles[bundle] = parentFirstDigit.articles[bundle] - first
                     parentFirstDigit.markModified('articles');
-                    // await parentFirstDigit.save()
                 } else {
                     let remaingPurchaseFirst = first - parentFirstDigit.articles[bundle]
                     parentFirstDigit.articles[bundle] = 0
                     parentFirstDigit.markModified('articles');
-                    // await parentFirstDigit.save()
                     firstDigit.articles[bundle] = firstDigit.articles[bundle] - remaingPurchaseFirst
                     firstDigit.markModified('articles');
-                    // await firstDigit.save()
                 }
             } else {
                 firstDigit.articles[bundle] = firstDigit.articles[bundle] - first
                 firstDigit.markModified('articles');
-                // await firstDigit.save()
             }
             //second digit
             if (parentSecondDigit.articles[purchase.bundle] > 0) {
                 if (parentSecondDigit.articles[bundle] >= second) {
                     parentSecondDigit.articles[bundle] = parentSecondDigit.articles[bundle] - second
                     parentSecondDigit.markModified('articles');
-                    // await parentSecondDigit.save()
                 } else {
                     let remaingPurchaseSecond = second - parentSecondDigit.articles[bundle]
                     parentSecondDigit.articles[bundle] = 0
                     parentSecondDigit.markModified('articles');
-                    // await parentSecondDigit.save()
                     secondDigit.articles[bundle] = secondDigit.articles[bundle] - remaingPurchaseSecond
                     secondDigit.markModified('articles');
-                    // await secondDigit.save()
                 }
             } else {
                 secondDigit.articles[bundle] = secondDigit.articles[bundle] - second
                 secondDigit.markModified('articles');
-                // await secondDigit.save()
             }
         }
         let savePromises = [];
@@ -388,5 +446,6 @@ module.exports = {
     getAllDigits,
     getDigitById,
     getFirstAndSecond,
-    makeBulkPurchase
+    makeBulkPurchase,
+    removeBulkPurchase
 };

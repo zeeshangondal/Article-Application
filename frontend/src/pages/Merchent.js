@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import APIs from '../APIs/users';
 import articlesAPI from '../APIs/articles';
 
-import SearchDivBackgroundDiv from '../components/SearchDivBackgroundDiv';
 import { Button, Col, Form, Modal, Row, Table } from 'react-bootstrap';
 import { localStorageUtils } from '../APIs/localStorageUtils';
 import DrawAPIs from '../APIs/draws';
@@ -17,7 +16,9 @@ import axios from 'axios';
 export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
     const [showModal, setShowModal] = useState(false);
-    const [isLoading,setIsLoading]=useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+
     const [showSheetModal, setShowSheetModal] = useState(false);
     const [showOversaleEditModal, setShowOversaleEditModal] = useState(false);
     const [auto, setAuto] = useState(false);
@@ -39,6 +40,7 @@ export default function Merchent() {
     const [savedPurchases, setSavedPurchases] = useState([]);
     const [availableArticles, setAvailableArticles] = useState(null)
     const [articleDataFetched, setArticleDataFetched] = useState(false)
+
     const [notification, setNotification] = useState({
         color: "",
         message: "Success",
@@ -93,7 +95,7 @@ export default function Merchent() {
             document.body.style.overflow = 'auto';
             // localStorage.removeItem("jwt_token");
             // localStorageUtils.removeLoggedInUser();
-            if(intervalId)
+            if (intervalId)
                 clearInterval(intervalId);
         };
 
@@ -123,8 +125,8 @@ export default function Merchent() {
         }
     };
 
-    const getSavedPurchasesOfCurrentDraw = (selectedDraw,loggedInUser=null) => {
-        let currentLoggedInUser1= loggedInUser? loggedInUser: currentLoggedInUser
+    const getSavedPurchasesOfCurrentDraw = (selectedDraw, loggedInUser = null) => {
+        let currentLoggedInUser1 = loggedInUser ? loggedInUser : currentLoggedInUser
         let purchasedFromDrawData = currentLoggedInUser1.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === selectedDraw)
 
@@ -146,15 +148,15 @@ export default function Merchent() {
     };
 
     const updateCurrentLoggedInUser = async () => {
-        try{
+        try {
             console.log("Updating current user!!!!!!!!!!")
-            const res=await APIs.updateUser(currentLoggedInUser)
-            setCurrentLoggedInUser({...res.user})
-            if(form.selectedDraw){
-                getSavedPurchasesOfCurrentDraw(form.selectedDraw,res.user)
+            const res = await APIs.updateUser(currentLoggedInUser)
+            setCurrentLoggedInUser({ ...res.user })
+            if (form.selectedDraw) {
+                getSavedPurchasesOfCurrentDraw(form.selectedDraw, res.user)
             }
-        }catch(e){}
-        
+        } catch (e) { }
+
     }
     function isCurrentFocusedNotEmpty() {
         let first = form.first + ""
@@ -174,7 +176,7 @@ export default function Merchent() {
             if (isPurchaseMade || !articleDataFetched) {
                 return
             }
-    
+
             if (!isCurrentFocusedNotEmpty()) {
                 return
             }
@@ -359,14 +361,14 @@ export default function Merchent() {
         }
     };
 
-    const [intervalId,setIntervalId]=useState(null)
+    const [intervalId, setIntervalId] = useState(null)
     const handleChangeDraw = async (event) => {
         let value = event.target.value
 
         if (value == form.selectedDraw) {
             return
         }
-        if(intervalId){
+        if (intervalId) {
             clearInterval(intervalId);
         }
         setForm({ ...form, selectedDraw: value })
@@ -380,7 +382,7 @@ export default function Merchent() {
         setCurrentDraw(fetchedDraws.find(draw => draw._id == value))
         getSavedPurchasesOfCurrentDraw(value)
         drawAudioRef?.current?.play()
-        const newIntervalId=setInterval(() => calculateRemainingTime(fetchedDraws.find(draw => draw._id == value)), 1000)
+        const newIntervalId = setInterval(() => calculateRemainingTime(fetchedDraws.find(draw => draw._id == value)), 1000)
         setIntervalId(newIntervalId);
     }
 
@@ -443,24 +445,24 @@ export default function Merchent() {
     }
     const handleMakeMessagePurchases = async () => {
         setIsLoading(true)
-        let purchases=messagePurchases.map(purchase=>{
-            return ({...getDataForBundle(purchase.bundle, currentDraw), ...purchase})
+        let purchases = messagePurchases.map(purchase => {
+            return ({ ...getDataForBundle(purchase.bundle, currentDraw), ...purchase })
         })
-        let temp={
-            draw_id:currentDraw._id,
+        let temp = {
+            draw_id: currentDraw._id,
             user_id: currentLoggedInUser._id,
             purchases: purchases
         }
-        let response=await articlesAPI.makeBulkPurchase(temp)
-        if(response.user){
+        let response = await articlesAPI.makeBulkPurchase(temp)
+        if (response.user) {
             successMessage("Purchases Saved")
-            setCurrentLoggedInUser({...response.user})
-            if(form.selectedDraw){
-                getSavedPurchasesOfCurrentDraw(form.selectedDraw,response.user)
+            setCurrentLoggedInUser({ ...response.user })
+            if (form.selectedDraw) {
+                getSavedPurchasesOfCurrentDraw(form.selectedDraw, response.user)
             }
-            if(response.inSufCount>0){
-                alertMessage("Due to insufficent balance "+response.inSufCount+" purchases are not made")
-            }
+            // if (response.inSufCount > 0) {
+            //     alertMessage("Due to insufficent balance " + response.inSufCount + " purchases are not made")
+            // }
         }
         setIsLoading(false)
     }
@@ -610,10 +612,28 @@ export default function Merchent() {
             if (!window.confirm("You are deleting " + checkedSavedPurchases.length + " entries. Do you confirm ?")) {
                 return
             }
-            for (let purchase of checkedSavedPurchases) {
-                await handleRemovingSavedPurchase(purchase._id)
+            setIsDeleting(true)
+            let purchases = checkedSavedPurchases.map(purchase => {
+                return ({ ...getDataForBundle(purchase.bundle, currentDraw), ...purchase })
+            })
+            let temp = {
+                draw_id: currentDraw._id,
+                user_id: currentLoggedInUser._id,
+                purchases: purchases
             }
+            let response = await articlesAPI.removeBulkPurchase(temp)
+            if (response.user) {
+                successMessage("Purchases Removed")
+                setCurrentLoggedInUser({ ...response.user })
+                if (form.selectedDraw) {
+                    getSavedPurchasesOfCurrentDraw(form.selectedDraw, response.user)
+                }
+            }
+            // for (let purchase of checkedSavedPurchases) {
+            //     await handleRemovingSavedPurchase(purchase._id)
+            // }
             setCheckedSavedPurchases([])
+            setIsDeleting(false)
         } catch (e) {
         }
     }
@@ -890,7 +910,12 @@ export default function Merchent() {
                                 </div>
                                 <div className='col-4' style={{ marginTop: "20px" }}>
                                     <div className='d-flex justify-content-end' >
-                                        <Button variant="btn btn-sm btn-danger" style={{ fontSize: "0.7rem" }} onClick={handleMultipleSavedPurchaseDelete} disabled={checkedSavedPurchases.length <= 0}>Delete</Button>
+                                        <Button variant="btn btn-sm btn-danger"
+                                            style={{ fontSize: "0.7rem" }}
+                                            onClick={handleMultipleSavedPurchaseDelete}
+                                            disabled={checkedSavedPurchases.length <= 0 || isDeleting }>
+                                                {isDeleting? "Deleting":"Delete"}
+                                        </Button>
                                     </div>
 
                                 </div>
@@ -1303,10 +1328,10 @@ export default function Merchent() {
                                     <h6>Total: {getTotalMessageCount()}</h6>
                                     <h6>Reapted: {getMessageRepeatCount()}</h6>
                                 </div>
-                                {isLoading&&
-                                <div>
-                                    <h6>Loading</h6>
-                                </div>
+                                {isLoading &&
+                                    <div>
+                                        <h6>Making Purchases</h6>
+                                    </div>
                                 }
                                 <Form style={{ fontSize: '0.9rem' }}>
                                     <div className=''>
@@ -1350,8 +1375,11 @@ export default function Merchent() {
                                                     Cancel
                                                 </Button>
 
-                                                <Button variant='primary btn btn-sm' onClick={handleMakeMessagePurchases} >
-                                                    Confirm
+                                                <Button variant='primary btn btn-sm' 
+                                                onClick={handleMakeMessagePurchases}
+                                                disabled={isLoading}
+                                                >
+                                                    {isLoading? "Loading": "Confirm"}
                                                 </Button>
                                             </div>
                                         </div>
@@ -1415,7 +1443,13 @@ export default function Merchent() {
                                             SMS
                                         </Button>
 
-                                        <Button variant="btn btn-sm btn-danger" style={{ fontSize: "1rem", marginRight: "5px" }} onClick={handleMultipleSavedPurchaseDelete} disabled={checkedSavedPurchases.length <= 0}>Delete</Button>
+                                        <Button
+                                            variant="btn btn-sm btn-danger"
+                                            style={{ fontSize: "1rem", marginRight: "5px" }}
+                                            onClick={handleMultipleSavedPurchaseDelete}
+                                            disabled={checkedSavedPurchases.length <= 0 || isDeleting}>
+                                            {isDeleting ? "Deleting" : "Delete"}
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
@@ -1807,14 +1841,14 @@ export default function Merchent() {
                                 <Modal.Title>Paste SMS</Modal.Title>
                             </Modal.Header>
                             <Modal.Body>
-                            <div className='d-flex justify-content-between'>
+                                <div className='d-flex justify-content-between'>
                                     <h6>Total: {getTotalMessageCount()}</h6>
                                     <h6>Reapted: {getMessageRepeatCount()}</h6>
                                 </div>
-                                {isLoading&&
-                                <div>
-                                    <h6>Loading</h6>
-                                </div>
+                                {isLoading &&
+                                    <div>
+                                        <h6>Loading</h6>
+                                    </div>
                                 }
                                 <Form style={{ fontSize: '0.9rem' }}>
                                     <div className=''>

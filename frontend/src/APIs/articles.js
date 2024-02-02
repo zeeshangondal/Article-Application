@@ -17,6 +17,19 @@ const makeBulkPurchase = async (data) => {
         return false;
     }
 };
+const removeBulkPurchase= async (data) => {
+    try {
+        const response = await axios.post(`${API_URL}/remove_bulk_purchase`, data);
+        if (response.status === 201) {
+            alert(response.data.message);
+            return false;
+        }
+        return response.data;
+    } catch (error) {
+        alert("Error creating digit");
+        return false;
+    }
+};
 
 
 // Create Digit Service
@@ -83,5 +96,5 @@ const deleteDigit = async (id) => {
     }
 };
 
-const articles = { createDigit, getDigit, getAllDigits, updateDigit, deleteDigit ,getFirstAndSecond,makeBulkPurchase};
+const articles = { removeBulkPurchase,createDigit, getDigit, getAllDigits, updateDigit, deleteDigit ,getFirstAndSecond,makeBulkPurchase};
 export default  articles;
