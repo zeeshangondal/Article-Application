@@ -160,7 +160,7 @@ const removeBulkPurchase = async (req, res) => {
         let purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)
         let fetchedDigits = {};
         for (const purchase of purchases) {
-            let {bundle,first,second,firstLimitOfDraw,secondLimitOfDraw}=purchase
+            let { bundle, first, second, firstLimitOfDraw, secondLimitOfDraw } = purchase
 
             let parentData = getFirstAndSecondDigitRefs(bundle, parentUser.toObject())
             let firstDigit = fetchedDigits[purchase.firstDigitId] || await Digit.findById(purchase.firstDigitId);
@@ -174,7 +174,7 @@ const removeBulkPurchase = async (req, res) => {
             fetchedDigits[parentData.firstDigit.toString()] = parentFirstDigit;
             fetchedDigits[parentData.secondDigit.toString()] = parentSecondDigit;
 
-            
+
             let remaingForParent = (Number(firstDigit.articles[bundle]) + Number(first)) - firstLimitOfDraw
             let forFirstDigit = first
             if (remaingForParent > 0) {
@@ -203,7 +203,7 @@ const removeBulkPurchase = async (req, res) => {
                 // await parentSecondDigit.save()
             }
             user.balance = user.balance + (Number(first) + Number(second))
-            purchasedFromDrawData.savedPurchases=purchasedFromDrawData.savedPurchases.filter(purs=> purs._id!=purchase._id)
+            purchasedFromDrawData.savedPurchases = purchasedFromDrawData.savedPurchases.filter(purs => purs._id != purchase._id)
         }
         let savePromises = [];
         Object.values(fetchedDigits).forEach(digit => {
@@ -211,7 +211,7 @@ const removeBulkPurchase = async (req, res) => {
                 savePromises.push(digit.save());
             }
         });
-        await Promise.all(savePromises);        
+        await Promise.all(savePromises);
         let updatedUser = await user.save()
         res.status(200).send({ message: "Success", user: updatedUser });
     } catch (err) {
@@ -221,23 +221,23 @@ const removeBulkPurchase = async (req, res) => {
 };
 
 const makeBulkPurchase = async (req, res) => {
-    let { draw_id, user_id, purchases } = req.body
+    let { draw_id, user_id, purchases, message } = req.body
     try {
         let user = await User.findById(user_id);
         let parentUser = await getTheMainCreatorOfUser(user._id.toString())
         let purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)
-        if(!purchasedFromDrawData){
+        if (!purchasedFromDrawData) {
 
             user.purchasedFromDrawData.push({
-                drawId:draw_id,
-                savedPurchases:[],
-                savedOversales:[]
+                drawId: draw_id,
+                savedPurchases: [],
+                savedOversales: []
             })
-            purchasedFromDrawData=user.purchasedFromDrawData.find(data => data.drawId == draw_id)
+            purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)
         }
 
         let fetchedDigits = {};
-        let inSufCount=0
+        let inSufCount = 0
         for (const purchase of purchases) {
             let bundle = purchase.bundle
             let first = purchase.first
@@ -314,8 +314,13 @@ const makeBulkPurchase = async (req, res) => {
             }
         });
         await Promise.all(savePromises);
+        if (user.messagesData.find(data => data.drawId == draw_id)) {
+            user.messagesData.find(data => data.drawId == draw_id).messages.push(message)
+        } else {
+            user.messagesData.push({ drawId: draw_id, messages: [message] })
+        }
         let updatedUser = await user.save()
-        res.status(200).send({ message: "Success", user: updatedUser,inSufCount });
+        res.status(200).send({ message: "Success", user: updatedUser, inSufCount });
     } catch (err) {
         console.log(err)
         res.status(500).send({ message: "Error", err });

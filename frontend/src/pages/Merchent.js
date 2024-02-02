@@ -448,10 +448,12 @@ export default function Merchent() {
         let purchases = messagePurchases.map(purchase => {
             return ({ ...getDataForBundle(purchase.bundle, currentDraw), ...purchase })
         })
+        let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
         let temp = {
             draw_id: currentDraw._id,
             user_id: currentLoggedInUser._id,
-            purchases: purchases
+            purchases: purchases,
+            message:tempMessage
         }
         let response = await articlesAPI.makeBulkPurchase(temp)
         if (response.user) {
@@ -463,6 +465,14 @@ export default function Merchent() {
             // if (response.inSufCount > 0) {
             //     alertMessage("Due to insufficent balance " + response.inSufCount + " purchases are not made")
             // }
+            setMessagePurchases([])
+            // let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
+            // if (response.user.messagesData.find(data => data.drawId == currentDraw._id)) {
+            //     response.user.messagesData.find(data => data.drawId == currentDraw._id).messages.push(tempMessage)
+            // } else {
+            //     response.user.messagesData.push({ drawId: currentDraw._id, messages: [tempMessage] })
+            // }
+            // updateCurrentLoggedInUser()
         }
         setIsLoading(false)
     }
@@ -913,8 +923,8 @@ export default function Merchent() {
                                         <Button variant="btn btn-sm btn-danger"
                                             style={{ fontSize: "0.7rem" }}
                                             onClick={handleMultipleSavedPurchaseDelete}
-                                            disabled={checkedSavedPurchases.length <= 0 || isDeleting }>
-                                                {isDeleting? "Deleting":"Delete"}
+                                            disabled={checkedSavedPurchases.length <= 0 || isDeleting}>
+                                            {isDeleting ? "Deleting" : "Delete"}
                                         </Button>
                                     </div>
 
@@ -1375,11 +1385,11 @@ export default function Merchent() {
                                                     Cancel
                                                 </Button>
 
-                                                <Button variant='primary btn btn-sm' 
-                                                onClick={handleMakeMessagePurchases}
-                                                disabled={isLoading}
+                                                <Button variant='primary btn btn-sm'
+                                                    onClick={handleMakeMessagePurchases}
+                                                    disabled={isLoading}
                                                 >
-                                                    {isLoading? "Loading": "Confirm"}
+                                                    {isLoading ? "Loading" : "Confirm"}
                                                 </Button>
                                             </div>
                                         </div>
@@ -1892,8 +1902,9 @@ export default function Merchent() {
                                                     Cancel
                                                 </Button>
 
-                                                <Button variant='primary btn btn-sm' onClick={handleMakeMessagePurchases} >
-                                                    Confirm
+                                                <Button variant='primary btn btn-sm' onClick={handleMakeMessagePurchases}
+                                                    disabled={isLoading}>
+                                                    {isLoading ? "Loadingyy" : "Confirm"}
                                                 </Button>
                                             </div>
                                         </div>
