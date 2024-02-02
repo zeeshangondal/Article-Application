@@ -4,9 +4,15 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const bodyParser = require('body-parser');
 
 
 const app = express();
+
+
+// Increase the limit (default is 100kb)
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.use(express.json())
 require("dotenv").config();

@@ -12,10 +12,12 @@ import loginAudio from "../components/Audiofiles/login.mp3"
 import drawAudio from "../components/Audiofiles/drawSelected.mp3"
 import oversaleAudio from "../components/Audiofiles/oversale.mp3"
 import errorAudio from "../components/Audiofiles/Error.mp3"
+import axios from 'axios';
 
 export default function Merchent() {
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' });
     const [showModal, setShowModal] = useState(false);
+    const [isLoading,setIsLoading]=useState(false)
     const [showSheetModal, setShowSheetModal] = useState(false);
     const [showOversaleEditModal, setShowOversaleEditModal] = useState(false);
     const [auto, setAuto] = useState(false);
@@ -121,8 +123,9 @@ export default function Merchent() {
         }
     };
 
-    const getSavedPurchasesOfCurrentDraw = (selectedDraw) => {
-        let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
+    const getSavedPurchasesOfCurrentDraw = (selectedDraw,loggedInUser=null) => {
+        let currentLoggedInUser1= loggedInUser? loggedInUser: currentLoggedInUser
+        let purchasedFromDrawData = currentLoggedInUser1.purchasedFromDrawData
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === selectedDraw)
 
         try {
@@ -143,8 +146,15 @@ export default function Merchent() {
     };
 
     const updateCurrentLoggedInUser = async () => {
-        await APIs.updateUser(currentLoggedInUser)
-        fetchLoggedInUser()
+        try{
+            console.log("Updating current user!!!!!!!!!!")
+            const res=await APIs.updateUser(currentLoggedInUser)
+            setCurrentLoggedInUser({...res.user})
+            if(form.selectedDraw){
+                getSavedPurchasesOfCurrentDraw(form.selectedDraw,res.user)
+            }
+        }catch(e){}
+        
     }
     function isCurrentFocusedNotEmpty() {
         let first = form.first + ""
@@ -160,10 +170,11 @@ export default function Merchent() {
         }
     }
     const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false, showGreen = true) => {
-        if (isPurchaseMade || !articleDataFetched) {
-            return
-        }
         if (!messagePurchase) {
+            if (isPurchaseMade || !articleDataFetched) {
+                return
+            }
+    
             if (!isCurrentFocusedNotEmpty()) {
                 return
             }
@@ -431,41 +442,27 @@ export default function Merchent() {
         }
     }
     const handleMakeMessagePurchases = async () => {
-        let count = 0
-        let allDone = true
-        for (const purchase of messagePurchases) {
-            try {
-                // await handleBundleChange(purchase.bundle)
-                const data = getDataForBundle(purchase.bundle, currentDraw);
-                const response = await articlesAPI.getFirstAndSecond(data);
-                let availableFirstPrice = response.data.firstPrice
-                let availableSecondPrice = response.data.secondPrice
-                if (currentLoggedInUser.balance < (Number(purchase.first) + Number(purchase.second))) {
-                    alertMessage("Insufficient balance for purchase\n" + "Num: " + purchase.bundle + " , First: " + purchase.first + " , Second: " + purchase.second)
-                    return
-                }
-                await handlePurchaseOne(purchase.bundle, purchase.first, purchase.second, availableFirstPrice, availableSecondPrice, true, false)
-                count++
-                successMessage(count + "/" + messagePurchases.length + " Purchases Added")
-            } catch (e) {
-                allDone = false
-                let msg = `Due to an error couldn't add Bundle: ${purchase.bundle} First: ${purchase.first} Second: ${purchase.second}`
-                errorAudioRef?.current?.play()
-                alert(msg)
+        setIsLoading(true)
+        let purchases=messagePurchases.map(purchase=>{
+            return ({...getDataForBundle(purchase.bundle, currentDraw), ...purchase})
+        })
+        let temp={
+            draw_id:currentDraw._id,
+            user_id: currentLoggedInUser._id,
+            purchases: purchases
+        }
+        let response=await articlesAPI.makeBulkPurchase(temp)
+        if(response.user){
+            successMessage("Purchases Saved")
+            setCurrentLoggedInUser({...response.user})
+            if(form.selectedDraw){
+                getSavedPurchasesOfCurrentDraw(form.selectedDraw,response.user)
+            }
+            if(response.inSufCount>0){
+                alertMessage("Due to insufficent balance "+response.inSufCount+" purchases are not made")
             }
         }
-        if (allDone) {
-            setMessagePurchases([])
-            let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
-            if (currentLoggedInUser.messagesData.find(data => data.drawId == currentDraw._id)) {
-                console.log("EXISTS")
-                currentLoggedInUser.messagesData.find(data => data.drawId == currentDraw._id).messages.push(tempMessage)
-            } else {
-                console.log("NOT EXISTS", tempMessage)
-                currentLoggedInUser.messagesData.push({ drawId: currentDraw._id, messages: [tempMessage] })
-            }
-            updateCurrentLoggedInUser()
-        }
+        setIsLoading(false)
     }
     const handleRemovingSavedPurchase = async (_id) => {
         try {
@@ -483,7 +480,7 @@ export default function Merchent() {
                 purchaseSecond: target.second,
                 type: "+"
             }
-            await handleBundleChange(target.bundle)
+            // await handleBundleChange(target.bundle)
             successMessage("Removed Successfully")
             await articlesAPI.updateDigit(data)
         } catch (e) { }
@@ -1306,6 +1303,11 @@ export default function Merchent() {
                                     <h6>Total: {getTotalMessageCount()}</h6>
                                     <h6>Reapted: {getMessageRepeatCount()}</h6>
                                 </div>
+                                {isLoading&&
+                                <div>
+                                    <h6>Loading</h6>
+                                </div>
+                                }
                                 <Form style={{ fontSize: '0.9rem' }}>
                                     <div className=''>
                                         <Row>
@@ -1809,7 +1811,11 @@ export default function Merchent() {
                                     <h6>Total: {getTotalMessageCount()}</h6>
                                     <h6>Reapted: {getMessageRepeatCount()}</h6>
                                 </div>
-
+                                {isLoading&&
+                                <div>
+                                    <h6>Loading</h6>
+                                </div>
+                                }
                                 <Form style={{ fontSize: '0.9rem' }}>
                                     <div className=''>
                                         <Row>
