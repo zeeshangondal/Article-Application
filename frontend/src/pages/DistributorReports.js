@@ -350,7 +350,9 @@ const DistributorReports = () => {
         let drawDataArray = targetUser.savedPurchasesFromDrawsData.filter(data => {
             return data.drawId == selectedDraw._id
         })
-        let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)
+        let unSavedPurchases=targetUser.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
+        let purchasesData=[...drawDataArray,unSavedPurchases]
+        let groupedByBundle = purchasesData.flatMap(draw => draw.savedPurchases)
             .reduce((acc, purchase) => {
                 const bundle = purchase.bundle;
 
@@ -547,7 +549,8 @@ const DistributorReports = () => {
         let drawDataArray = []
         targetsMerchents.forEach(merchent => {
             let merchentsDrawDataArray = merchent.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
-            drawDataArray = [...drawDataArray, ...merchentsDrawDataArray]
+            let unSavedPurchases=merchent.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
+            drawDataArray = [...drawDataArray, ...merchentsDrawDataArray,unSavedPurchases]
         })
 
         let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)

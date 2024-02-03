@@ -1904,7 +1904,7 @@ export default function Merchent() {
 
                                                 <Button variant='primary btn btn-sm' onClick={handleMakeMessagePurchases}
                                                     disabled={isLoading}>
-                                                    {isLoading ? "Loadingyy" : "Confirm"}
+                                                    {isLoading ? "Loading" : "Confirm"}
                                                 </Button>
                                             </div>
                                         </div>

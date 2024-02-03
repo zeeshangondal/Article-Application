@@ -1,4 +1,5 @@
 const Digit = require("../Models/Digit");
+const Draw = require("../Models/Draw");
 const User = require("../Models/User");
 
 // Create a new Digit
@@ -55,7 +56,7 @@ function getLimitSecond(user, bundle) {
 }
 // Update an existing Digit
 const updateDigit = async (req, res) => {
-    let { firstDigitId, secondDigitId, bundle, purchaseFirst, purchaseSecond, type, askingUser, firstLimitOfDraw,secondLimitOfDraw } = req.body;
+    let { firstDigitId, secondDigitId, bundle, purchaseFirst, purchaseSecond, type, askingUser, firstLimitOfDraw, secondLimitOfDraw } = req.body;
     purchaseFirst = Number(purchaseFirst)
     purchaseSecond = Number(purchaseSecond)
     try {
@@ -73,33 +74,33 @@ const updateDigit = async (req, res) => {
 
 
         if (type === "+") {
-            let remaingForParent=(Number(firstDigit.articles[bundle])+Number(purchaseFirst)) - firstLimitOfDraw
-            let forFirstDigit=  purchaseFirst
-            if(remaingForParent>0){
-                forFirstDigit=  purchaseFirst-remaingForParent
+            let remaingForParent = (Number(firstDigit.articles[bundle]) + Number(purchaseFirst)) - firstLimitOfDraw
+            let forFirstDigit = purchaseFirst
+            if (remaingForParent > 0) {
+                forFirstDigit = purchaseFirst - remaingForParent
             }
-            firstDigit.articles[bundle] = Number(firstDigit.articles[bundle])+Number(forFirstDigit) 
-            parentFirstDigit.articles[bundle] = Number(parentFirstDigit.articles[bundle])+Number(remaingForParent) 
+            firstDigit.articles[bundle] = Number(firstDigit.articles[bundle]) + Number(forFirstDigit)
+            parentFirstDigit.articles[bundle] = Number(parentFirstDigit.articles[bundle]) + Number(remaingForParent)
             firstDigit.markModified('articles');
             await firstDigit.save()
-            if(remaingForParent>0){
+            if (remaingForParent > 0) {
                 parentFirstDigit.markModified('articles');
-                await parentFirstDigit.save()    
-            }    
-
-            remaingForParent=(Number(secondDigit.articles[bundle])+Number(purchaseSecond)) - secondLimitOfDraw
-            let forSecondDigit=  purchaseSecond
-            if(remaingForParent>0){
-                forSecondDigit=  purchaseSecond-remaingForParent
+                await parentFirstDigit.save()
             }
-            secondDigit.articles[bundle] = Number(secondDigit.articles[bundle])+Number(forSecondDigit) 
-            parentSecondDigit.articles[bundle] = Number(parentSecondDigit.articles[bundle])+Number(remaingForParent) 
+
+            remaingForParent = (Number(secondDigit.articles[bundle]) + Number(purchaseSecond)) - secondLimitOfDraw
+            let forSecondDigit = purchaseSecond
+            if (remaingForParent > 0) {
+                forSecondDigit = purchaseSecond - remaingForParent
+            }
+            secondDigit.articles[bundle] = Number(secondDigit.articles[bundle]) + Number(forSecondDigit)
+            parentSecondDigit.articles[bundle] = Number(parentSecondDigit.articles[bundle]) + Number(remaingForParent)
             secondDigit.markModified('articles');
             await secondDigit.save()
-            if(remaingForParent>0){
+            if (remaingForParent > 0) {
                 parentSecondDigit.markModified('articles');
-                await parentSecondDigit.save()    
-            }    
+                await parentSecondDigit.save()
+            }
 
         } else if (type === "-") {
 
@@ -148,8 +149,183 @@ const updateDigit = async (req, res) => {
         console.error(err);
         res.status(500).send({ message: "Error", err });
     }
+}
+
+
+const removeBulkPurchase = async (req, res) => {
+    let { draw_id, user_id, purchases } = req.body
+    try {
+        let user = await User.findById(user_id);
+        let parentUser = await getTheMainCreatorOfUser(user._id.toString())
+        let purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)
+        let fetchedDigits = {};
+        for (const purchase of purchases) {
+            let { bundle, first, second, firstLimitOfDraw, secondLimitOfDraw } = purchase
+
+            let parentData = getFirstAndSecondDigitRefs(bundle, parentUser.toObject())
+            let firstDigit = fetchedDigits[purchase.firstDigitId] || await Digit.findById(purchase.firstDigitId);
+            let secondDigit = fetchedDigits[purchase.secondDigitId] || await Digit.findById(purchase.secondDigitId);
+            let parentFirstDigit = fetchedDigits[parentData.firstDigit.toString()] || await Digit.findById(parentData.firstDigit.toString());
+            let parentSecondDigit = fetchedDigits[parentData.secondDigit.toString()] || await Digit.findById(parentData.secondDigit.toString());
+
+            // Store fetched digits in the fetchedDigits object
+            fetchedDigits[purchase.firstDigitId] = firstDigit;
+            fetchedDigits[purchase.secondDigitId] = secondDigit;
+            fetchedDigits[parentData.firstDigit.toString()] = parentFirstDigit;
+            fetchedDigits[parentData.secondDigit.toString()] = parentSecondDigit;
+
+
+            let remaingForParent = (Number(firstDigit.articles[bundle]) + Number(first)) - firstLimitOfDraw
+            let forFirstDigit = first
+            if (remaingForParent > 0) {
+                forFirstDigit = first - remaingForParent
+            }
+            firstDigit.articles[bundle] = Number(firstDigit.articles[bundle]) + Number(forFirstDigit)
+            parentFirstDigit.articles[bundle] = Number(parentFirstDigit.articles[bundle]) + Number(remaingForParent)
+            firstDigit.markModified('articles');
+            // await firstDigit.save()
+            if (remaingForParent > 0) {
+                parentFirstDigit.markModified('articles');
+                // await parentFirstDigit.save()
+            }
+
+            remaingForParent = (Number(secondDigit.articles[bundle]) + Number(second)) - secondLimitOfDraw
+            let forSecondDigit = second
+            if (remaingForParent > 0) {
+                forSecondDigit = second - remaingForParent
+            }
+            secondDigit.articles[bundle] = Number(secondDigit.articles[bundle]) + Number(forSecondDigit)
+            parentSecondDigit.articles[bundle] = Number(parentSecondDigit.articles[bundle]) + Number(remaingForParent)
+            secondDigit.markModified('articles');
+            // await secondDigit.save()
+            if (remaingForParent > 0) {
+                parentSecondDigit.markModified('articles');
+                // await parentSecondDigit.save()
+            }
+            user.balance = user.balance + (Number(first) + Number(second))
+            purchasedFromDrawData.savedPurchases = purchasedFromDrawData.savedPurchases.filter(purs => purs._id != purchase._id)
+        }
+        let savePromises = [];
+        Object.values(fetchedDigits).forEach(digit => {
+            if (digit.isModified()) { // Check if any modifications were made
+                savePromises.push(digit.save());
+            }
+        });
+        await Promise.all(savePromises);
+        let updatedUser = await user.save()
+        res.status(200).send({ message: "Success", user: updatedUser });
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ message: "Error", err });
+    }
 };
 
+const makeBulkPurchase = async (req, res) => {
+    let { draw_id, user_id, purchases, message } = req.body
+    try {
+        let user = await User.findById(user_id);
+        let parentUser = await getTheMainCreatorOfUser(user._id.toString())
+        let purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)
+        if (!purchasedFromDrawData) {
+
+            user.purchasedFromDrawData.push({
+                drawId: draw_id,
+                savedPurchases: [],
+                savedOversales: []
+            })
+            purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)
+        }
+
+        let fetchedDigits = {};
+        let inSufCount = 0
+        for (const purchase of purchases) {
+            let bundle = purchase.bundle
+            let first = purchase.first
+            let second = purchase.second
+
+            let parentData = getFirstAndSecondDigitRefs(bundle, parentUser.toObject())
+            let firstDigit = fetchedDigits[purchase.firstDigitId] || await Digit.findById(purchase.firstDigitId);
+            let secondDigit = fetchedDigits[purchase.secondDigitId] || await Digit.findById(purchase.secondDigitId);
+            let parentFirstDigit = fetchedDigits[parentData.firstDigit.toString()] || await Digit.findById(parentData.firstDigit.toString());
+            let parentSecondDigit = fetchedDigits[parentData.secondDigit.toString()] || await Digit.findById(parentData.secondDigit.toString());
+
+            // Store fetched digits in the fetchedDigits object
+            fetchedDigits[purchase.firstDigitId] = firstDigit;
+            fetchedDigits[purchase.secondDigitId] = secondDigit;
+            fetchedDigits[parentData.firstDigit.toString()] = parentFirstDigit;
+            fetchedDigits[parentData.secondDigit.toString()] = parentSecondDigit;
+
+            let overFirst = 0, overSecond = 0;
+            if (first > Number(firstDigit.articles[bundle]) + Number(parentFirstDigit.articles[bundle])) {
+                overFirst = first - Number(firstDigit.articles[bundle]) + Number(parentFirstDigit.articles[bundle])
+                first = first - overFirst
+            }
+            if (second > Number(secondDigit.articles[bundle]) + Number(parentSecondDigit.articles[bundle])) {
+                overSecond = second - Number(secondDigit.articles[bundle]) + Number(parentSecondDigit.articles[bundle])
+                second = second - overSecond
+            }
+            if (user.balance < Number(first) + Number(second)) {
+                // console.log("Balance: "+user.balance, "first: "+first, "second: "+second )
+                inSufCount++
+                continue
+            }
+            if (overFirst > 0 || overSecond > 0) {
+                purchasedFromDrawData.savedOversales.push({ bundle, first: overFirst, second: overSecond })
+            }
+            purchasedFromDrawData.savedPurchases.push({ bundle, first, second })
+            user.balance = user.balance - (Number(first) + Number(second))
+
+            if (parentFirstDigit.articles[bundle] > 0) {
+                if (parentFirstDigit.articles[bundle] >= first) {
+                    parentFirstDigit.articles[bundle] = parentFirstDigit.articles[bundle] - first
+                    parentFirstDigit.markModified('articles');
+                } else {
+                    let remaingPurchaseFirst = first - parentFirstDigit.articles[bundle]
+                    parentFirstDigit.articles[bundle] = 0
+                    parentFirstDigit.markModified('articles');
+                    firstDigit.articles[bundle] = firstDigit.articles[bundle] - remaingPurchaseFirst
+                    firstDigit.markModified('articles');
+                }
+            } else {
+                firstDigit.articles[bundle] = firstDigit.articles[bundle] - first
+                firstDigit.markModified('articles');
+            }
+            //second digit
+            if (parentSecondDigit.articles[purchase.bundle] > 0) {
+                if (parentSecondDigit.articles[bundle] >= second) {
+                    parentSecondDigit.articles[bundle] = parentSecondDigit.articles[bundle] - second
+                    parentSecondDigit.markModified('articles');
+                } else {
+                    let remaingPurchaseSecond = second - parentSecondDigit.articles[bundle]
+                    parentSecondDigit.articles[bundle] = 0
+                    parentSecondDigit.markModified('articles');
+                    secondDigit.articles[bundle] = secondDigit.articles[bundle] - remaingPurchaseSecond
+                    secondDigit.markModified('articles');
+                }
+            } else {
+                secondDigit.articles[bundle] = secondDigit.articles[bundle] - second
+                secondDigit.markModified('articles');
+            }
+        }
+        let savePromises = [];
+        Object.values(fetchedDigits).forEach(digit => {
+            if (digit.isModified()) { // Check if any modifications were made
+                savePromises.push(digit.save());
+            }
+        });
+        await Promise.all(savePromises);
+        if (user.messagesData.find(data => data.drawId == draw_id)) {
+            user.messagesData.find(data => data.drawId == draw_id).messages.push(message)
+        } else {
+            user.messagesData.push({ drawId: draw_id, messages: [message] })
+        }
+        let updatedUser = await user.save()
+        res.status(200).send({ message: "Success", user: updatedUser, inSufCount });
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ message: "Error", err });
+    }
+}
 // Delete a Digit
 const deleteDigit = (req, res) => {
     const digitId = req.params.id;
@@ -274,5 +450,7 @@ module.exports = {
     deleteDigit,
     getAllDigits,
     getDigitById,
-    getFirstAndSecond
+    getFirstAndSecond,
+    makeBulkPurchase,
+    removeBulkPurchase
 };

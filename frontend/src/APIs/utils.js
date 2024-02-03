@@ -1,8 +1,11 @@
 import axios from "axios";
 
+// const API_URL = 'https://pzprize.com';
+const API_URL = 'http://localhost:3005';
+
 export const savePdfOnBackend = async (formData) => {
     try {
-        const response = await axios.post('http://localhost:3005/savePdf', formData, {
+        const response = await axios.post(`${API_URL}/savePdf`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },

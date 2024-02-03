@@ -4,9 +4,15 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const bodyParser = require('body-parser');
 
 
 const app = express();
+
+
+// Increase the limit (default is 100kb)
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.use(express.json())
 require("dotenv").config();
@@ -38,7 +44,7 @@ app.post('/savePdf', upload.single('pdfContent'), (req, res) => {
         const saveDirectory = '/uploads';
         const filePath = path.join(__dirname, saveDirectory, pdfFileName);
         fs.writeFileSync(filePath, pdfContent);
-        const pdfLink = `https://pzprize.com/reports/${pdfFileName}`;
+        const pdfLink = `http://localhost:3005/reports/${pdfFileName}`;
         res.json({ pdfLink });
     } catch (error) {
         console.error('Error saving the PDF:', error.message);
