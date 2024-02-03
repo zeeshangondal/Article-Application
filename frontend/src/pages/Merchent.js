@@ -446,8 +446,8 @@ export default function Merchent() {
                     return data
                 })
             }
-            let tempMessagePurchases = [];
             let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.'); // Replacing commas with dots
+            tempMessage  = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
             let chunks=tempMessage.split(".")
             chunks.forEach(chunk=>{
                 if(chunk[0]=="f"){
@@ -463,34 +463,13 @@ export default function Merchent() {
             // Handle the error
         }
     }
-    // function parseInputMessage(message) {
-    //     if (message.length === 0) {
-    //         setMessagePurchases([]);
-    //         return;
-    //     }
-    //     try {
-    //         let tempMessagePurchases = [];
-    //         let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.'); // Replacing commas with dots
-    //         let lines = tempMessage.split(",");
-    //         lines.forEach(line => {
-    //             let lineSplits = line.split(".");
-    //             let second = Number((lineSplits[lineSplits.length - 1]).slice(1));
-    //             let first = Number((lineSplits[lineSplits.length - 2]).slice(1));
-    //             for (let i = 0; i < lineSplits.length - 2; i++) {
-    //                 tempMessagePurchases.push({ bundle: lineSplits[i], first, second });
-    //             }
-    //         });
-    //         setMessagePurchases([...tempMessagePurchases]);
-    //     } catch (e) {
-    //         // Handle the error
-    //     }
-    // }
     const handleMakeMessagePurchases = async () => {
         setIsLoading(true)
         let purchases = messagePurchases.map(purchase => {
             return ({ ...getDataForBundle(purchase.bundle, currentDraw), ...purchase })
         })
         let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
+        tempMessage  = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
         let temp = {
             draw_id: currentDraw._id,
             user_id: currentLoggedInUser._id,
@@ -888,6 +867,7 @@ export default function Merchent() {
         let messages = currentLoggedInUser?.messagesData?.find(data => data.drawId == currentDraw?._id)?.messages
         if (messages) {
             let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
+            tempMessage  = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
             let sameMessages = messages.filter(msg => msg == tempMessage)
             if (sameMessages) {
                 return sameMessages.length
@@ -1070,7 +1050,7 @@ export default function Merchent() {
                     <div style={{ marginTop: "-11px" }}>
                         <hr />
                     </div>
-                    <div className='d-flex justify-content-start' style={{ marginTop: "-12px" }}>
+                    <div className='d-flex justify-content-start' style={{ marginTop: "-15px" }}>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                             <div className='d-flex justify-content-between' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "2px" }}>
                                 <Form.Label style={{ marginLeft: '0px', }}>Auto</Form.Label>
