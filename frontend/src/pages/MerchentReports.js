@@ -155,7 +155,9 @@ const MerchentReports = () => {
                 alertMessage("No Record of Draw")
                 return
             }
-            if( tempDraw.drawStatus == true || tempDraw.drawExpired){
+            if( tempDraw.drawExpired ){
+            }
+            else if( tempDraw.drawStatus ){
                 alertMessage("Draw is active")
                 return
             }

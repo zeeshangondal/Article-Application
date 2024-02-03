@@ -1,3 +1,8 @@
+// SECRET_KEY=614E645267556B58703272357538782F413F4428472B4B6250655368566D5971337436763979244226452948404D635166546A576E5A7234753778217A25432A
+
+// DB_URL=mongodb+srv://zeeshan:asdfg12345@cluster0.q8osuvr.mongodb.net/Article_DB
+
+
 const express = require("express");
 const mongoose = require("mongoose")
 const multer = require('multer');
@@ -44,7 +49,7 @@ app.post('/savePdf', upload.single('pdfContent'), (req, res) => {
         const saveDirectory = '/uploads';
         const filePath = path.join(__dirname, saveDirectory, pdfFileName);
         fs.writeFileSync(filePath, pdfContent);
-        const pdfLink = `http://localhost:3005/reports/${pdfFileName}`;
+        const pdfLink = `https://pzprize.com/reports/${pdfFileName}`;
         res.json({ pdfLink });
     } catch (error) {
         console.error('Error saving the PDF:', error.message);

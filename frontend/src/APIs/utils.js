@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const API_URL = 'https://pzprize.com';
-const API_URL = 'http://localhost:3005';
+const API_URL = 'https://pzprize.com';
+// const API_URL = 'http://localhost:3005';
 
 export const savePdfOnBackend = async (formData) => {
     try {

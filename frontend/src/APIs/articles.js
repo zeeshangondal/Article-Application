@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3005/article';
-// const API_URL = 'https://pzprize.com/article';
+// const API_URL = 'http://localhost:3005/article';
+const API_URL = 'https://pzprize.com/article';
 
 
 const makeBulkPurchase = async (data) => {
