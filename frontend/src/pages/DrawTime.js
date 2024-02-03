@@ -129,6 +129,11 @@ export default function DrawTime() {
         else
             return <td style={{ color: 'red' }}>Disabled</td>
     }
+    function isDrawResultPosted(draw){
+        if(draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2|| draw.prize.secondPrize3||draw.prize.secondPrize4||draw.prize.secondPrize5)
+            return true
+        return false
+    }
 
     return (
         <div className='m-3'>
@@ -187,7 +192,7 @@ export default function DrawTime() {
                             <td>
                                 <div className='d-flex justify-content-between'>
                                     {!draw.drawExpired &&
-                                        <Button variant="primary btn btn-sm" onClick={() => handleEditDraw(draw._id)}>Edit</Button>
+                                        <Button variant="primary btn btn-sm" disabled={draw.drawExpired || !draw.drawStatus} onClick={() => handleEditDraw(draw._id)}>Edit</Button>
                                     }
                                     {draw.drawExpired ?
                                         <Button variant="danger btn btn-sm" disabled={true}>Expired</Button>
@@ -198,6 +203,23 @@ export default function DrawTime() {
                                             <Button variant="primary btn btn-sm" onClick={() => activateDraw(draw)}>Activate</Button>
                                     }
                                 </div>
+                                {/* <div className='d-flex justify-content-between'>
+                                    {isDrawResultPosted(draw) &&
+                                        <Button variant="danger btn btn-sm" disabled={true}>Posted</Button>
+                                    }
+                                    {!isDrawResultPosted(draw) && !draw.drawExpired &&
+                                        <Button variant="primary btn btn-sm" disabled={draw.drawExpired || !draw.drawStatus} onClick={() => handleEditDraw(draw._id)}>Edit</Button>
+                                    }
+                                    {!isDrawResultPosted(draw) && draw.drawExpired ?
+                                        <Button variant="danger btn btn-sm" disabled={true}>Expired</Button>
+                                        :
+                                        !isDrawResultPosted(draw) && draw.drawStatus ?
+                                            <Button variant="danger btn btn-sm" onClick={() => disableDraw(draw)}>Disable</Button>
+                                            :
+                                            !isDrawResultPosted(draw) &&<Button variant="primary btn btn-sm" onClick={() => activateDraw(draw)}>Activate</Button>
+                                    }
+                                </div> */}
+                                
                             </td>
 
                         </tr>

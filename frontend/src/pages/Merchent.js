@@ -427,22 +427,64 @@ export default function Merchent() {
             return;
         }
         try {
+            let purchases=[]
+            function setFirsts(first){
+                purchases=purchases.map(purchase=>{
+                    let data={...purchase}
+                    if(!data.first){
+                        data.first=first
+                    }
+                    return data
+                })
+            }
+            function setSeonds(second){
+                purchases=purchases.map(purchase=>{
+                    let data={...purchase}
+                    if(!data.second){
+                        data.second=second
+                    }
+                    return data
+                })
+            }
             let tempMessagePurchases = [];
             let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.'); // Replacing commas with dots
-            let lines = tempMessage.split(",");
-            lines.forEach(line => {
-                let lineSplits = line.split(".");
-                let second = Number((lineSplits[lineSplits.length - 1]).slice(1));
-                let first = Number((lineSplits[lineSplits.length - 2]).slice(1));
-                for (let i = 0; i < lineSplits.length - 2; i++) {
-                    tempMessagePurchases.push({ bundle: lineSplits[i], first, second });
+            let chunks=tempMessage.split(".")
+            chunks.forEach(chunk=>{
+                if(chunk[0]=="f"){
+                    setFirsts(Number(chunk.slice(1)))
+                }else if(chunk[0]=="s"){
+                    setSeonds(Number(chunk.slice(1)))
+                }else{
+                    purchases.push({bundle:chunk, first:null, second:null})
                 }
-            });
-            setMessagePurchases([...tempMessagePurchases]);
+            })
+            setMessagePurchases([...purchases]);
         } catch (e) {
             // Handle the error
         }
     }
+    // function parseInputMessage(message) {
+    //     if (message.length === 0) {
+    //         setMessagePurchases([]);
+    //         return;
+    //     }
+    //     try {
+    //         let tempMessagePurchases = [];
+    //         let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.'); // Replacing commas with dots
+    //         let lines = tempMessage.split(",");
+    //         lines.forEach(line => {
+    //             let lineSplits = line.split(".");
+    //             let second = Number((lineSplits[lineSplits.length - 1]).slice(1));
+    //             let first = Number((lineSplits[lineSplits.length - 2]).slice(1));
+    //             for (let i = 0; i < lineSplits.length - 2; i++) {
+    //                 tempMessagePurchases.push({ bundle: lineSplits[i], first, second });
+    //             }
+    //         });
+    //         setMessagePurchases([...tempMessagePurchases]);
+    //     } catch (e) {
+    //         // Handle the error
+    //     }
+    // }
     const handleMakeMessagePurchases = async () => {
         setIsLoading(true)
         let purchases = messagePurchases.map(purchase => {
@@ -453,7 +495,7 @@ export default function Merchent() {
             draw_id: currentDraw._id,
             user_id: currentLoggedInUser._id,
             purchases: purchases,
-            message:tempMessage
+            message: tempMessage
         }
         let response = await articlesAPI.makeBulkPurchase(temp)
         if (response.user) {

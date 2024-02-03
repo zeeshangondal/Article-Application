@@ -825,7 +825,8 @@ const UserDetails = () => {
                                                 <Form.Control
                                                     type="text"
                                                     value={formValues.username}
-                                                    onChange={(e) => { setFormValues(pre => { return { ...pre, username: e.target.value } }) }}
+                                                    // onChange={(e) => { setFormValues(pre => { return { ...pre, username: e.target.value } }) }}
+                                                    disabled={true}
                                                 />
                                             </Form.Group>
                                         </div>
