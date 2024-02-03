@@ -657,6 +657,10 @@ const AdminReports = () => {
         targetsMerchents.forEach(merchent => {
             let merchentsDrawDataArray = merchent.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
             drawDataArray = [...drawDataArray, ...merchentsDrawDataArray]
+            let unSavedPurchases=merchent.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
+            if(unSavedPurchases)
+                drawDataArray = [...drawDataArray,unSavedPurchases]
+
         })
 
         let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)

@@ -351,8 +351,10 @@ const DistributorReports = () => {
             return data.drawId == selectedDraw._id
         })
         let unSavedPurchases=targetUser.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
-        let purchasesData=[...drawDataArray,unSavedPurchases]
-        let groupedByBundle = purchasesData.flatMap(draw => draw.savedPurchases)
+        if(unSavedPurchases){
+            drawDataArray=[...drawDataArray,unSavedPurchases]
+        }
+        let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)
             .reduce((acc, purchase) => {
                 const bundle = purchase.bundle;
 
@@ -549,8 +551,11 @@ const DistributorReports = () => {
         let drawDataArray = []
         targetsMerchents.forEach(merchent => {
             let merchentsDrawDataArray = merchent.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
+            drawDataArray = [...drawDataArray, ...merchentsDrawDataArray]
             let unSavedPurchases=merchent.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
-            drawDataArray = [...drawDataArray, ...merchentsDrawDataArray,unSavedPurchases]
+            if(unSavedPurchases){
+                drawDataArray = [...drawDataArray,unSavedPurchases]
+            }
         })
 
         let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)
@@ -657,13 +662,14 @@ const DistributorReports = () => {
         return Number(((share / 100) * price).toFixed(1))
     }
 
-    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser) => {
+    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser,billing=false) => {
         let share = Number(targetUser.commission.share)
         let pcPercentage = Number(targetUser.commission.pcPercentage)
 
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
-        if (totalLimitSaleForm.limitType == "upLimit") {
+        if (billing || totalLimitSaleForm.limitType == "upLimit") {
+            alert("Billing on")
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 4) {
@@ -722,12 +728,13 @@ const DistributorReports = () => {
     }
 
 
-    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser) => {
+    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser,billing=false) => {
         let hadd = {};
         hadd = targetUser.hadd;
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
-        if (totalLimitSaleForm.limitType == "upLimit") {
+        if (billing|| totalLimitSaleForm.limitType == "upLimit") {
+            alert("Billing on")
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 1) {
@@ -788,11 +795,11 @@ const DistributorReports = () => {
             return updatedSavedPurchases;
         }
     }
-    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser) => {
+    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser,billing=false) => {
         if (targetUser.commission.shareEnabled) {
-            return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
+            return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser,billing).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
         } else if (targetUser.hadd.haddEnabled) {
-            return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
+            return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser,billing).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
         } else {
             return []
         }
@@ -1070,7 +1077,7 @@ const DistributorReports = () => {
                 let savedPurchases = []
                 if(targetUser.role=="distributor"){
                     if(billingSheetForm.limitType=="apply"){
-                        savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                        savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser,true)
                     }else{
                         savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
                     }
@@ -1088,7 +1095,7 @@ const DistributorReports = () => {
             let savedPurchases = []
             if(targetUser.role=="distributor"){
                 if(billingSheetForm.limitType=="apply"){
-                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser,true)
                 }else{
                     savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
                 }
@@ -1126,7 +1133,7 @@ const DistributorReports = () => {
             let savedPurchases=[]
             if(targetUser.role=="distributor"){
                 if(billingSheetForm.limitType=="apply"){
-                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser)
+                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser,true)
                 }else{
                     savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
                 }
