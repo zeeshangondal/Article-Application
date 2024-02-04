@@ -227,19 +227,7 @@ const UserDetails = () => {
                     </Form.Select>
                 </Form.Group>
 
-                {debitTransaction.txType == 2 ?
-                    <Form.Group>
-                        <Form.Label>Select Reduce</Form.Label>
-                        <Form.Select
-                            name="reduce"
-                            value={debitTransaction.reduce}
-                            onChange={handleDebitInputChange}
-                        >
-                            <option value={1}>Reduce</option>
-                            <option value={2}>No Reduce</option>
-                        </Form.Select>
-                    </Form.Group>
-                    : ''}
+
                 <Form.Group>
                     <Form.Label>Amount</Form.Label>
                     <Form.Control
@@ -322,6 +310,7 @@ const UserDetails = () => {
                 ...obj,
                 debit: obj.debit + Number(debitTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction],
+                balance: obj.balance + Number(debitTransaction.amount),
                 balanceUpline: obj.balanceUpline + Number(debitTransaction.amount)
             }
         } else if (debitTransaction.txType == 2) {
@@ -329,6 +318,7 @@ const UserDetails = () => {
                 transaction = {
                     ...transaction,
                     debit: obj.debit - Number(debitTransaction.amount),
+                    
                     balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
                 }
                 obj = {

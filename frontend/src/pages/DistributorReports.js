@@ -195,6 +195,36 @@ const DistributorReports = () => {
         }
         return []
     }
+    function getPrizeBundlesArray(draw) {
+        function isDrawResultPosted(draw) {
+            if (draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2 || draw.prize.secondPrize3 || draw.prize.secondPrize4 || draw.prize.secondPrize5)
+                return true
+            return false
+        }
+        if (!isDrawResultPosted(draw)) {
+            return []
+        }
+        let resultArray = []
+        function getFormatArray(prize) {
+            const output = [];
+            for (let i = 1; i <= prize.length; i++) {
+                output.push(prize.substring(0, i));
+            }
+            return output;
+        }
+        let arrayOfPrizesStr = []
+        let { firstPrize, secondPrize1, secondPrize2, secondPrize3, secondPrize4, secondPrize5 } = draw.prize
+        if (firstPrize) { arrayOfPrizesStr.push(firstPrize) }
+        if (secondPrize1) { arrayOfPrizesStr.push(secondPrize1) }
+        if (secondPrize2) { arrayOfPrizesStr.push(secondPrize2) }
+        if (secondPrize3) { arrayOfPrizesStr.push(secondPrize3) }
+        if (secondPrize4) { arrayOfPrizesStr.push(secondPrize4) }
+        if (secondPrize5) { arrayOfPrizesStr.push(secondPrize5) }
+        arrayOfPrizesStr.forEach(str => {
+            resultArray = [...resultArray, ...getFormatArray(str)]
+        })
+        return resultArray
+    }
 
     function processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted = false, marginTop = 34) {
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
@@ -264,6 +294,7 @@ const DistributorReports = () => {
                     }
 
                 });
+
                 pdfDoc.setFont("helvetica", "bold");
                 pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(sectionTableData.totalFirst), 15, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(sectionTableData.totalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 5);
@@ -350,9 +381,9 @@ const DistributorReports = () => {
         let drawDataArray = targetUser.savedPurchasesFromDrawsData.filter(data => {
             return data.drawId == selectedDraw._id
         })
-        let unSavedPurchases=targetUser.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
-        if(unSavedPurchases){
-            drawDataArray=[...drawDataArray,unSavedPurchases]
+        let unSavedPurchases = targetUser.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
+        if (unSavedPurchases) {
+            drawDataArray = [...drawDataArray, unSavedPurchases]
         }
         let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)
             .reduce((acc, purchase) => {
@@ -482,8 +513,14 @@ const DistributorReports = () => {
             });
             newData.push(row);
         }
+
         total = totalFirst + totalSecond
         // Convert the data to a format compatible with jsPDF autoTable
+        let prizeBundles = getPrizeBundlesArray(selectedDraw)
+        const handleCellDraw = (data) => {
+            // Log the data being received for debugging
+            console.log("Received data In table:", data);
+        };
         let bodyData = newData;
         pdfDoc.autoTable({
             head: [columns],
@@ -495,8 +532,8 @@ const DistributorReports = () => {
             },
             styles: {
                 ...styles
-            }
-
+            },
+            didDrawCell: handleCellDraw,
         });
         pdfDoc.setFont("helvetica", "bold");
 
@@ -552,9 +589,9 @@ const DistributorReports = () => {
         targetsMerchents.forEach(merchent => {
             let merchentsDrawDataArray = merchent.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
             drawDataArray = [...drawDataArray, ...merchentsDrawDataArray]
-            let unSavedPurchases=merchent.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
-            if(unSavedPurchases){
-                drawDataArray = [...drawDataArray,unSavedPurchases]
+            let unSavedPurchases = merchent.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
+            if (unSavedPurchases) {
+                drawDataArray = [...drawDataArray, unSavedPurchases]
             }
         })
 
@@ -662,7 +699,7 @@ const DistributorReports = () => {
         return Number(((share / 100) * price).toFixed(1))
     }
 
-    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser,billing=false) => {
+    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser, billing = false) => {
         let share = Number(targetUser.commission.share)
         let pcPercentage = Number(targetUser.commission.pcPercentage)
 
@@ -728,12 +765,12 @@ const DistributorReports = () => {
     }
 
 
-    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser,billing=false) => {
+    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser, billing = false) => {
         let hadd = {};
         hadd = targetUser.hadd;
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
-        if (billing|| totalLimitSaleForm.limitType == "upLimit") {
+        if (billing || totalLimitSaleForm.limitType == "upLimit") {
             alert("Billing on")
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
@@ -795,11 +832,11 @@ const DistributorReports = () => {
             return updatedSavedPurchases;
         }
     }
-    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser,billing=false) => {
+    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser, billing = false) => {
         if (targetUser.commission.shareEnabled) {
-            return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser,billing).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
+            return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser, billing).map(data => ({ ...data, first: formatNumberWithTwoDecimals(data.first), second: formatNumberWithTwoDecimals(data.second) }))
         } else if (targetUser.hadd.haddEnabled) {
-            return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser,billing).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
+            return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser, billing).map(data => ({ ...data, first: formatNumberWithTwoDecimals(data.first), second: formatNumberWithTwoDecimals(data.second) }))
         } else {
             return []
         }
@@ -834,17 +871,17 @@ const DistributorReports = () => {
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
-        let head1="Bill Sheet";
-        if(targetUser.role=="distributor" && billingSheetForm.limitType=="apply"){
-            head1+=targetUser.haddEnabled? "- Hadd Sale": "- Share Sale"
+        let head1 = "Bill Sheet";
+        if (targetUser.role == "distributor" && billingSheetForm.limitType == "apply") {
+            head1 += targetUser.haddEnabled ? "- Hadd Sale" : "- Share Sale"
         }
-        if(targetUser.role=="distributor"){
-            pdfDoc.setTextColor(0, 0, 255); 
-        }else{
-            pdfDoc.setTextColor(255, 0, 0); 
+        if (targetUser.role == "distributor") {
+            pdfDoc.setTextColor(0, 0, 255);
+        } else {
+            pdfDoc.setTextColor(255, 0, 0);
         }
         pdfDoc.text(head1, pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
-        pdfDoc.setTextColor(0, 0, 0); 
+        pdfDoc.setTextColor(0, 0, 0);
         // pdfDoc.text("Limit Cutting Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
@@ -1047,7 +1084,7 @@ const DistributorReports = () => {
         let DExtraSale = formatNumberWithTwoDecimals(DTotalSale - PCCommission)
 
         let prize = calculatePrize(targetUser, savedPurchases)
-        let bill =formatNumberWithTwoDecimals (extraSale - prize.totalPrize)
+        let bill = formatNumberWithTwoDecimals(extraSale - prize.totalPrize)
         let ABCBill = formatNumberWithTwoDecimals(ABCExtraSale - prize.ABCPrize)
         let DBill = formatNumberWithTwoDecimals(DExtraSale - prize.DPrize)
         let ABCShare = formatNumberWithTwoDecimals(ABCBill * (Number(targetUser.commission.share) / 100))
@@ -1056,7 +1093,7 @@ const DistributorReports = () => {
         let totalABCBill = formatNumberWithTwoDecimals(ABCBill - ABCShare)
         let totalDBill = formatNumberWithTwoDecimals(DBill - DShare)
         let totalBill = formatNumberWithTwoDecimals(totalABCBill + totalDBill)
-        totalBill=-totalBill              /// plus should indicate balance to be added in user's account
+        totalBill = -totalBill              /// plus should indicate balance to be added in user's account
 
         let result = {
             ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
@@ -1075,14 +1112,14 @@ const DistributorReports = () => {
             for (let i = 0; i < subUsers.length; i++) {
                 let targetUser = getAUser(subUsers[i].username)
                 let savedPurchases = []
-                if(targetUser.role=="distributor"){
-                    if(billingSheetForm.limitType=="apply"){
-                        savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser,true)
-                    }else{
-                        savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
+                if (targetUser.role == "distributor") {
+                    if (billingSheetForm.limitType == "apply") {
+                        savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser, true)
+                    } else {
+                        savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
                     }
-                }else{
-                    savedPurchases=getTotalOfMerchentFromDraw(targetUser.username) 
+                } else {
+                    savedPurchases = getTotalOfMerchentFromDraw(targetUser.username)
                 }
                 let result = calculateResultOfDistributor(targetUser, savedPurchases)
                 addBillSheetOfADistributor(pdfDoc, targetUser, result)
@@ -1093,15 +1130,15 @@ const DistributorReports = () => {
         } else {
             let targetUser = getAUser(billingSheetForm.dealer)
             let savedPurchases = []
-            if(targetUser.role=="distributor"){
-                if(billingSheetForm.limitType=="apply"){
-                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser,true)
-                }else{
-                    savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
+            if (targetUser.role == "distributor") {
+                if (billingSheetForm.limitType == "apply") {
+                    savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser, true)
+                } else {
+                    savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
                 }
 
-            }else{
-                savedPurchases=getTotalOfMerchentFromDraw(targetUser.username)
+            } else {
+                savedPurchases = getTotalOfMerchentFromDraw(targetUser.username)
             }
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             addBillSheetOfADistributor(pdfDoc, targetUser, result)
@@ -1120,25 +1157,25 @@ const DistributorReports = () => {
         let targetUser = getAUser(localStorageUtils.getLoggedInUser().username)
         const pdfDoc = new jsPDF();
         pdfDoc.setFontSize(20);
-        pdfDoc.text("Bill Sheet Summary"+(billingSheetForm.limitType=="apply"? " - Limit Sale":""), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        pdfDoc.text("Bill Sheet Summary" + (billingSheetForm.limitType == "apply" ? " - Limit Sale" : ""), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, 25);
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 20, 25, { align: 'right' });
 
         const columns = ['Id', 'Name', 'Ammount', 'Commission', 'Gross', 'Prize', 'NetBalance', 'Share', 'Result'];
         let bodyData = []
-        let tempSubUsers=subUsers
+        let tempSubUsers = subUsers
         for (let i = 0; i < tempSubUsers.length; i++) {
             let targetUser = getAUser(tempSubUsers[i].username)
-            let savedPurchases=[]
-            if(targetUser.role=="distributor"){
-                if(billingSheetForm.limitType=="apply"){
-                    savedPurchases=getTotalOfDistributorFromDrawForTotalLimit(targetUser,true)
-                }else{
-                    savedPurchases=getTotalOfDistributorFromDraw(targetUser.username)
+            let savedPurchases = []
+            if (targetUser.role == "distributor") {
+                if (billingSheetForm.limitType == "apply") {
+                    savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser, true)
+                } else {
+                    savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
                 }
-            }else{
-                savedPurchases=getTotalOfMerchentFromDraw(targetUser.username)
+            } else {
+                savedPurchases = getTotalOfMerchentFromDraw(targetUser.username)
             }
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
             let id = targetUser.userId, name = targetUser.generalInfo.name;
@@ -1149,7 +1186,7 @@ const DistributorReports = () => {
             let netBalance = Number((gross - prize).toFixed(1))
             let share = result.totalShare
             let outputResult = Number((netBalance - share).toFixed(1))
-            outputResult=-outputResult
+            outputResult = -outputResult
 
             bodyData.push([id, name, amount, commission, gross, prize, netBalance, share, outputResult])
         }

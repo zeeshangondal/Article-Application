@@ -314,11 +314,14 @@ const makeBulkPurchase = async (req, res) => {
             }
         });
         await Promise.all(savePromises);
-        if (user.messagesData.find(data => data.drawId == draw_id)) {
-            user.messagesData.find(data => data.drawId == draw_id).messages.push(message)
-        } else {
-            user.messagesData.push({ drawId: draw_id, messages: [message] })
+        if(message){
+            if (user.messagesData.find(data => data.drawId == draw_id)) {
+                user.messagesData.find(data => data.drawId == draw_id).messages.push(message)
+            } else {
+                user.messagesData.push({ drawId: draw_id, messages: [message] })
+            }
         }
+        
         let updatedUser = await user.save()
         res.status(200).send({ message: "Success", user: updatedUser, inSufCount });
     } catch (err) {

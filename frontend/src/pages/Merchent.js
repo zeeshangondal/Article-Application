@@ -171,11 +171,11 @@ export default function Merchent() {
             return second && 1
         }
     }
-    const handlePurchaseOne = async (bundle, first, second, availableFirstPrice, availableSecondPrice, messagePurchase = false, showGreen = true) => {
-        if (!messagePurchase) {
-            if (isPurchaseMade || !articleDataFetched) {
-                return
-            }
+    const handlePurchaseOne = async (bundle, first, second) => {
+        {
+            // if (isPurchaseMade || !articleDataFetched) {
+            //     return
+            // }
 
             if (!isCurrentFocusedNotEmpty()) {
                 return
@@ -209,82 +209,160 @@ export default function Merchent() {
         if (first <= 0 && second <= 0) {
             return
         }
-        setIsPurchaseMade(true)
-        let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
-        let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
-        let overSaleFirst = 0
-        let overSaleSecond = 0
-        if (first > availableFirstPrice) {
-            overSaleFirst = first - availableFirstPrice
-            first = availableFirstPrice
-        }
-        if (second > availableSecondPrice) {
-            overSaleSecond = second - availableSecondPrice
-            second = availableSecondPrice
-        }
-
-        if ((Number(first) + Number(second)) > currentLoggedInUser.balance) {
-            // errorAudioRef?.current?.play()
-            alertMessage("You dont have enough balance for this purchase.")
-            return
-        }
-
-        if (purchasedDrawData) {
-            purchasedDrawData.savedPurchases.push({
-                bundle, first, second
-            })
-            if (overSaleFirst > 0 || overSaleSecond > 0) {
-                purchasedDrawData.savedOversales.push({
-                    bundle, first: overSaleFirst, second: overSaleSecond
-                })
-                oversaleAudioRef?.current?.play()
-            }
-        } else {
-            purchasedDrawData = {
-                drawId: form.selectedDraw,
-                savedPurchases: [{
-                    bundle, first, second
-                }]
-            }
-            if (overSaleFirst > 0 || overSaleSecond > 0) {
-                purchasedDrawData = {
-                    ...purchasedDrawData,
-                    savedOversales: [{
-                        bundle, first: overSaleFirst, second: overSaleSecond
-                    }]
-                }
-                oversaleAudioRef?.current?.play()
-            }
-            purchasedFromDrawData.push(purchasedDrawData)
-
-        }
-        // firstDigitId, secondDigitId, bundle , purchaseFirst ,purchaseSecond, type
-        let data = getDataForBundle(bundle, currentDraw)
-        data = {
-            ...data,
-            purchaseFirst: first,
-            purchaseSecond: second,
-            type: "-",
-            askingUser: localStorageUtils.getLoggedInUser()._id
-        }
-        if (showGreen) {
-            successMessage("Purcahse added successfuly")
-        }
-        if (first > 0 || second > 0) {
-            setSavedPurchases([...savedPurchases, { _id: "", bundle, first, second }])
-        }
-        if (overSaleFirst > 0 || overSaleSecond > 0) {
-            setOversales([...oversales, { _id: "", bundle, first: overSaleFirst, second: overSaleSecond }])
-        }
+        let purchase = { bundle, first, second }
+        setAvailableArticles(null)
         setForm({ ...form, bundle: '' })
-        currentLoggedInUser.balance = currentLoggedInUser.balance - (Number(first) + Number(second))
-        setCurrentLoggedInUser(currentLoggedInUser)
-        await articlesAPI.updateDigit(data)
-        updateCurrentLoggedInUser()
+        setIsPurchaseMade(true)
+        const makeOnePurchase = async () => {
+            let purchases = [{ ...getDataForBundle(purchase.bundle, currentDraw), ...purchase }]
+            let temp = {
+                draw_id: currentDraw._id,
+                user_id: currentLoggedInUser._id,
+                purchases: purchases,
+                message: null,
+            }
+            let response = await articlesAPI.makeBulkPurchase(temp)
+            if (response.user) {
+                if(response.inSufCount==1){
+                    alertMessage("Balance Insufficent")                    
+                }else{
+                    successMessage("Purchase Saved")
+                }
+                setCurrentLoggedInUser({ ...response.user })
+                if (form.selectedDraw) {
+                    getSavedPurchasesOfCurrentDraw(form.selectedDraw, response.user)
+                }
+            }
+        }
+        makeOnePurchase()
+
+
         setIsPurchaseMade(false)
-        // handleBundleChange(bundle)
-        // setShowModal(false);
     };
+
+    // const handlePurchaseOne = async (bundle, first, second, showGreen = true) => {
+    //     {
+
+    //         if (!isCurrentFocusedNotEmpty()) {
+    //             return
+    //         }
+    //         if (!auto) {
+    //             if (currentFocused < 3) {
+    //                 setCurrentFocused(currentFocused + 1)
+    //                 return
+    //             }
+    //             if (currentFocused == 3) {
+    //                 setCurrentFocused((1))
+    //             }
+    //         } else {
+    //             if (currentFocused != 1) {
+    //                 if (currentFocused == 3) {
+    //                     setCurrentFocused(1)
+    //                     return
+    //                 }
+    //                 setCurrentFocused(currentFocused + 1)
+    //                 return
+    //             }
+    //         }
+
+    //     }
+    //     let firstStr = first + ""
+    //     let secondStr = second + ""
+    //     if (!firstStr || !secondStr || !bundle) {
+    //         return
+    //     }
+
+    //     if (first <= 0 && second <= 0) {
+    //         return
+    //     }
+    //     setForm({...form,bundle:""})
+    //     setAvailableArticles(null)
+    //     setIsPurchaseMade(true)
+    //     let purchasedFromDrawData = currentLoggedInUser.purchasedFromDrawData
+    //     let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === form.selectedDraw)
+    //     let overSaleFirst = 0
+    //     let overSaleSecond = 0
+    //     const data1 = getDataForBundle(bundle, currentDraw);
+    //     const response = await articlesAPI.getFirstAndSecond(data1);
+    //     let availableFirstPrice = response.data.firstPrice
+    //     let availableSecondPrice = response.data.secondPrice
+
+    //     if (first > availableFirstPrice) {
+    //         overSaleFirst = first - availableFirstPrice
+    //         first = availableFirstPrice
+    //     }
+    //     if (second > availableSecondPrice) {
+    //         overSaleSecond = second - availableSecondPrice
+    //         second = availableSecondPrice
+    //     }
+
+    //     if ((Number(first) + Number(second)) > currentLoggedInUser.balance) {
+    //         // errorAudioRef?.current?.play()
+    //         alertMessage("You dont have enough balance for this purchase.")
+    //         return
+    //     }
+
+    //     if (purchasedDrawData) {
+    //         purchasedDrawData.savedPurchases.push({
+    //             bundle, first, second
+    //         })
+    //         if (overSaleFirst > 0 || overSaleSecond > 0) {
+    //             purchasedDrawData.savedOversales.push({
+    //                 bundle, first: overSaleFirst, second: overSaleSecond
+    //             })
+    //             oversaleAudioRef?.current?.play()
+    //         }
+    //     } else {
+    //         purchasedDrawData = {
+    //             drawId: form.selectedDraw,
+    //             savedPurchases: [{
+    //                 bundle, first, second
+    //             }]
+    //         }
+    //         if (overSaleFirst > 0 || overSaleSecond > 0) {
+    //             purchasedDrawData = {
+    //                 ...purchasedDrawData,
+    //                 savedOversales: [{
+    //                     bundle, first: overSaleFirst, second: overSaleSecond
+    //                 }]
+    //             }
+    //             oversaleAudioRef?.current?.play()
+    //         }
+    //         purchasedFromDrawData.push(purchasedDrawData)
+
+    //     }
+    //     // firstDigitId, secondDigitId, bundle , purchaseFirst ,purchaseSecond, type
+    //     let data = getDataForBundle(bundle, currentDraw)
+    //     data = {
+    //         ...data,
+    //         purchaseFirst: first,
+    //         purchaseSecond: second,
+    //         type: "-",
+    //         askingUser: localStorageUtils.getLoggedInUser()._id
+    //     }
+    //     if (showGreen) {
+    //         successMessage("Purcahse added successfuly")
+    //     }
+    //     if (first > 0 || second > 0) {
+    //         setSavedPurchases([...savedPurchases, { _id: "", bundle, first, second }])
+    //     }
+    //     if (overSaleFirst > 0 || overSaleSecond > 0) {
+    //         setOversales([...oversales, { _id: "", bundle, first: overSaleFirst, second: overSaleSecond }])
+    //     }
+    //     await articlesAPI.updateDigit(data)
+    //     setForm({ ...form, bundle: '' })
+    //     currentLoggedInUser.balance = currentLoggedInUser.balance - (Number(first) + Number(second))
+    //     setCurrentLoggedInUser(currentLoggedInUser)
+    //     const res = await APIs.updateUser(currentLoggedInUser)
+    //     setCurrentLoggedInUser({ ...res.user })
+    //     if (form.selectedDraw) {
+    //         getSavedPurchasesOfCurrentDraw(form.selectedDraw, res.user)
+    //     }
+    //     setIsPurchaseMade(false)
+    //     // handleBundleChange(bundle)
+    //     // setShowModal(false);
+    // };
+
     function successMessage(msg) {
         setNotification({ ...notification, color: "", show: true, message: msg })
     }
@@ -427,35 +505,35 @@ export default function Merchent() {
             return;
         }
         try {
-            let purchases=[]
-            function setFirsts(first){
-                purchases=purchases.map(purchase=>{
-                    let data={...purchase}
-                    if(!data.first){
-                        data.first=first
+            let purchases = []
+            function setFirsts(first) {
+                purchases = purchases.map(purchase => {
+                    let data = { ...purchase }
+                    if (!data.first) {
+                        data.first = first
                     }
                     return data
                 })
             }
-            function setSeonds(second){
-                purchases=purchases.map(purchase=>{
-                    let data={...purchase}
-                    if(!data.second){
-                        data.second=second
+            function setSeonds(second) {
+                purchases = purchases.map(purchase => {
+                    let data = { ...purchase }
+                    if (!data.second) {
+                        data.second = second
                     }
                     return data
                 })
             }
             let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.'); // Replacing commas with dots
-            tempMessage  = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
-            let chunks=tempMessage.split(".")
-            chunks.forEach(chunk=>{
-                if(chunk[0]=="f"){
+            tempMessage = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
+            let chunks = tempMessage.split(".")
+            chunks.forEach(chunk => {
+                if (chunk[0] == "f") {
                     setFirsts(Number(chunk.slice(1)))
-                }else if(chunk[0]=="s"){
+                } else if (chunk[0] == "s") {
                     setSeonds(Number(chunk.slice(1)))
-                }else{
-                    purchases.push({bundle:chunk, first:null, second:null})
+                } else {
+                    purchases.push({ bundle: chunk, first: null, second: null })
                 }
             })
             setMessagePurchases([...purchases]);
@@ -469,12 +547,12 @@ export default function Merchent() {
             return ({ ...getDataForBundle(purchase.bundle, currentDraw), ...purchase })
         })
         let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
-        tempMessage  = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
+        tempMessage = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
         let temp = {
             draw_id: currentDraw._id,
             user_id: currentLoggedInUser._id,
             purchases: purchases,
-            message: tempMessage
+            message: tempMessage,
         }
         let response = await articlesAPI.makeBulkPurchase(temp)
         if (response.user) {
@@ -483,17 +561,8 @@ export default function Merchent() {
             if (form.selectedDraw) {
                 getSavedPurchasesOfCurrentDraw(form.selectedDraw, response.user)
             }
-            // if (response.inSufCount > 0) {
-            //     alertMessage("Due to insufficent balance " + response.inSufCount + " purchases are not made")
-            // }
             setMessagePurchases([])
-            // let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
-            // if (response.user.messagesData.find(data => data.drawId == currentDraw._id)) {
-            //     response.user.messagesData.find(data => data.drawId == currentDraw._id).messages.push(tempMessage)
-            // } else {
-            //     response.user.messagesData.push({ drawId: currentDraw._id, messages: [tempMessage] })
-            // }
-            // updateCurrentLoggedInUser()
+            setMessage("")
         }
         setIsLoading(false)
     }
@@ -838,7 +907,7 @@ export default function Merchent() {
                     setCurrentFocused(currentFocused + 1)
                 } else {
                     setCurrentFocused(1)
-                    handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)
+                    handlePurchaseOne(form.bundle, form.first, form.second)
                 }
             } else {
                 if (currentFocused != 1) {
@@ -850,7 +919,7 @@ export default function Merchent() {
                         bundleRef.current.focus();
                     }
                 } else {
-                    handlePurchaseOne(form.bundle, form.first, form.second, availableArticles.firstPrice, availableArticles.secondPrice)
+                    handlePurchaseOne(form.bundle, form.first, form.second)
                     // setForm({...form, bundle:""})
                 }
             }
@@ -867,7 +936,7 @@ export default function Merchent() {
         let messages = currentLoggedInUser?.messagesData?.find(data => data.drawId == currentDraw?._id)?.messages
         if (messages) {
             let tempMessage = message.replace(/\s/g, '').replace(/,/g, '.');
-            tempMessage  = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
+            tempMessage = tempMessage.replace(/[a-zA-Z]/g, match => match.toLowerCase());
             let sameMessages = messages.filter(msg => msg == tempMessage)
             if (sameMessages) {
                 return sameMessages.length
@@ -1113,7 +1182,7 @@ export default function Merchent() {
 
                             <Button variant='primary btn btn-sm'
                                 style={{ width: "40px", fontSize: "0.7rem", marginTop: "2px" }}
-                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles?.firstPrice, availableArticles?.secondPrice)} >
+                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second)} >
                                 Add
                             </Button>
                         </div>
@@ -1649,7 +1718,7 @@ export default function Merchent() {
 
                             <Button variant='primary btn btn-sm'
                                 style={{ fontSize: "1rem", marginTop: "2px" }}
-                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second, availableArticles?.firstPrice, availableArticles?.secondPrice)} >
+                                onClick={() => handlePurchaseOne(form.bundle, form.first, form.second)} >
                                 Add
                             </Button>
                         </div>
