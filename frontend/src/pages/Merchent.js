@@ -32,7 +32,11 @@ export default function Merchent() {
     const [messagePurchases, setMessagePurchases] = useState([]);
     const [oversales, setOversales] = useState([]);
     const [showOversaleModal, setShowOversaleModal] = useState(false);
+    const [showGeneralsaleModal, setShowGeneralsaleModal] = useState(false);
+
     const [overSaleOption, setOverSaleOption] = useState(3)
+    const [generalSaleOption, setGeneralSaleOption] = useState(3)
+
     const [deleteAllSelected, setDeleteAllSelected] = useState(false)
     const [currentFocused, setCurrentFocused] = useState(1)
     const [draws, setDraws] = useState([]);
@@ -209,7 +213,7 @@ export default function Merchent() {
         if (first <= 0 && second <= 0) {
             return
         }
-        
+
         let purchase = { bundle, first, second }
         setAvailableArticles(null)
         setForm({ ...form, bundle: '' })
@@ -225,16 +229,16 @@ export default function Merchent() {
             let response = await articlesAPI.makeBulkPurchase(temp)
             if (response.user) {
                 if (response.inSufCount == 1) {
-                    alertMessage("Balance Insufficent for "+response.inSufCount+" purchases")
+                    alertMessage("Balance Insufficent for " + response.inSufCount + " purchases")
                     errorAudioRef?.current?.play()
                 } else {
                     successMessage("Purchase Saved")
                 }
-                if(response.oversaleCount>0){
-                    alert("Oversale count: "+response.oversaleCount)
+                if (response.oversaleCount > 0) {
+                    alert("Oversale count: " + response.oversaleCount)
                     oversaleAudioRef?.current?.play()
                 }
-                
+
                 setCurrentLoggedInUser({ ...response.user })
                 if (form.selectedDraw) {
                     getSavedPurchasesOfCurrentDraw(form.selectedDraw, response.user)
@@ -242,7 +246,7 @@ export default function Merchent() {
             }
         }
         makeOnePurchase()
-        
+
 
         setIsPurchaseMade(false)
     };
@@ -564,12 +568,12 @@ export default function Merchent() {
         let response = await articlesAPI.makeBulkPurchase(temp)
         if (response.user) {
             if (response.inSufCount > 0) {
-                alertMessage("Balance Insufficent for "+response.inSufCount+" purchases")
+                alertMessage("Balance Insufficent for " + response.inSufCount + " purchases")
                 errorAudioRef?.current?.play()
             } else {
                 successMessage("Purchase Saved")
             }
-            if(response.oversaleCount>0){
+            if (response.oversaleCount > 0) {
                 // alert("Oversale count: "+response.oversaleCount)
                 oversaleAudioRef?.current?.play()
             }
@@ -822,7 +826,7 @@ export default function Merchent() {
         setOversales(result)
     }
     const handleCurrentOversale = () => {
-        setOversales([...currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
+        setOversales([...currentLoggedInUser?.purchasedFromDrawData?.find(data => data.drawId == currentDraw._id).savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
     }
     function backOne() {
         if (currentFocused == 1) {
@@ -1557,6 +1561,12 @@ export default function Merchent() {
                                     <div className='d-flex justify-content-end' >
                                         <Button variant='primary btn btn-sm'
                                             style={{ fontSize: "1rem", marginRight: "10px" }}
+                                            onClick={() => setShowGeneralsaleModal(true)}>
+                                            GeneralSale
+                                        </Button>
+
+                                        <Button variant='primary btn btn-sm'
+                                            style={{ fontSize: "1rem", marginRight: "10px" }}
                                             onClick={() => setShowModal(true)}>
                                             SMS
                                         </Button>
@@ -1755,168 +1765,6 @@ export default function Merchent() {
                     </div>
 
                     <div>
-                        <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]); handleCurrentOversale(); setShowOversaleModal(false) }}>
-                            <Modal.Header closeButton>
-                                <Modal.Title>Oversales</Modal.Title>
-                            </Modal.Header>
-
-                            <Modal.Body>
-                                <div className='d-flex justify-content-between'>
-                                    <div>
-                                        <h6>
-                                            {overSaleOption == 1 && "Invoice"}
-                                            {overSaleOption == 2 && "All Total"}
-                                            {overSaleOption == 3 && "Current"}
-                                        </h6>
-                                    </div>
-                                    <div className='d-flex justify-content-end'>
-                                        <Button variant='btn btn-danger  btn-sm'
-                                            style={{ fontSize: "1rem", marginTop: "-20px", marginRight: "3px" }}
-                                            onClick={() => { handleCheckedOverSaleDeletes(); }}
-                                        >
-                                            Delete
-                                        </Button>
-                                        <Button variant='btn btn-primary  btn-sm'
-                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
-                                            Invoice
-                                        </Button>
-                                        <Button variant='btn btn-primary  btn-sm'
-                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
-                                            All Total
-                                        </Button>
-                                        <Button variant='btn btn-primary  btn-sm'
-                                            style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
-                                            Current
-                                        </Button>
-
-                                    </div>
-                                </div>
-                                <Table bordered hover size="" className="" style={{ fontSize: '1rem', marginTop: "3px" }}>
-                                    <thead>
-                                        <tr>
-                                            {(overSaleOption == 1 || overSaleOption == 3) &&
-                                                <>
-                                                    <th className='col-1'>
-                                                        <Form.Check
-                                                            type="checkbox"
-                                                            checked={deleteAllCheckedOversalesInput}
-                                                            onClick={(e) => {
-                                                                if (e.target.checked) {
-                                                                    setCheckedOversales([...oversales]);
-                                                                } else {
-                                                                    setCheckedOversales([]);
-                                                                }
-                                                                setDeleteAllCheckedOversalesInput(e.target.checked)
-                                                            }}
-                                                            style={{ marginLeft: "8px" }}
-                                                        />
-                                                    </th>
-                                                    <th className='col-3'>No</th>
-                                                    <th className='col-3'>F</th>
-                                                    <th className='col-3'>S</th>
-                                                    <th className='col-2'></th>
-
-                                                </>
-                                            }
-                                            {overSaleOption == 2 &&
-                                                <>
-                                                    <th className='col-4'>No</th>
-                                                    <th className='col-4'>F</th>
-                                                    <th className='col-4'>S</th>
-                                                </>
-                                            }
-                                        </tr>
-                                    </thead>
-                                </Table>
-                                <div style={{ height: '320px', overflowY: 'auto', marginTop: "-17px" }}>
-                                    <Table bordered hover size="" className="" style={{ fontSize: '1rem', }}>
-                                        {overSaleOption == 2 ?
-                                            <tbody>
-                                                {oversales.map(purchase => (
-                                                    <tr>
-                                                        <td className='col-4'>{purchase.bundle}</td>
-                                                        <td className='col-4'>{purchase.first}</td>
-                                                        <td className='col-4'>{purchase.second}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                            :
-                                            <tbody>
-                                                {oversales.map(purchase => (
-                                                    <tr>
-                                                        <td className='col-1' >
-                                                            <Form.Check
-                                                                type="checkbox"
-                                                                checked={checkedOversales.find(p => p._id == purchase._id)}
-                                                                onChange={e => handleCheckedOversales(purchase, e.target.checked)}
-                                                                style={{ padding: "2px", backgroundColor: getRowColor(purchase.bundle) }}
-                                                            />
-                                                        </td>
-                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
-                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
-                                                        <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
-                                                        <td className='col-2'>
-                                                            <div className=''>
-                                                                <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        }
-                                    </Table>
-
-                                </div>
-                                <div className='mt-3'>
-                                    <Form>
-                                        <Row>
-                                            <Col>
-                                                <Form.Group >
-                                                    <Form.Control
-                                                        type='text'
-                                                        placeholder='No'
-                                                        value={oversaleForm.bundle}
-                                                        onChange={(e) => isValidBundle(e.target.value) && setOversaleForm({ ...oversaleForm, bundle: e.target.value })}
-                                                        style={{ fontSize: "0.8rem" }}
-                                                    />
-                                                </Form.Group>
-                                            </Col>
-                                            <Col>
-                                                <Form.Group >
-                                                    <Form.Control
-                                                        type='number'
-                                                        placeholder='F'
-                                                        value={oversaleForm.first}
-                                                        onChange={(e) => setOversaleForm({ ...oversaleForm, first: e.target.value })}
-                                                        style={{ fontSize: "0.8rem" }}
-
-                                                    />
-                                                </Form.Group>
-                                            </Col>
-                                            <Col>
-                                                <Form.Group >
-                                                    <Form.Control
-                                                        type='number'
-                                                        placeholder='S'
-                                                        value={oversaleForm.second}
-                                                        onChange={(e) => setOversaleForm({ ...oversaleForm, second: e.target.value })}
-                                                        style={{ fontSize: "0.8rem" }}
-
-                                                    />
-                                                </Form.Group>
-                                            </Col>
-                                            <Col>
-                                                <Button variant='primary btn ' onClick={handleAddNewOversale} disabled={!oversaleForm.first || !oversaleForm.second || !oversaleForm.bundle}>
-                                                    Add
-                                                </Button>
-                                            </Col>
-                                        </Row>
-                                    </Form>
-
-                                </div>
-                            </Modal.Body>
-                        </Modal>
-
 
                     </div>
                     <CustomNotification notification={notification} setNotification={setNotification} />
@@ -2024,6 +1872,365 @@ export default function Merchent() {
                     </div>
                 </div>
             }
+
+            <div>
+                <Modal show={showOversaleModal} onHide={() => { setCheckedOversales([]); handleCurrentOversale(); setShowOversaleModal(false) }}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Oversales</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                        <div className='d-flex justify-content-between'>
+                            <div>
+                                <h6>
+                                    {overSaleOption == 1 && "Invoice"}
+                                    {overSaleOption == 2 && "All Total"}
+                                    {overSaleOption == 3 && "Current"}
+                                </h6>
+                            </div>
+                            <div className='d-flex justify-content-end'>
+                                <Button variant='btn btn-danger  btn-sm'
+                                    style={{ fontSize: "1rem", marginTop: "-20px", marginRight: "3px" }}
+                                    onClick={() => { handleCheckedOverSaleDeletes(); }}
+                                >
+                                    Delete
+                                </Button>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
+                                    Invoice
+                                </Button>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
+                                    All Total
+                                </Button>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
+                                    Current
+                                </Button>
+
+                            </div>
+                        </div>
+                        <Table bordered hover size="" className="" style={{ fontSize: '1rem', marginTop: "3px" }}>
+                            <thead>
+                                <tr>
+                                    {(overSaleOption == 1 || overSaleOption == 3) &&
+                                        <>
+                                            <th className='col-1'>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={deleteAllCheckedOversalesInput}
+                                                    onClick={(e) => {
+                                                        if (e.target.checked) {
+                                                            setCheckedOversales([...oversales]);
+                                                        } else {
+                                                            setCheckedOversales([]);
+                                                        }
+                                                        setDeleteAllCheckedOversalesInput(e.target.checked)
+                                                    }}
+                                                    style={{ marginLeft: "8px" }}
+                                                />
+                                            </th>
+                                            <th className='col-3'>No</th>
+                                            <th className='col-3'>F</th>
+                                            <th className='col-3'>S</th>
+                                            <th className='col-2'></th>
+
+                                        </>
+                                    }
+                                    {overSaleOption == 2 &&
+                                        <>
+                                            <th className='col-4'>No</th>
+                                            <th className='col-4'>F</th>
+                                            <th className='col-4'>S</th>
+                                        </>
+                                    }
+                                </tr>
+                            </thead>
+                        </Table>
+                        <div style={{ height: '320px', overflowY: 'auto', marginTop: "-17px" }}>
+                            <Table bordered hover size="" className="" style={{ fontSize: '1rem', }}>
+                                {overSaleOption == 2 ?
+                                    <tbody>
+                                        {oversales.map(purchase => (
+                                            <tr>
+                                                <td className='col-4'>{purchase.bundle}</td>
+                                                <td className='col-4'>{purchase.first}</td>
+                                                <td className='col-4'>{purchase.second}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    :
+                                    <tbody>
+                                        {oversales.map(purchase => (
+                                            <tr>
+                                                <td className='col-1' >
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        checked={checkedOversales.find(p => p._id == purchase._id)}
+                                                        onChange={e => handleCheckedOversales(purchase, e.target.checked)}
+                                                        style={{ padding: "2px", backgroundColor: getRowColor(purchase.bundle) }}
+                                                    />
+                                                </td>
+                                                <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+                                                <td className='col-2'>
+                                                    <div className=''>
+                                                        <Button style={{ fontSize: "0.7rem" }} variant="primary btn btn-sm btn-danger" onClick={() => handleRemovingOversalePurchase(purchase._id)}>Remove</Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                }
+                            </Table>
+
+                        </div>
+                        <div className='mt-3'>
+                            <Form>
+                                <Row>
+                                    <Col>
+                                        <Form.Group >
+                                            <Form.Control
+                                                type='text'
+                                                placeholder='No'
+                                                value={oversaleForm.bundle}
+                                                onChange={(e) => isValidBundle(e.target.value) && setOversaleForm({ ...oversaleForm, bundle: e.target.value })}
+                                                style={{ fontSize: "0.8rem" }}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col>
+                                        <Form.Group >
+                                            <Form.Control
+                                                type='number'
+                                                placeholder='F'
+                                                value={oversaleForm.first}
+                                                onChange={(e) => setOversaleForm({ ...oversaleForm, first: e.target.value })}
+                                                style={{ fontSize: "0.8rem" }}
+
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col>
+                                        <Form.Group >
+                                            <Form.Control
+                                                type='number'
+                                                placeholder='S'
+                                                value={oversaleForm.second}
+                                                onChange={(e) => setOversaleForm({ ...oversaleForm, second: e.target.value })}
+                                                style={{ fontSize: "0.8rem" }}
+
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col>
+                                        <Button variant='primary btn ' onClick={handleAddNewOversale} disabled={!oversaleForm.first || !oversaleForm.second || !oversaleForm.bundle}>
+                                            Add
+                                        </Button>
+                                    </Col>
+                                </Row>
+                            </Form>
+
+                        </div>
+                    </Modal.Body>
+                </Modal>
+
+                {/* General Sales */}
+
+                <Modal show={showGeneralsaleModal}
+                    onHide={() => {
+                        // setCheckedOversales([]); handleCurrentOversale(); 
+                        setShowGeneralsaleModal(false)
+                    }
+                    }
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title>General Sale</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                        <div className='d-flex justify-content-between'>
+                            <div>
+                                <h6>
+                                    {generalSaleOption == 1 && "Invoice"}
+                                    {generalSaleOption == 2 && "All Total"}
+                                    {generalSaleOption == 3 && "Current"}
+                                </h6>
+                            </div>
+                            <div className='d-flex justify-content-end'>
+                                <Button variant='btn btn-danger  btn-sm'
+                                    style={{ fontSize: "1rem", marginTop: "-20px", marginRight: "3px" }}
+                                    onClick={handleMultipleSavedPurchaseDelete}
+                                    disabled={checkedSavedPurchases.length <= 0 || isDeleting}
+                                >
+                                    {isDeleting ? "Deleting" : "Delete"}
+                                </Button>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                // onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}
+                                >
+                                    Invoice
+                                </Button>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                // onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}
+                                >
+                                    All Total
+                                </Button>
+                                <Button variant='btn btn-primary  btn-sm'
+                                    style={{ fontSize: "0.8rem", marginTop: "-20px" }}
+                                // onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}
+                                >
+                                    Current
+                                </Button>
+                            </div>
+                        </div>
+                        <Table bordered hover size="" className="" style={{ fontSize: '1rem', marginTop: "3px" }}>
+                            <thead>
+                                <tr>
+                                    {(generalSaleOption == 1 || generalSaleOption == 3) &&
+                                        <>
+                                            <th className='col-1'>
+                                                <Form.Check
+                                                    type="checkbox"
+                                                    checked={deleteAllSelected}
+                                                    onClick={(e) => {
+                                                        if (e.target.checked) {
+                                                            setCheckedSavedPurchases([...savedPurchases]);
+                                                        } else {
+                                                            setCheckedSavedPurchases([]);
+                                                        }
+                                                        setDeleteAllSelected(e.target.checked)
+                                                    }}
+
+                                                    className='text-center'
+
+                                                    style={{ marginLeft: "8px" }}
+                                                />
+                                            </th>
+                                            <th className='col-3'>No</th>
+                                            <th className='col-3'>F</th>
+                                            <th className='col-3'>S</th>
+
+                                        </>
+                                    }
+                                    {generalSaleOption == 2 &&
+                                        <>
+                                            <th className='col-4'>No</th>
+                                            <th className='col-4'>F</th>
+                                            <th className='col-4'>S</th>
+                                        </>
+                                    }
+                                </tr>
+                            </thead>
+                        </Table>
+                        <div style={{ height: '320px', overflowY: 'auto', marginTop: "-17px" }}>
+                            <Table bordered hover size="" className="" style={{ fontSize: '1rem', }}>
+                                {generalSaleOption == 2 ?
+                                    <tbody>
+                                        {savedPurchases.map(purchase => (
+                                            <tr>
+                                                <td className='col-4'>{purchase.bundle}</td>
+                                                <td className='col-4'>{purchase.first}</td>
+                                                <td className='col-4'>{purchase.second}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    :
+                                    <tbody>
+                                        {savedPurchases.map(purchase => (
+                                            <tr>
+                                                <td className='col-1' >
+
+                                                    <Form.Check
+                                                        type="checkbox"
+                                                        checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
+                                                        onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
+                                                        style={{ backgroundColor: getRowColor(purchase.bundle) }}
+                                                        className='text-center'
+                                                        style={{ padding: "2px", backgroundColor: getRowColor(purchase.bundle) }}
+                                                    />
+                                                </td>
+                                                <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                <td className='col-3' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                }
+                            </Table>
+
+                        </div>
+                    </Modal.Body>
+                </Modal>
+
+
+            </div>
         </div >
     );
 }
+
+
+
+// <Button
+// variant="btn btn-sm btn-danger"
+// style={{ fontSize: "1rem", marginRight: "5px" }}
+// onClick={handleMultipleSavedPurchaseDelete}
+// disabled={checkedSavedPurchases.length <= 0 || isDeleting}>
+// {isDeleting ? "Deleting" : "Delete"}
+// </Button>
+
+// </div>
+// </div>
+// </div>
+// <div style={{ marginTop: "-15px" }}>
+// <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
+// <thead>
+// <tr>
+// <th className='col-1'>
+//     <Form.Check
+//         type="checkbox"
+//         checked={deleteAllSelected}
+//         onClick={(e) => {
+//             if (e.target.checked) {
+//                 setCheckedSavedPurchases([...savedPurchases]);
+//             } else {
+//                 setCheckedSavedPurchases([]);
+//             }
+//             setDeleteAllSelected(e.target.checked)
+//         }}
+//         className='text-center'
+//     />
+// </th>
+// <th className='col-2'>No</th>
+// <th className='col-2'>F</th>
+// <th className='col-2'>S</th>
+// </tr>
+// </thead>
+// </Table>
+// </div>
+// <div style={{ height: '310px', overflowY: 'auto', marginTop: "-15px" }}>
+// <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
+// <tbody>
+// {savedPurchases.map(purchase => (
+// <tr key={purchase._id} >
+//     <td className='col-1' >
+//         <Form.Check
+//             type="checkbox"
+//             checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
+//             onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
+//             style={{ backgroundColor: getRowColor(purchase.bundle) }}
+//             className='text-center'
+//         />
+//     </td>
+
+//     <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+//     <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+//     <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
+//     {/* <td>
+// <div className=''>
+// <Button variant="btn btn-sm btn-danger" style={{ fontSize: "0.5rem" }} onClick={() => handleRemovingSavedPurchase(purchase._id)}>D</Button>
+// </div>
+// </td> */}
+// </tr>
