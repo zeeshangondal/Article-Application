@@ -1275,25 +1275,24 @@ const AdminReports = () => {
         pdfDoc.text("Total Sale:", x1, y + 15 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 15 * ySpace);
         pdfDoc.text("Total Commission:", x2, y + 15 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 15 * ySpace);
 
-        pdfDoc.text("Extra Sale:", x1, y + 16 * ySpace); pdfDoc.text(result.extraSale + "", x1 + 40, y + 16 * ySpace);
-        pdfDoc.text("ABC Extra:", x1 + 50 + 20, y + 16 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40 + 50 + 5, y + 16 * ySpace);
-        pdfDoc.text("D Extra:", x2 + 10, y + 16 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 16 * ySpace);
+        pdfDoc.text("ABC Extra:", x1, y + 16 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40, y + 16 * ySpace);
+        pdfDoc.text("D Extra:", x2, y + 16 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 16 * ySpace);
 
-        pdfDoc.text("Total Prize:", x1, y + 17 * ySpace); pdfDoc.text(result.totalPrize + "", x1 + 40, y + 17 * ySpace);
-        pdfDoc.text("ABC Prize:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
-        pdfDoc.text("D Prize:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
+        pdfDoc.text("ABC Prize:", x1, y + 17 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40, y + 17 * ySpace);
+        // pdfDoc.text("D Prize:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
+        pdfDoc.text("D Prize:", x2, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
 
-        pdfDoc.text("Bill:", x1, y + 18 * ySpace); pdfDoc.text(result.bill + "", x1 + 40, y + 18 * ySpace);
-        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 18 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40 + 50 + 5, y + 18 * ySpace);
-        pdfDoc.text("D Bill:", x2 + 10, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
+        pdfDoc.text("ABC Bill:", x1, y + 18 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40, y + 18 * ySpace);
+        // pdfDoc.text("D Bill:", x2 + 10, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
+        pdfDoc.text("D Bill:", x2, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
 
 
-        pdfDoc.text("Total Share:", x1, y + 19 * ySpace); pdfDoc.text(result.totalShare + "", x1 + 40, y + 19 * ySpace);
-        pdfDoc.text("ABC Share:", x1 + 50 + 20, y + 19 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40 + 50 + 5, y + 19 * ySpace);
-        pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
+        pdfDoc.text("ABC Share:", x1, y + 19 * ySpace); pdfDoc.text(result.ABCShare  + "", x1 + 40, y + 19 * ySpace);
+        // pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
+        pdfDoc.text("D Share:", x2, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
 
         pdfDoc.text("Total Bill:", x1, y + 20 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40, y + 20 * ySpace);
-        pdfDoc.text("Total Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
+        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
         pdfDoc.text("Total Bill:", x2 + 10, y + 20 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 20 * ySpace);
     }
 

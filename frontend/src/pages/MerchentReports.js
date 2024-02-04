@@ -150,14 +150,14 @@ const MerchentReports = () => {
     const handleTotalSaleChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
-            let tempDraw = draws.find(draw => draw.drawDate == value )
+            let tempDraw = draws.find(draw => draw.drawDate == value)
             if (!tempDraw) {
                 alertMessage("No Record of Draw")
                 return
             }
-            if( tempDraw.drawExpired ){
+            if (tempDraw.drawExpired) {
             }
-            else if( tempDraw.drawStatus ){
+            else if (tempDraw.drawStatus) {
                 alertMessage("Draw is active")
                 return
             }
@@ -1075,8 +1075,8 @@ const MerchentReports = () => {
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
-        let head1="Bill Sheet";
-        pdfDoc.text("Bill Sheet"+(billingSheetForm.type=="general"? " - General":" - Oversale"), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
+        let head1 = "Bill Sheet";
+        pdfDoc.text("Bill Sheet" + (billingSheetForm.type == "general" ? " - General" : " - Oversale"), pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
         pdfDoc.setFontSize(12);
         pdfDoc.text("Draw date:", x1, y); pdfDoc.text(selectedDraw.drawDate + ", " + "Draw: " + selectedDraw.title, x1 + 30, y);
         pdfDoc.text("Dealer Code:", x2, y); pdfDoc.text(targetUser.userId + "", x2 + 27, y);
@@ -1157,26 +1157,27 @@ const MerchentReports = () => {
         pdfDoc.text("Total Sale:", x1, y + 15 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 15 * ySpace);
         pdfDoc.text("Total Commission:", x2, y + 15 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 15 * ySpace);
 
-        pdfDoc.text("Extra Sale:", x1, y + 16 * ySpace); pdfDoc.text(result.extraSale + "", x1 + 40, y + 16 * ySpace);
-        pdfDoc.text("ABC Extra:", x1 + 50 + 20, y + 16 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40 + 50 + 5, y + 16 * ySpace);
-        pdfDoc.text("D Extra:", x2 + 10, y + 16 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 16 * ySpace);
+        pdfDoc.text("ABC Extra:", x1, y + 16 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40, y + 16 * ySpace);
+        pdfDoc.text("D Extra:", x2, y + 16 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 16 * ySpace);
 
-        pdfDoc.text("Total Prize:", x1, y + 17 * ySpace); pdfDoc.text(result.totalPrize + "", x1 + 40, y + 17 * ySpace);
-        pdfDoc.text("ABC Prize:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
-        pdfDoc.text("D Prize:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
+        pdfDoc.text("ABC Prize:", x1, y + 17 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40, y + 17 * ySpace);
+        // pdfDoc.text("D Prize:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
+        pdfDoc.text("D Prize:", x2, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
 
-        pdfDoc.text("Bill:", x1, y + 18 * ySpace); pdfDoc.text(result.bill + "", x1 + 40, y + 18 * ySpace);
-        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 18 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40 + 50 + 5, y + 18 * ySpace);
-        pdfDoc.text("D Bill:", x2 + 10, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
+        pdfDoc.text("ABC Bill:", x1, y + 18 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40, y + 18 * ySpace);
+        // pdfDoc.text("D Bill:", x2 + 10, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
+        pdfDoc.text("D Bill:", x2, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
 
 
-        pdfDoc.text("Total Share:", x1, y + 19 * ySpace); pdfDoc.text(result.totalShare + "", x1 + 40, y + 19 * ySpace);
-        pdfDoc.text("ABC Share:", x1 + 50 + 20, y + 19 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40 + 50 + 5, y + 19 * ySpace);
-        pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
+        pdfDoc.text("ABC Share:", x1, y + 19 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40, y + 19 * ySpace);
+        // pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
+        pdfDoc.text("D Share:", x2, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
 
         pdfDoc.text("Total Bill:", x1, y + 20 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40, y + 20 * ySpace);
-        pdfDoc.text("Total Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
+        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
         pdfDoc.text("Total Bill:", x2 + 10, y + 20 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 20 * ySpace);
+
+
     }
 
     const calculateTotalsInFormat = (savedPurchases) => {
@@ -1270,7 +1271,7 @@ const MerchentReports = () => {
         let ABCTotalSale = formatNumberWithTwoDecimals(ABCFirstTotal + ABCSecondTotal);
         let DTotalSale = formatNumberWithTwoDecimals(DFirstTotal + DSecondTotal);
         let commission = formatNumberWithTwoDecimals(Number(((Number(targetUser.commission.commision) / 100) * ABCTotalSale).toFixed(1)))
-        let PCCommission =formatNumberWithTwoDecimals( Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1)))
+        let PCCommission = formatNumberWithTwoDecimals(Number(((Number(targetUser.commission.pcPercentage) / 100) * DTotalSale).toFixed(1)))
         let totalSale = formatNumberWithTwoDecimals(ABCTotalSale + DTotalSale)
         let totalCommission = formatNumberWithTwoDecimals(commission + PCCommission)
         let extraSale = formatNumberWithTwoDecimals(totalSale - totalCommission)
@@ -1287,7 +1288,7 @@ const MerchentReports = () => {
         let totalABCBill = formatNumberWithTwoDecimals(ABCBill - ABCShare)
         let totalDBill = formatNumberWithTwoDecimals(DBill - DShare)
         let totalBill = formatNumberWithTwoDecimals(totalABCBill + totalDBill)
-        totalBill=-totalBill              /// plus should indicate balance to be added in user's account
+        totalBill = -totalBill              /// plus should indicate balance to be added in user's account
 
         let result = {
             ABCFirstTotal, ABCSecondTotal, DFirstTotal, DSecondTotal, ABCTotalSale, DTotalSale, commission, PCCommission,
@@ -1303,42 +1304,42 @@ const MerchentReports = () => {
         return allUsers.find(user => user.username == username)
     }
 
-    const getTotalGeneralSalesOfMerchentFromDraw = (username,general=false,oversale=false) => {
+    const getTotalGeneralSalesOfMerchentFromDraw = (username, general = false, oversale = false) => {
         let targetUser = getAUser(username)
-        if(general){
+        if (general) {
             let drawDataArray = targetUser.savedPurchasesFromDrawsData.filter(data => {
                 return data.drawId == selectedDraw._id
             })
             let groupedByBundle = drawDataArray.flatMap(draw => draw.savedPurchases)
                 .reduce((acc, purchase) => {
                     const bundle = purchase.bundle;
-    
+
                     if (!acc[bundle]) {
                         acc[bundle] = { bundle, first: 0, second: 0 };
                     }
-    
+
                     acc[bundle].first += purchase.first;
                     acc[bundle].second += purchase.second;
-    
+
                     return acc;
                 }, {});
             let savedPurchases = Object.values(groupedByBundle);
-            return savedPurchases    
-        }else if(oversale){
+            return savedPurchases
+        } else if (oversale) {
             let drawDataArray = targetUser.savedPurchasesFromDrawsData.filter(data => {
                 return data.drawId == selectedDraw._id
             })
             let groupedByBundle = drawDataArray.flatMap(draw => draw.savedOversales)
                 .reduce((acc, purchase) => {
                     const bundle = purchase.bundle;
-    
+
                     if (!acc[bundle]) {
                         acc[bundle] = { bundle, first: 0, second: 0 };
                     }
-    
+
                     acc[bundle].first += purchase.first;
                     acc[bundle].second += purchase.second;
-    
+
                     return acc;
                 }, {});
             let savedOversales = Object.values(groupedByBundle);
@@ -1347,15 +1348,15 @@ const MerchentReports = () => {
         return []
 
     }
-    
+
     const generateBillingSheet = async () => {
-        let targetUser=getAUser(localStorageUtils.getLoggedInUser().username)
+        let targetUser = getAUser(localStorageUtils.getLoggedInUser().username)
         const pdfDoc = new jsPDF();
-        let purchases=[]
-        if(billingSheetForm.type=="oversale"){
-            purchases=getTotalGeneralSalesOfMerchentFromDraw(targetUser.username,true,false)
-        }else{
-            purchases=getTotalGeneralSalesOfMerchentFromDraw(targetUser.username,false,true)
+        let purchases = []
+        if (billingSheetForm.type == "oversale") {
+            purchases = getTotalGeneralSalesOfMerchentFromDraw(targetUser.username, true, false)
+        } else {
+            purchases = getTotalGeneralSalesOfMerchentFromDraw(targetUser.username, false, true)
         }
 
         let result = calculateResultOfMerchent(targetUser, purchases)
@@ -1372,7 +1373,7 @@ const MerchentReports = () => {
         }
     }
 
-    
+
 
     const generateBillingSheetSummary = async () => {
         let targetUser = getAUser(currentLoggedInUser.username)
@@ -1385,21 +1386,21 @@ const MerchentReports = () => {
 
         const columns = ['Sheet No', 'Sheet Name', 'Sheet Total', 'Total Prize'];
         let bodyData = []
-        let savedDataOfUser=targetUser.savedPurchasesFromDrawsData.filter(data=> data.drawId==selectedDraw._id)
-        for(let i=0;i<savedDataOfUser.length;i++){
-            let sheetNo=i+1
-            let sheetName=savedDataOfUser[i].sheetName
+        let savedDataOfUser = targetUser.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
+        for (let i = 0; i < savedDataOfUser.length; i++) {
+            let sheetNo = i + 1
+            let sheetName = savedDataOfUser[i].sheetName
             // savedPurchases, savedOversales, purchases, oversales
-            let totalSale=getAllTotal({
+            let totalSale = getAllTotal({
                 savedPurchases: savedDataOfUser[i].savedPurchases,
-                savedOversales:savedDataOfUser[i].savedOversales,
-                purchases:true,oversales:true
-             })
+                savedOversales: savedDataOfUser[i].savedOversales,
+                purchases: true, oversales: true
+            })
 
-             let sheetSavedPurchasesPrize=calculateResultOfMerchent(targetUser,savedDataOfUser[i].savedPurchases).totalPrize
-             let sheetSavedOversalesPrize=calculateResultOfMerchent(targetUser,savedDataOfUser[i].savedOversales).totalPrize
-             let totalPrize=sheetSavedPurchasesPrize+sheetSavedOversalesPrize
-             bodyData.push([sheetNo, sheetName,totalSale,totalPrize])
+            let sheetSavedPurchasesPrize = calculateResultOfMerchent(targetUser, savedDataOfUser[i].savedPurchases).totalPrize
+            let sheetSavedOversalesPrize = calculateResultOfMerchent(targetUser, savedDataOfUser[i].savedOversales).totalPrize
+            let totalPrize = sheetSavedPurchasesPrize + sheetSavedOversalesPrize
+            bodyData.push([sheetNo, sheetName, totalSale, totalPrize])
         }
         pdfDoc.autoTable({
             head: [columns],

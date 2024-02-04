@@ -209,6 +209,7 @@ export default function Merchent() {
         if (first <= 0 && second <= 0) {
             return
         }
+        
         let purchase = { bundle, first, second }
         setAvailableArticles(null)
         setForm({ ...form, bundle: '' })
@@ -223,11 +224,17 @@ export default function Merchent() {
             }
             let response = await articlesAPI.makeBulkPurchase(temp)
             if (response.user) {
-                if(response.inSufCount==1){
-                    alertMessage("Balance Insufficent")                    
-                }else{
+                if (response.inSufCount == 1) {
+                    alertMessage("Balance Insufficent for "+response.inSufCount+" purchases")
+                    errorAudioRef?.current?.play()
+                } else {
                     successMessage("Purchase Saved")
                 }
+                if(response.oversaleCount>0){
+                    alert("Oversale count: "+response.oversaleCount)
+                    oversaleAudioRef?.current?.play()
+                }
+                
                 setCurrentLoggedInUser({ ...response.user })
                 if (form.selectedDraw) {
                     getSavedPurchasesOfCurrentDraw(form.selectedDraw, response.user)
@@ -235,7 +242,7 @@ export default function Merchent() {
             }
         }
         makeOnePurchase()
-
+        
 
         setIsPurchaseMade(false)
     };
@@ -556,7 +563,17 @@ export default function Merchent() {
         }
         let response = await articlesAPI.makeBulkPurchase(temp)
         if (response.user) {
-            successMessage("Purchases Saved")
+            if (response.inSufCount > 0) {
+                alertMessage("Balance Insufficent for "+response.inSufCount+" purchases")
+                errorAudioRef?.current?.play()
+            } else {
+                successMessage("Purchase Saved")
+            }
+            if(response.oversaleCount>0){
+                // alert("Oversale count: "+response.oversaleCount)
+                oversaleAudioRef?.current?.play()
+            }
+
             setCurrentLoggedInUser({ ...response.user })
             if (form.selectedDraw) {
                 getSavedPurchasesOfCurrentDraw(form.selectedDraw, response.user)
