@@ -235,7 +235,6 @@ export default function Merchent() {
                     successMessage("Purchase Saved")
                 }
                 if (response.oversaleCount > 0) {
-                    alert("Oversale count: " + response.oversaleCount)
                     oversaleAudioRef?.current?.play()
                 }
 
@@ -785,15 +784,29 @@ export default function Merchent() {
 
     const handleInvoiceOversales = () => {
         let savedOversales = []
-        savedOversales = [...(currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales)]
         let oldRecs = currentLoggedInUser.savedPurchasesFromDrawsData.filter(data => data.drawId == currentDraw._id)
         if (oldRecs) {
             oldRecs.forEach(rec => {
                 savedOversales = [...savedOversales, ...rec.savedOversales]
             })
         }
-        savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
+        savedOversales = [...savedOversales, ...(currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedOversales)]
+        savedOversales = savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)
         setOversales(savedOversales)
+    }
+    const handleInvoiceGeneralSales = () => {
+        let savedPurchases = []
+        let oldRecs = currentLoggedInUser.savedPurchasesFromDrawsData.filter(data => data.drawId == currentDraw._id)
+        if (oldRecs) {
+            oldRecs.forEach(rec => {
+                savedPurchases = [...savedPurchases, ...rec.savedPurchases]
+            })
+        }
+        savedPurchases = [...savedPurchases, ...(currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedPurchases)]
+
+        savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
+        setSavedPurchases(savedPurchases)
+
     }
     const handleTotalOversales = () => {
         let savedOversales = []
@@ -820,13 +833,62 @@ export default function Merchent() {
             }
         });
         let result = Array.from(bundleMap, ([bundle, values]) => ({ bundle, ...values }));
+        result = result.filter(purchase => purchase.first != 0 || purchase.second != 0)
+
         result = result.sort((a, b) => {
             return Number('1' + a.bundle) - Number('1' + b.bundle);
         });
         setOversales(result)
     }
+    const handleTotalGeneralsales = () => {
+        let savedPurchases = []
+        savedPurchases = [...(currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id).savedPurchases)]
+        let oldRecs = currentLoggedInUser.savedPurchasesFromDrawsData.filter(data => data.drawId == currentDraw._id)
+        if (oldRecs) {
+            oldRecs.forEach(rec => {
+                savedPurchases = [...savedPurchases, ...rec.savedPurchases]
+            })
+        }
+        const bundleMap = new Map();
+        savedPurchases.forEach(item => {
+            const bundle = item.bundle;
+            const first = item.first;
+            const second = item.second;
+            if (bundleMap.has(bundle)) {
+                const existingValues = bundleMap.get(bundle);
+                bundleMap.set(bundle, {
+                    first: existingValues.first + first,
+                    second: existingValues.second + second,
+                });
+            } else {
+                bundleMap.set(bundle, { first, second });
+            }
+        });
+        let result = Array.from(bundleMap, ([bundle, values]) => ({ bundle, ...values }));
+        result = result.filter(purchase => purchase.first != 0 || purchase.second != 0)
+
+        result = result.sort((a, b) => {
+            return Number('1' + a.bundle) - Number('1' + b.bundle);
+        });
+
+        setSavedPurchases(result)
+    }
+
     const handleCurrentOversale = () => {
-        setOversales([...currentLoggedInUser?.purchasedFromDrawData?.find(data => data.drawId == currentDraw._id).savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
+        let temp1 = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id)
+        if (temp1) {
+            if (temp1.savedOversales) {
+                setOversales([...temp1.savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
+            }
+        }
+    }
+    const handleCurrentGeneralsale = () => {
+        let temp1 = currentLoggedInUser.purchasedFromDrawData.find(data => data.drawId == currentDraw._id)
+        if (temp1) {
+            if (temp1.savedPurchases) {
+                setSavedPurchases([...temp1.savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)])
+            }
+        }
     }
     function backOne() {
         if (currentFocused == 1) {
@@ -1561,7 +1623,7 @@ export default function Merchent() {
                                     <div className='d-flex justify-content-end' >
                                         <Button variant='primary btn btn-sm'
                                             style={{ fontSize: "1rem", marginRight: "10px" }}
-                                            onClick={() => setShowGeneralsaleModal(true)}>
+                                            onClick={() => {setShowGeneralsaleModal(true); handleCurrentGeneralsale(); setGeneralSaleOption(3) }}>
                                             GeneralSale
                                         </Button>
 
@@ -2040,7 +2102,7 @@ export default function Merchent() {
 
                 <Modal show={showGeneralsaleModal}
                     onHide={() => {
-                        // setCheckedOversales([]); handleCurrentOversale(); 
+                        setCheckedSavedPurchases([]); handleCurrentGeneralsale(); 
                         setShowGeneralsaleModal(false)
                     }
                     }
@@ -2068,19 +2130,19 @@ export default function Merchent() {
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
                                     style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
-                                // onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}
+                                    onClick={() => { handleInvoiceGeneralSales(); setGeneralSaleOption(1) }}
                                 >
                                     Invoice
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
                                     style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
-                                // onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}
+                                    onClick={() => { handleTotalGeneralsales(); setGeneralSaleOption(2); setCheckedSavedPurchases([]) }}
                                 >
                                     All Total
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
                                     style={{ fontSize: "0.8rem", marginTop: "-20px" }}
-                                // onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}
+                                    onClick={() => { handleCurrentGeneralsale(); setGeneralSaleOption(3) }}
                                 >
                                     Current
                                 </Button>
@@ -2089,7 +2151,7 @@ export default function Merchent() {
                         <Table bordered hover size="" className="" style={{ fontSize: '1rem', marginTop: "3px" }}>
                             <thead>
                                 <tr>
-                                    {(generalSaleOption == 1 || generalSaleOption == 3) &&
+                                    {(generalSaleOption == 3) &&
                                         <>
                                             <th className='col-1'>
                                                 <Form.Check
@@ -2115,7 +2177,7 @@ export default function Merchent() {
 
                                         </>
                                     }
-                                    {generalSaleOption == 2 &&
+                                    {(generalSaleOption == 1 || generalSaleOption == 2) &&
                                         <>
                                             <th className='col-4'>No</th>
                                             <th className='col-4'>F</th>
@@ -2127,7 +2189,7 @@ export default function Merchent() {
                         </Table>
                         <div style={{ height: '320px', overflowY: 'auto', marginTop: "-17px" }}>
                             <Table bordered hover size="" className="" style={{ fontSize: '1rem', }}>
-                                {generalSaleOption == 2 ?
+                                {generalSaleOption == 1 || generalSaleOption == 2 ?
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr>
@@ -2171,66 +2233,3 @@ export default function Merchent() {
     );
 }
 
-
-
-// <Button
-// variant="btn btn-sm btn-danger"
-// style={{ fontSize: "1rem", marginRight: "5px" }}
-// onClick={handleMultipleSavedPurchaseDelete}
-// disabled={checkedSavedPurchases.length <= 0 || isDeleting}>
-// {isDeleting ? "Deleting" : "Delete"}
-// </Button>
-
-// </div>
-// </div>
-// </div>
-// <div style={{ marginTop: "-15px" }}>
-// <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
-// <thead>
-// <tr>
-// <th className='col-1'>
-//     <Form.Check
-//         type="checkbox"
-//         checked={deleteAllSelected}
-//         onClick={(e) => {
-//             if (e.target.checked) {
-//                 setCheckedSavedPurchases([...savedPurchases]);
-//             } else {
-//                 setCheckedSavedPurchases([]);
-//             }
-//             setDeleteAllSelected(e.target.checked)
-//         }}
-//         className='text-center'
-//     />
-// </th>
-// <th className='col-2'>No</th>
-// <th className='col-2'>F</th>
-// <th className='col-2'>S</th>
-// </tr>
-// </thead>
-// </Table>
-// </div>
-// <div style={{ height: '310px', overflowY: 'auto', marginTop: "-15px" }}>
-// <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
-// <tbody>
-// {savedPurchases.map(purchase => (
-// <tr key={purchase._id} >
-//     <td className='col-1' >
-//         <Form.Check
-//             type="checkbox"
-//             checked={checkedSavedPurchases.find(p => p._id == purchase._id)}
-//             onChange={e => handleCheckedPurchases(purchase, e.target.checked)}
-//             style={{ backgroundColor: getRowColor(purchase.bundle) }}
-//             className='text-center'
-//         />
-//     </td>
-
-//     <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
-//     <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
-//     <td className='col-2' style={{ fontWeight: "bold", backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
-//     {/* <td>
-// <div className=''>
-// <Button variant="btn btn-sm btn-danger" style={{ fontSize: "0.5rem" }} onClick={() => handleRemovingSavedPurchase(purchase._id)}>D</Button>
-// </div>
-// </td> */}
-// </tr>
