@@ -150,6 +150,12 @@ const UserDetails = () => {
 
     const handleDebitInputChange = (e) => {
         const { name, value } = e.target;
+        if(debitTransaction.txType==2 && name=="amount"){
+            if(Number(value)>Number(userDetails.credit)){
+                alert("You can not withdraw more than the credit which is "+userDetails.credit)
+                return
+            }
+        }
         setDebitTransaction((prevValues) => ({
             ...prevValues,
             [name]: value,
