@@ -33,7 +33,7 @@ export default function Merchent() {
     const [oversales, setOversales] = useState([]);
     const [showOversaleModal, setShowOversaleModal] = useState(false);
     const [showGeneralsaleModal, setShowGeneralsaleModal] = useState(false);
-
+    const [generalSaleSearch, setGeneralSaleSearch] = useState("")
     const [overSaleOption, setOverSaleOption] = useState(3)
     const [generalSaleOption, setGeneralSaleOption] = useState(3)
 
@@ -516,6 +516,18 @@ export default function Merchent() {
         }
         try {
             let purchases = []
+            function setFirstsAndSeconds(first,second) {
+                purchases = purchases.map(purchase => {
+                    let data = { ...purchase }
+                    if (!data.first) {
+                        data.first = first
+                    }
+                    if (!data.second) {
+                        data.second= second
+                    }
+                    return data
+                })
+            }
             function setFirsts(first) {
                 purchases = purchases.map(purchase => {
                     let data = { ...purchase }
@@ -539,9 +551,10 @@ export default function Merchent() {
             let chunks = tempMessage.split(".")
             chunks.forEach(chunk => {
                 if (chunk[0] == "f") {
-                    setFirsts(Number(chunk.slice(1)))
-                } else if (chunk[0] == "s") {
-                    setSeonds(Number(chunk.slice(1)))
+                    let numbers = chunk.match(/\d+/g);
+                    let firstNumber = parseInt(numbers[0]);
+                    let secondNumber = parseInt(numbers[1]);
+                    setFirstsAndSeconds(firstNumber,secondNumber)
                 } else {
                     purchases.push({ bundle: chunk, first: null, second: null })
                 }
@@ -1031,6 +1044,21 @@ export default function Merchent() {
         }
 
     }
+    const getFilteredGeneralSales = () => {
+        if (!generalSaleSearch) {
+            return savedPurchases;
+        }
+
+        const exactMatches = savedPurchases.filter(purchase => purchase.bundle === generalSaleSearch);
+        const startsWithMatches = savedPurchases.filter(purchase => purchase.bundle.startsWith(generalSaleSearch));
+
+        // Filter out items from startsWithMatches that are already in exactMatches
+        const filteredStartsWithMatches = startsWithMatches.filter(purchase =>
+            !exactMatches.some(exactPurchase => exactPurchase === purchase)
+        );
+
+        return [...exactMatches, ...filteredStartsWithMatches];
+    };
 
     return (
         <div className='app-container'>
@@ -1059,21 +1087,41 @@ export default function Merchent() {
                         <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop: "6px" }}>{timeRemaining}</h6>
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
-                    <div className='d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
-                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", width: "100vw", color: "white", backgroundColor: "purple", height: "4vh" }}>
-                            <option value="">Select Draw</option>
-                            {draws.map((draw) => (
-                                <option key={draw._id} value={draw._id}>
-                                    {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)}
-                                </option>
-                            ))}
-                        </select>
+                    <div className='container-fluid d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
+                        <div>
+                            <div className='d-flex justify-content-end' >
+                                <Button variant='primary btn btn-sm'
+                                    disabled={!currentDraw}
+                                    style={{ fontSize: "0.7rem", marginRight: "10px" }}
+                                    onClick={() => { setShowGeneralsaleModal(true); handleCurrentGeneralsale(); setGeneralSaleOption(3) }}>
+                                    GeneralSale
+                                </Button>
+
+                                <Button variant="btn btn-sm btn-danger"
+                                    style={{ fontSize: "0.7rem" }}
+                                    onClick={handleMultipleSavedPurchaseDelete}
+                                    disabled={checkedSavedPurchases.length <= 0 || isDeleting}>
+                                    {isDeleting ? "Deleting" : "Delete"}
+                                </Button>
+                            </div>
+                        </div>
+                        <div>
+                            <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", color: "white", backgroundColor: "purple", height: "4vh" }}>
+                                <option value="" disabled={!currentLoggedInUser}>Select Draw</option>
+
+                                {draws.map((draw) => (
+                                    <option key={draw._id} value={draw._id}>
+                                        {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                     <div className='row' >
                         <div className='col-7'>
                             <div className='row'>
-                                <div className='col-8'>
-                                    <Table bordered hover size="sm" className="" style={{ fontSize: '0.7rem', marginLeft: "10px" }}>
+                                <div className='col-12'>
+                                    <Table bordered hover size="sm" className="" style={{ fontSize: '0.6rem', marginLeft: "10px" }}>
                                         <thead>
                                             <tr>
                                                 <th>Co</th>
@@ -1092,17 +1140,7 @@ export default function Merchent() {
                                         </tbody>
                                     </Table>
                                 </div>
-                                <div className='col-4' style={{ marginTop: "20px" }}>
-                                    <div className='d-flex justify-content-end' >
-                                        <Button variant="btn btn-sm btn-danger"
-                                            style={{ fontSize: "0.7rem" }}
-                                            onClick={handleMultipleSavedPurchaseDelete}
-                                            disabled={checkedSavedPurchases.length <= 0 || isDeleting}>
-                                            {isDeleting ? "Deleting" : "Delete"}
-                                        </Button>
-                                    </div>
 
-                                </div>
                             </div>
                             <div style={{ marginTop: "-15px" }}>
                                 <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
@@ -1163,6 +1201,7 @@ export default function Merchent() {
                             <div className=''>
                                 <div className='d-flex justify-content-between  mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
+                                        disabled={!currentDraw}
                                         style={{ fontSize: "0.7rem", marginTop: "0px", border: "none" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
                                         Oversales
                                     </Button>
@@ -1320,21 +1359,21 @@ export default function Merchent() {
                                     </div>
                                     <div className='d-flex justify-content-end'>
                                         <Button variant='btn btn-danger  btn-sm'
-                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                            style={{ fontSize: "0.8rem", marginTop: "0px", marginRight: "3px" }}
                                             onClick={() => { handleCheckedOverSaleDeletes(); }}
                                         >
                                             Delete
                                         </Button>
                                         <Button variant='btn btn-primary  btn-sm'
-                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
+                                            style={{ fontSize: "0.8rem", marginTop: "0px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
                                             Invoice
                                         </Button>
                                         <Button variant='btn btn-primary  btn-sm'
-                                            style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
+                                            style={{ fontSize: "0.8rem", marginTop: "0px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
                                             All Total
                                         </Button>
                                         <Button variant='btn btn-primary  btn-sm'
-                                            style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
+                                            style={{ fontSize: "0.8rem", marginTop: "0px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
                                             Current
                                         </Button>
 
@@ -1580,7 +1619,10 @@ export default function Merchent() {
                 <div>
                     <div className='d-flex justify-content-around ' style={{ backgroundColor: "#6200ea", }}>
                         <h6 style={{ color: "white", fontSize: "1rem", }}>{currentLoggedInUser.username}</h6>
-                        <h6 style={{ color: "white", fontSize: "1rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
+                        <div className='d-flex justify-content-around'>
+                            <h6 style={{ color: "white", fontSize: "1rem", marginRight: "5vh" }}>Credit: {currentLoggedInUser && currentLoggedInUser?.credit?.toFixed(1)}</h6>
+                            <h6 style={{ color: "white", fontSize: "1rem", }}>Balance: {currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
+                        </div>
                     </div>
                     <div className='d-flex justify-content-around' style={{ backgroundColor: "purple", marginTop: "1px" }}>
                         <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
@@ -1623,7 +1665,9 @@ export default function Merchent() {
                                     <div className='d-flex justify-content-end' >
                                         <Button variant='primary btn btn-sm'
                                             style={{ fontSize: "1rem", marginRight: "10px" }}
-                                            onClick={() => {setShowGeneralsaleModal(true); handleCurrentGeneralsale(); setGeneralSaleOption(3) }}>
+                                            disabled={!currentDraw}
+
+                                            onClick={() => { setShowGeneralsaleModal(true); handleCurrentGeneralsale(); setGeneralSaleOption(3) }}>
                                             GeneralSale
                                         </Button>
 
@@ -1702,6 +1746,8 @@ export default function Merchent() {
                             <div className=''>
                                 <div className='d-flex justify-content-between mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
+                                        disabled={!currentDraw}
+
                                         style={{ fontSize: "1rem", marginTop: "0px" }} onClick={() => { setShowOversaleModal(true); handleCurrentOversale(); setOverSaleOption(3) }}>
                                         Oversales
                                     </Button>
@@ -1952,21 +1998,21 @@ export default function Merchent() {
                             </div>
                             <div className='d-flex justify-content-end'>
                                 <Button variant='btn btn-danger  btn-sm'
-                                    style={{ fontSize: "1rem", marginTop: "-20px", marginRight: "3px" }}
+                                    style={{ fontSize: "0.8rem", marginTop: "0px", marginRight: "3px" }}
                                     onClick={() => { handleCheckedOverSaleDeletes(); }}
                                 >
                                     Delete
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
+                                    style={{ fontSize: "0.8rem", marginTop: "0px", marginRight: "3px" }} onClick={() => { handleInvoiceOversales(); setOverSaleOption(1) }}>
                                     Invoice
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
+                                    style={{ fontSize: "0.8rem", marginTop: "0px", marginRight: "3px" }} onClick={() => { handleTotalOversales(); setOverSaleOption(2); setCheckedOversales([]) }}>
                                     All Total
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
+                                    style={{ fontSize: "0.8rem", marginTop: "0px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
                                     Current
                                 </Button>
 
@@ -2015,9 +2061,9 @@ export default function Merchent() {
                                     <tbody>
                                         {oversales.map(purchase => (
                                             <tr>
-                                                <td className='col-4'>{purchase.bundle}</td>
-                                                <td className='col-4'>{purchase.first}</td>
-                                                <td className='col-4'>{purchase.second}</td>
+                                                <td className='col-4' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
+                                                <td className='col-4' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                <td className='col-4' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -2102,7 +2148,7 @@ export default function Merchent() {
 
                 <Modal show={showGeneralsaleModal}
                     onHide={() => {
-                        setCheckedSavedPurchases([]); handleCurrentGeneralsale(); 
+                        setCheckedSavedPurchases([]); handleCurrentGeneralsale();
                         setShowGeneralsaleModal(false)
                     }
                     }
@@ -2112,6 +2158,7 @@ export default function Merchent() {
                     </Modal.Header>
 
                     <Modal.Body>
+
                         <div className='d-flex justify-content-between'>
                             <div>
                                 <h6>
@@ -2120,33 +2167,43 @@ export default function Merchent() {
                                     {generalSaleOption == 3 && "Current"}
                                 </h6>
                             </div>
-                            <div className='d-flex justify-content-end'>
+                            <div className='d-flex justify-content-end' >
                                 <Button variant='btn btn-danger  btn-sm'
-                                    style={{ fontSize: "1rem", marginTop: "-20px", marginRight: "3px" }}
+                                    style={{ fontSize: "0.8rem", marginTop: "0px", marginRight: "3px" }}
                                     onClick={handleMultipleSavedPurchaseDelete}
                                     disabled={checkedSavedPurchases.length <= 0 || isDeleting}
                                 >
                                     {isDeleting ? "Deleting" : "Delete"}
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                    style={{ fontSize: "0.8rem", marginTop: "00px", marginRight: "3px" }}
                                     onClick={() => { handleInvoiceGeneralSales(); setGeneralSaleOption(1) }}
                                 >
                                     Invoice
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px", marginRight: "3px" }}
+                                    style={{ fontSize: "0.8rem", marginTop: "0px", marginRight: "3px" }}
                                     onClick={() => { handleTotalGeneralsales(); setGeneralSaleOption(2); setCheckedSavedPurchases([]) }}
                                 >
                                     All Total
                                 </Button>
                                 <Button variant='btn btn-primary  btn-sm'
-                                    style={{ fontSize: "0.8rem", marginTop: "-20px" }}
+                                    style={{ fontSize: "0.8rem", marginTop: "0px" }}
                                     onClick={() => { handleCurrentGeneralsale(); setGeneralSaleOption(3) }}
                                 >
                                     Current
                                 </Button>
                             </div>
+                        </div>
+                        <div className='mt-1'>
+                            <Form.Control
+                                type="text"
+                                placeholder='Search Bundle'
+                                value={generalSaleSearch}
+                                onChange={(e) =>
+                                    setGeneralSaleSearch(e.target.value)
+                                }
+                            />
                         </div>
                         <Table bordered hover size="" className="" style={{ fontSize: '1rem', marginTop: "3px" }}>
                             <thead>
@@ -2191,17 +2248,17 @@ export default function Merchent() {
                             <Table bordered hover size="" className="" style={{ fontSize: '1rem', }}>
                                 {generalSaleOption == 1 || generalSaleOption == 2 ?
                                     <tbody>
-                                        {savedPurchases.map(purchase => (
+                                        {getFilteredGeneralSales().map(purchase => (
                                             <tr>
-                                                <td className='col-4'>{purchase.bundle}</td>
-                                                <td className='col-4'>{purchase.first}</td>
-                                                <td className='col-4'>{purchase.second}</td>
+                                                <td className='col-4' style={{ backgroundColor: getRowColor(purchase.bundle) }} >{purchase.bundle}</td>
+                                                <td className='col-4' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
+                                                <td className='col-4' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.second}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                     :
                                     <tbody>
-                                        {savedPurchases.map(purchase => (
+                                        {getFilteredGeneralSales().map(purchase => (
                                             <tr>
                                                 <td className='col-1' >
 
