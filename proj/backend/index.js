@@ -1,6 +1,6 @@
 // SECRET_KEY=614E645267556B58703272357538782F413F4428472B4B6250655368566D5971337436763979244226452948404D635166546A576E5A7234753778217A25432A
 
-// DB_URL=mongodb+srv://zeeshan:asdfg12345@cluster0.q8osuvr.mongodb.net/Article_DB
+// DB_URL=mongodb+srv://zeeshanaligondal0777:asdfg12345@cluster0.2ugz8kv.mongodb.net/Article_DB
 
 
 const express = require("express");

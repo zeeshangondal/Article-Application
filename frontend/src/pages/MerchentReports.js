@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { savePdfOnBackend } from '../APIs/utils';
+import { getPrizeBundlesArray, savePdfOnBackend } from '../APIs/utils';
 import { columnStyles, styles } from './pdfTableStyle';
 import { formatNumberWithTwoDecimals, formatTime } from '../Utils/Utils';
 
@@ -55,7 +55,24 @@ const MerchentReports = () => {
         fetchLoggedInUser();
         fetchDraws();
     }, []);
+    let prizeBundles = []
 
+    const handleParseCell = (data) => {
+        if (data.column.index % 3 === 0) {
+            let bundleInCell = data.cell.raw + ""
+            if (prizeBundles.includes(bundleInCell)) {
+                data.cell.styles = {
+                    ...data.cell.styles,
+                    textColor: 'blue', // Keep the red color
+                    fontSize: 11, // Increase font size to 12 (customize as needed)
+                    fontStyle: 'bold', // Set font style to bold
+                };
+                data.row.cells[data.column.index+1].styles.textColor='blue'
+                data.row.cells[data.column.index+2].styles.textColor='blue'    
+            }
+
+        }
+    };
 
     const handleBillingSheetChange = (e) => {
         const { name, value } = e.target;
@@ -266,6 +283,7 @@ const MerchentReports = () => {
                 wtotalFirst += sectionTableData.totalFirst
                 wtotalSecond += sectionTableData.totalSecond
                 wtotal += sectionTableData.total
+                prizeBundles = getPrizeBundlesArray(selectedDraw)
 
                 pdfDoc.setFontSize(10);
                 pdfDoc.autoTable({
@@ -278,7 +296,9 @@ const MerchentReports = () => {
                     },
                     styles: {
                         ...styles
-                    }
+                    },
+                    didParseCell: handleParseCell,
+
 
                 });
                 pdfDoc.setFont("helvetica", "bold");
@@ -480,6 +500,7 @@ const MerchentReports = () => {
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
 
+        prizeBundles = getPrizeBundlesArray(selectedDraw)
 
 
         if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
@@ -494,7 +515,8 @@ const MerchentReports = () => {
                 },
                 styles: {
                     ...styles
-                }
+                },
+                didParseCell: handleParseCell,
 
             });
         }
@@ -550,6 +572,7 @@ const MerchentReports = () => {
                 newData.push(row);
             }
             total = totalFirst + totalSecond
+            prizeBundles = getPrizeBundlesArray(selectedDraw)
 
             // Convert the data to a format compatible with jsPDF autoTable
             bodyData = newData;
@@ -564,7 +587,9 @@ const MerchentReports = () => {
                 },
                 styles: {
                     ...styles
-                }
+                },
+                didParseCell: handleParseCell,
+
 
             });
             pdfDoc.setFont("helvetica", "bold");
@@ -816,6 +841,8 @@ const MerchentReports = () => {
         total = totalFirst + totalSecond
         // Convert the data to a format compatible with jsPDF autoTable
         let bodyData = newData;
+        prizeBundles = getPrizeBundlesArray(selectedDraw)
+
         pdfDoc.autoTable({
             head: [columns],
             body: bodyData,
@@ -826,7 +853,9 @@ const MerchentReports = () => {
             },
             styles: {
                 ...styles
-            }
+            },
+            didParseCell: handleParseCell,
+
 
         });
         pdfDoc.setFontSize(10);
@@ -961,6 +990,8 @@ const MerchentReports = () => {
         total = totalFirst + totalSecond
         // Convert the data to a format compatible with jsPDF autoTable
         let bodyData = newData;
+        prizeBundles = getPrizeBundlesArray(selectedDraw)
+
 
         if (totalSaleForm.category == "combined" || totalSaleForm.category == "general") {
             // Add a table to the PDF
@@ -974,7 +1005,8 @@ const MerchentReports = () => {
                 },
                 styles: {
                     ...styles
-                }
+                },
+                didParseCell: handleParseCell,
 
             });
             pdfDoc.setFontSize(10);
@@ -1035,6 +1067,8 @@ const MerchentReports = () => {
                     pdfDoc.addPage();
                     pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
                 }
+                prizeBundles = getPrizeBundlesArray(selectedDraw)
+
                 pdfDoc.autoTable({
                     head: [columns],
                     body: bodyData,
@@ -1045,7 +1079,9 @@ const MerchentReports = () => {
                     },
                     styles: {
                         ...styles
-                    }
+                    },
+                    didParseCell: handleParseCell,
+
 
                 });
                 pdfDoc.setFontSize(10);

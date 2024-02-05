@@ -238,6 +238,7 @@ const makeBulkPurchase = async (req, res) => {
 
         let fetchedDigits = {};
         let inSufCount = 0
+        let oversaleCount=0
         for (const purchase of purchases) {
             let bundle = purchase.bundle
             let first = purchase.first
@@ -264,13 +265,15 @@ const makeBulkPurchase = async (req, res) => {
                 overSecond = second - Number(secondDigit.articles[bundle]) + Number(parentSecondDigit.articles[bundle])
                 second = second - overSecond
             }
+
+            if (overFirst > 0 || overSecond > 0) {
+                purchasedFromDrawData.savedOversales.push({ bundle, first: overFirst, second: overSecond })
+                oversaleCount++
+            }
             if (user.balance < Number(first) + Number(second)) {
                 // console.log("Balance: "+user.balance, "first: "+first, "second: "+second )
                 inSufCount++
                 continue
-            }
-            if (overFirst > 0 || overSecond > 0) {
-                purchasedFromDrawData.savedOversales.push({ bundle, first: overFirst, second: overSecond })
             }
             purchasedFromDrawData.savedPurchases.push({ bundle, first, second })
             user.balance = user.balance - (Number(first) + Number(second))
@@ -314,13 +317,16 @@ const makeBulkPurchase = async (req, res) => {
             }
         });
         await Promise.all(savePromises);
-        if (user.messagesData.find(data => data.drawId == draw_id)) {
-            user.messagesData.find(data => data.drawId == draw_id).messages.push(message)
-        } else {
-            user.messagesData.push({ drawId: draw_id, messages: [message] })
+        if(message){
+            if (user.messagesData.find(data => data.drawId == draw_id)) {
+                user.messagesData.find(data => data.drawId == draw_id).messages.push(message)
+            } else {
+                user.messagesData.push({ drawId: draw_id, messages: [message] })
+            }
         }
+        
         let updatedUser = await user.save()
-        res.status(200).send({ message: "Success", user: updatedUser, inSufCount });
+        res.status(200).send({ message: "Success", user: updatedUser, inSufCount,oversaleCount });
     } catch (err) {
         console.log(err)
         res.status(500).send({ message: "Error", err });

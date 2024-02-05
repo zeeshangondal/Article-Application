@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { savePdfOnBackend } from '../APIs/utils';
+import { getPrizeBundlesArray, savePdfOnBackend } from '../APIs/utils';
 import { columnStyles, styles } from './pdfTableStyle';
 import { formatNumberWithTwoDecimals, formatTime } from '../Utils/Utils';
 
@@ -35,7 +35,7 @@ const DistributorReports = () => {
         dealer: 'allDealers',
         limitType: 'apply'
     });
-
+    let prizeBundles = []
     const handleTotalLimitSaleChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
@@ -195,36 +195,37 @@ const DistributorReports = () => {
         }
         return []
     }
-    function getPrizeBundlesArray(draw) {
-        function isDrawResultPosted(draw) {
-            if (draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2 || draw.prize.secondPrize3 || draw.prize.secondPrize4 || draw.prize.secondPrize5)
-                return true
-            return false
-        }
-        if (!isDrawResultPosted(draw)) {
-            return []
-        }
-        let resultArray = []
-        function getFormatArray(prize) {
-            const output = [];
-            for (let i = 1; i <= prize.length; i++) {
-                output.push(prize.substring(0, i));
-            }
-            return output;
-        }
-        let arrayOfPrizesStr = []
-        let { firstPrize, secondPrize1, secondPrize2, secondPrize3, secondPrize4, secondPrize5 } = draw.prize
-        if (firstPrize) { arrayOfPrizesStr.push(firstPrize) }
-        if (secondPrize1) { arrayOfPrizesStr.push(secondPrize1) }
-        if (secondPrize2) { arrayOfPrizesStr.push(secondPrize2) }
-        if (secondPrize3) { arrayOfPrizesStr.push(secondPrize3) }
-        if (secondPrize4) { arrayOfPrizesStr.push(secondPrize4) }
-        if (secondPrize5) { arrayOfPrizesStr.push(secondPrize5) }
-        arrayOfPrizesStr.forEach(str => {
-            resultArray = [...resultArray, ...getFormatArray(str)]
-        })
-        return resultArray
-    }
+
+    // function getPrizeBundlesArray(draw) {
+    //     function isDrawResultPosted(draw) {
+    //         if (draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2 || draw.prize.secondPrize3 || draw.prize.secondPrize4 || draw.prize.secondPrize5)
+    //             return true
+    //         return false
+    //     }
+    //     if (!isDrawResultPosted(draw)) {
+    //         return []
+    //     }
+    //     let resultArray = []
+    //     function getFormatArray(prize) {
+    //         const output = [];
+    //         for (let i = 1; i <= prize.length; i++) {
+    //             output.push(prize.substring(0, i));
+    //         }
+    //         return output;
+    //     }
+    //     let arrayOfPrizesStr = []
+    //     let { firstPrize, secondPrize1, secondPrize2, secondPrize3, secondPrize4, secondPrize5 } = draw.prize
+    //     if (firstPrize) { arrayOfPrizesStr.push(firstPrize) }
+    //     if (secondPrize1) { arrayOfPrizesStr.push(secondPrize1) }
+    //     if (secondPrize2) { arrayOfPrizesStr.push(secondPrize2) }
+    //     if (secondPrize3) { arrayOfPrizesStr.push(secondPrize3) }
+    //     if (secondPrize4) { arrayOfPrizesStr.push(secondPrize4) }
+    //     if (secondPrize5) { arrayOfPrizesStr.push(secondPrize5) }
+    //     arrayOfPrizesStr.forEach(str => {
+    //         resultArray = [...resultArray, ...getFormatArray(str)]
+    //     })
+    //     return resultArray
+    // }
 
     function processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted = false, marginTop = 34) {
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
@@ -279,6 +280,7 @@ const DistributorReports = () => {
                 wtotalFirst += sectionTableData.totalFirst
                 wtotalSecond += sectionTableData.totalSecond
                 wtotal += sectionTableData.total
+                prizeBundles = getPrizeBundlesArray(selectedDraw)
 
                 pdfDoc.setFontSize(10);
                 pdfDoc.autoTable({
@@ -291,7 +293,8 @@ const DistributorReports = () => {
                     },
                     styles: {
                         ...styles
-                    }
+                    },
+                    didParseCell: handleParseCell,
 
                 });
 
@@ -447,6 +450,8 @@ const DistributorReports = () => {
 
         const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
 
+        prizeBundles = getPrizeBundlesArray(selectedDraw)
+
         // Convert the data to a format compatible with jsPDF autoTable
         let bodyData = newData;
         pdfDoc.autoTable({
@@ -459,7 +464,8 @@ const DistributorReports = () => {
             },
             styles: {
                 ...styles
-            }
+            },
+            didParseCell: handleParseCell,
 
         });
 
@@ -471,6 +477,22 @@ const DistributorReports = () => {
 
     }
 
+    const handleParseCell = (data) => {
+        if (data.column.index % 3 === 0) {
+            let bundleInCell = data.cell.raw + ""
+            if (prizeBundles.includes(bundleInCell)) {
+                data.cell.styles = {
+                    ...data.cell.styles,
+                    textColor: 'blue', // Keep the red color
+                    fontSize: 11, // Increase font size to 12 (customize as needed)
+                    fontStyle: 'bold', // Set font style to bold
+                };
+                data.row.cells[data.column.index+1].styles.textColor='blue'
+                data.row.cells[data.column.index+2].styles.textColor='blue'    
+            }
+
+        }
+    };
     const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser, heading = "Dealer Sale Voucher Report") => {
         const pdfDoc = new jsPDF();
         const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
@@ -516,11 +538,8 @@ const DistributorReports = () => {
 
         total = totalFirst + totalSecond
         // Convert the data to a format compatible with jsPDF autoTable
-        let prizeBundles = getPrizeBundlesArray(selectedDraw)
-        const handleCellDraw = (data) => {
-            // Log the data being received for debugging
-            console.log("Received data In table:", data);
-        };
+        prizeBundles = getPrizeBundlesArray(selectedDraw)
+        
         let bodyData = newData;
         pdfDoc.autoTable({
             head: [columns],
@@ -533,10 +552,9 @@ const DistributorReports = () => {
             styles: {
                 ...styles
             },
-            didDrawCell: handleCellDraw,
+            didParseCell: handleParseCell,
         });
         pdfDoc.setFont("helvetica", "bold");
-
         pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(totalFirst), 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(totalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total: " + formatNumberWithTwoDecimals(total), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);

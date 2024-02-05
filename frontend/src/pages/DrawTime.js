@@ -190,7 +190,7 @@ export default function DrawTime() {
                             <td>{draw.fourDigitFirst.price}</td>
                             <td>{draw.fourDigitSecond.price}</td>
                             <td>
-                                <div className='d-flex justify-content-between'>
+                                {/* <div className='d-flex justify-content-between'>
                                     {!draw.drawExpired &&
                                         <Button variant="primary btn btn-sm" disabled={draw.drawExpired || !draw.drawStatus} onClick={() => handleEditDraw(draw._id)}>Edit</Button>
                                     }
@@ -202,8 +202,8 @@ export default function DrawTime() {
                                             :
                                             <Button variant="primary btn btn-sm" onClick={() => activateDraw(draw)}>Activate</Button>
                                     }
-                                </div>
-                                {/* <div className='d-flex justify-content-between'>
+                                </div> */}
+                                <div className='d-flex justify-content-between'>
                                     {isDrawResultPosted(draw) &&
                                         <Button variant="danger btn btn-sm" disabled={true}>Posted</Button>
                                     }
@@ -218,8 +218,7 @@ export default function DrawTime() {
                                             :
                                             !isDrawResultPosted(draw) &&<Button variant="primary btn btn-sm" onClick={() => activateDraw(draw)}>Activate</Button>
                                     }
-                                </div> */}
-                                
+                                </div>
                             </td>
 
                         </tr>

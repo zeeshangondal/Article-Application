@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const API_URL = 'https://pzprize.com';
-const API_URL = 'http://localhost:3005';
+const API_URL = 'https://pzprize.com';
+// const API_URL = 'http://localhost:3005';
 
 export const savePdfOnBackend = async (formData) => {
     try {
@@ -25,3 +25,35 @@ export const savePdfOnBackend = async (formData) => {
         throw new Error('Error saving PDF on the backend');
     }
 };
+
+export function getPrizeBundlesArray(draw) {
+    function isDrawResultPosted(draw) {
+        if (draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2 || draw.prize.secondPrize3 || draw.prize.secondPrize4 || draw.prize.secondPrize5)
+            return true
+        return false
+    }
+    if (!isDrawResultPosted(draw)) {
+        return []
+    }
+    let resultArray = []
+    function getFormatArray(prize) {
+        const output = [];
+        for (let i = 1; i <= prize.length; i++) {
+            output.push(prize.substring(0, i));
+        }
+        return output;
+    }
+    let arrayOfPrizesStr = []
+    let { firstPrize, secondPrize1, secondPrize2, secondPrize3, secondPrize4, secondPrize5 } = draw.prize
+    if (firstPrize) { arrayOfPrizesStr.push(firstPrize) }
+    if (secondPrize1) { arrayOfPrizesStr.push(secondPrize1) }
+    if (secondPrize2) { arrayOfPrizesStr.push(secondPrize2) }
+    if (secondPrize3) { arrayOfPrizesStr.push(secondPrize3) }
+    if (secondPrize4) { arrayOfPrizesStr.push(secondPrize4) }
+    if (secondPrize5) { arrayOfPrizesStr.push(secondPrize5) }
+    arrayOfPrizesStr.forEach(str => {
+        resultArray = [...resultArray, ...getFormatArray(str)]
+    })
+    return resultArray
+}
+

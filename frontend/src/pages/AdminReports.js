@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import CustomNotification from '../components/CustomNotification';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { savePdfOnBackend } from '../APIs/utils';
+import { getPrizeBundlesArray, savePdfOnBackend } from '../APIs/utils';
 import { columnStyles, styles } from './pdfTableStyle';
 import { formatNumberWithTwoDecimals, formatTime } from '../Utils/Utils';
 
@@ -72,6 +72,25 @@ const AdminReports = () => {
         fetchDraws();
 
     }, []);
+
+    let prizeBundles = []
+
+    const handleParseCell = (data) => {
+        if (data.column.index % 3 === 0) {
+            let bundleInCell = data.cell.raw + ""
+            if (prizeBundles.includes(bundleInCell)) {
+                data.cell.styles = {
+                    ...data.cell.styles,
+                    textColor: 'blue', // Keep the red color
+                    fontSize: 11, // Increase font size to 12 (customize as needed)
+                    fontStyle: 'bold', // Set font style to bold
+                };
+                data.row.cells[data.column.index+1].styles.textColor='blue'
+                data.row.cells[data.column.index+2].styles.textColor='blue'    
+            }
+
+        }
+    };
 
     const fetchLoggedInUser = async () => {
         try {
@@ -359,6 +378,7 @@ const AdminReports = () => {
                 wtotalFirst += sectionTableData.totalFirst
                 wtotalSecond += sectionTableData.totalSecond
                 wtotal += sectionTableData.total
+                prizeBundles = getPrizeBundlesArray(selectedDraw)
 
                 pdfDoc.setFontSize(10);
                 pdfDoc.autoTable({
@@ -372,6 +392,8 @@ const AdminReports = () => {
                     styles: {
                         ...styles
                     },
+                    didParseCell: handleParseCell,
+
                 });
 
                 pdfDoc.setFontSize(10);
@@ -520,6 +542,7 @@ const AdminReports = () => {
         total = totalFirst + totalSecond;
 
         const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];
+        prizeBundles = getPrizeBundlesArray(selectedDraw)
 
         // Convert the data to a format compatible with jsPDF autoTable
         let bodyData = newData;
@@ -534,6 +557,8 @@ const AdminReports = () => {
             styles: {
                 ...styles
             },
+            didParseCell: handleParseCell,
+
         });
 
         // Display totals
@@ -590,6 +615,8 @@ const AdminReports = () => {
         }
         total = totalFirst + totalSecond
         // Convert the data to a format compatible with jsPDF autoTable
+        prizeBundles = getPrizeBundlesArray(selectedDraw)
+
         let bodyData = newData;
         pdfDoc.autoTable({
             head: [columns],
@@ -601,7 +628,9 @@ const AdminReports = () => {
             },
             styles: {
                 ...styles
-            }
+            },
+            didParseCell: handleParseCell,
+
         });
 
         pdfDoc.setFontSize(10);
@@ -1574,7 +1603,6 @@ const AdminReports = () => {
             alert("Error Occurred.")
         }
     
-        console.log("Result array", resultDataArray)
         
         let resStr = ""
         resultDataArray.forEach((d) => {
