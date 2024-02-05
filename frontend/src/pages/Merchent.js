@@ -1079,8 +1079,10 @@ export default function Merchent() {
                 <div>
                     <div className='d-flex justify-content-around ' style={{ backgroundColor: "#6200ea", }}>
                         <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser.username}</h6>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", }}>{currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
-                        {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
+                        <div className='d-flex justify-content-around'>
+                            <h6 style={{ color: "white", fontSize: "0.8rem", marginRight: "5vh" }}>Credit: {currentLoggedInUser && currentLoggedInUser?.credit?.toFixed(1)}</h6>
+                            <h6 style={{ color: "white", fontSize: "0.8rem", }}>Balance: {currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
+                        </div>
                     </div>
                     <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>
                         <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
