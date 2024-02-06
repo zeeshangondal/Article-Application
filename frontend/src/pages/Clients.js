@@ -185,14 +185,14 @@ export default function Clients() {
                             <div className='d-flex mb-2 justify-content-between' style={{fontSize:'0.7rem'}}>
                                 <p>BALANCE: {formatNumberWithTwoDecimals(currentLoggedInUser.balance)}</p>
                                 {/* <p>CLIENTS BALANCE: {getAvailableBalance()}</p> */}
-                                <p>MERCHENTS: {formatNumberWithTwoDecimals(getMerchentsBalance())}</p>
+                                <p>USERS: {formatNumberWithTwoDecimals(getMerchentsBalance())}</p>
                                 <p>DISTRIBUTERS: {formatNumberWithTwoDecimals(getDistributorsBalance())}</p>
                             </div>
                             :
                             <div className='d-flex mb-2 justify-content-between'>
                                 <p>BALANCE: {formatNumberWithTwoDecimals(currentLoggedInUser.balance)}</p>
                                 {/* <p>CLIENTS BALANCE: {getAvailableBalance()}</p> */}
-                                <p>MERCHENTS: {formatNumberWithTwoDecimals(getMerchentsBalance())}</p>
+                                <p>USERS: {formatNumberWithTwoDecimals(getMerchentsBalance())}</p>
                                 <p>DISTRIBUTERS: {formatNumberWithTwoDecimals(getDistributorsBalance())}</p>
                             </div>
                         }
@@ -225,7 +225,7 @@ export default function Clients() {
                 <div>
                     <div className='d-flex justify-content-end'>
                         <Button variant={`${merchentDistributorMode == 1 ? "" : "outline-"}primary btn btn-sm`} style={{ marginRight: '1vh' }} onClick={() => setMerchentDistributorMode(1)} className="mt-3">
-                            Merchents
+                            Users
                         </Button>
                         <Button variant={`${merchentDistributorMode == 2 ? "" : "outline-"}primary btn btn-sm`} onClick={() => setMerchentDistributorMode(2)} className="mt-3">
                             Distributors
@@ -234,12 +234,12 @@ export default function Clients() {
                     <div className='mt-2'>
                         <div className='d-flex justify-content-between'>
                             <div>
-                                <h4>{merchentDistributorMode == 1 ? "Merchents" : "Distributors"}</h4>
+                                <h4>{merchentDistributorMode == 1 ? "Users" : "Distributors"}</h4>
                             </div>
                             <div className='d-flex justify-content-end '>
                                 {merchentDistributorMode == 1 ?
                                     <Button variant="primary btn btn-sm" onClick={handleCreateModalOpen}>
-                                        Create Merchent
+                                        New User
                                     </Button>
                                     :
                                     <Button variant="primary btn btn-sm" onClick={handleCreateModalOpen}>
@@ -280,7 +280,7 @@ export default function Clients() {
                             "Create Client"
                             :
                             localStorageUtils.getLoggedInUser().role === "distributor" ?
-                                merchentDistributorMode == 1 ? "Create Merchent" : "Create Distributor"
+                                merchentDistributorMode == 1 ? "New User" : "Create Distributor"
                                 :
                                 ""//merchent code
                         }

@@ -150,9 +150,9 @@ const UserDetails = () => {
 
     const handleDebitInputChange = (e) => {
         const { name, value } = e.target;
-        if(debitTransaction.txType==2 && name=="amount"){
-            if(Number(value)>Number(userDetails.credit)){
-                alert("You can not withdraw more than the credit which is "+userDetails.credit)
+        if (debitTransaction.txType == 2 && name == "amount") {
+            if (Number(value) > Number(userDetails.credit)) {
+                alert("You can not withdraw more than the credit which is " + userDetails.credit)
                 return
             }
         }
@@ -250,14 +250,14 @@ const UserDetails = () => {
 
     const handleCreditFormSubmit = async () => {
         let obj = { ...formValues }
-        let mainUser=localStorageUtils.getLoggedInUser()
+        let mainUser = localStorageUtils.getLoggedInUser()
         if (creditTransaction.txType == 1) {
             let transaction = {
                 amount: creditTransaction.amount,
                 description: creditTransaction.description,
                 debit: obj.debit,
                 credit: obj.credit + Number(creditTransaction.amount),
-                date: (new Date()).toISOString().split('T')[0], 
+                date: (new Date()).toISOString().split('T')[0],
                 balanceUpline: obj.balanceUpline
             }
             obj = {
@@ -266,7 +266,7 @@ const UserDetails = () => {
                 balance: obj.balance + Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
-            mainUser.balance-=Number(creditTransaction.amount)
+            mainUser.balance -= Number(creditTransaction.amount)
         } else if (creditTransaction.txType == 2) {
             let transaction = {
                 amount: creditTransaction.amount,
@@ -282,13 +282,13 @@ const UserDetails = () => {
                 balance: obj.balance - Number(creditTransaction.amount),
                 transactionHistory: [...obj.transactionHistory, transaction]
             }
-            mainUser.balance+=Number(creditTransaction.amount)
+            mainUser.balance += Number(creditTransaction.amount)
         }
         try {
             await APIs.updateUser(obj)
             await fetchUserDetails()
-            if(mainUser.role!="admin"){
-                await APIs.updateUser(mainUser)            
+            if (mainUser.role != "admin") {
+                await APIs.updateUser(mainUser)
             }
             setCreditTransaction({ ...initialCreditTransaction })
             handleModelClose()
@@ -299,7 +299,7 @@ const UserDetails = () => {
 
     const handleDebitFormSubmit = async () => {
         let obj = { ...formValues }
-        let mainUser=localStorageUtils.getLoggedInUser()
+        let mainUser = localStorageUtils.getLoggedInUser()
         let transaction = {
             amount: debitTransaction.amount,
             description: debitTransaction.description,
@@ -324,7 +324,7 @@ const UserDetails = () => {
                 transaction = {
                     ...transaction,
                     debit: obj.debit - Number(debitTransaction.amount),
-                    
+
                     balanceUpline: obj.balanceUpline - Number(debitTransaction.amount),
                 }
                 obj = {
@@ -334,7 +334,7 @@ const UserDetails = () => {
                     balance: obj.balance - Number(debitTransaction.amount),
                     transactionHistory: [...obj.transactionHistory, transaction]
                 }
-                mainUser.balance+=Number(debitTransaction.amount)
+                mainUser.balance += Number(debitTransaction.amount)
             } else {
                 transaction = {
                     ...transaction,
@@ -353,8 +353,8 @@ const UserDetails = () => {
         try {
             await APIs.updateUser(obj)
             await fetchUserDetails()
-            if(mainUser.role!="admin"){
-                await APIs.updateUser(mainUser)            
+            if (mainUser.role != "admin") {
+                await APIs.updateUser(mainUser)
             }
             setDebitTransaction({ ...initialDebitTransaction })
             handleModelClose()
@@ -448,7 +448,7 @@ const UserDetails = () => {
                                     <td>{userDetails.credit}</td>
                                     <td style={{ color: (userDetails.balance > 0 ? 'green' : 'red') }} >{formatNumberWithTwoDecimals(userDetails.balance)}</td>
                                     <td style={{ color: (userDetails.balanceUpline > 0 ? 'green' : 'red') }}>{formatNumberWithTwoDecimals(userDetails.balanceUpline)}</td>
-                                 
+
                                 </tr>
                             </tbody>
                         </Table>
@@ -588,27 +588,28 @@ const UserDetails = () => {
                                         </div>
                                         <div className="col-md-6">
                                             <Form.Group className="mb-3">
-                                                <Form.Label>Share</Form.Label>
-                                                <Form.Control
-                                                    type="number"
-                                                    value={formValues.commission.share}
-                                                    onChange={(e) =>
-                                                        handleFormInputChange('commission', 'share', e.target.value)
-                                                    }
-                                                // disabled={!formValues.commission.shareEnabled}
-                                                />
-                                            </Form.Group>
-                                        </div>
-                                    </div>
-                                    <div className="row">
-                                        <div className="col-md-6">
-                                            <Form.Group className="mb-3">
                                                 <Form.Label>PC Percentage</Form.Label>
                                                 <Form.Control
                                                     type="number"
                                                     value={formValues.commission.pcPercentage}
                                                     onChange={(e) =>
                                                         handleFormInputChange('commission', 'pcPercentage', e.target.value)
+                                                    }
+                                                // disabled={!formValues.commission.shareEnabled}
+                                                />
+                                            </Form.Group>
+
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-6">
+                                            <Form.Group className="mb-3">
+                                                <Form.Label>Share</Form.Label>
+                                                <Form.Control
+                                                    type="number"
+                                                    value={formValues.commission.share}
+                                                    onChange={(e) =>
+                                                        handleFormInputChange('commission', 'share', e.target.value)
                                                     }
                                                 // disabled={!formValues.commission.shareEnabled}
                                                 />
@@ -868,7 +869,7 @@ const UserDetails = () => {
                                                 />
                                             </Form.Group>
                                         </div>
-                                        {formValues.role!="admin"&&
+                                        {formValues.role != "admin" &&
                                             <>
                                                 <div className="col-md-6">
                                                     <Form.Group className="mb-3" controlId="general-info-field5">

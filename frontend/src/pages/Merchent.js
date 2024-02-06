@@ -61,7 +61,9 @@ export default function Merchent() {
     });
     const handleCurrentFocused=(val)=>{
         setCurrentFocused(val)
-        if(val==2){
+        if(val==1){
+            bundleRef.current.select()
+        }else if(val==2){
             firstRef.current.select()
         }else if(val==3){
             secondRef.current.select()
