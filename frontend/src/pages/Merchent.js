@@ -34,6 +34,8 @@ export default function Merchent() {
     const [showOversaleModal, setShowOversaleModal] = useState(false);
     const [showGeneralsaleModal, setShowGeneralsaleModal] = useState(false);
     const [generalSaleSearch, setGeneralSaleSearch] = useState("")
+    const [overSaleSearch, setOverSaleSearch] = useState("")
+
     const [overSaleOption, setOverSaleOption] = useState(3)
     const [generalSaleOption, setGeneralSaleOption] = useState(3)
 
@@ -84,14 +86,14 @@ export default function Merchent() {
 
     const scrollToBottom = () => {
         if (generalsaleTableRef.current) {
-          generalsaleTableRef.current.scrollTop = generalsaleTableRef.current.scrollHeight;
+            generalsaleTableRef.current.scrollTop = generalsaleTableRef.current.scrollHeight;
         }
         if (oversaleTableRef.current) {
             oversaleTableRef.current.scrollTop = oversaleTableRef.current.scrollHeight;
-          }
-          
-      };
-    
+        }
+
+    };
+
     useEffect(() => {
         try {
             loginAudioRef?.current?.play();
@@ -529,14 +531,14 @@ export default function Merchent() {
         }
         try {
             let purchases = []
-            function setFirstsAndSeconds(first,second) {
+            function setFirstsAndSeconds(first, second) {
                 purchases = purchases.map(purchase => {
                     let data = { ...purchase }
                     if (!data.first) {
                         data.first = first
                     }
                     if (!data.second) {
-                        data.second= second
+                        data.second = second
                     }
                     return data
                 })
@@ -567,7 +569,7 @@ export default function Merchent() {
                     let numbers = chunk.match(/\d+/g);
                     let firstNumber = parseInt(numbers[0]);
                     let secondNumber = parseInt(numbers[1]);
-                    setFirstsAndSeconds(firstNumber,secondNumber)
+                    setFirstsAndSeconds(firstNumber, secondNumber)
                 } else {
                     purchases.push({ bundle: chunk, first: null, second: null })
                 }
@@ -609,7 +611,7 @@ export default function Merchent() {
             }
             setMessagePurchases([])
             setMessage("")
-        }else{
+        } else {
             alertMessage("Error")
             errorAudioRef?.current?.play()
         }
@@ -1076,6 +1078,23 @@ export default function Merchent() {
         return [...exactMatches, ...filteredStartsWithMatches];
     };
 
+    const getFilteredOverSales = () => {
+        if (!overSaleSearch) {
+            return oversales;
+        }
+
+        const exactMatches = oversales.filter(purchase => purchase.bundle === overSaleSearch);
+        const startsWithMatches = oversales.filter(purchase => purchase.bundle.startsWith(overSaleSearch));
+
+        // Filter out items from startsWithMatches that are already in exactMatches
+        const filteredStartsWithMatches = startsWithMatches.filter(purchase =>
+            !exactMatches.some(exactPurchase => exactPurchase === purchase)
+        );
+
+        return [...exactMatches, ...filteredStartsWithMatches];
+    };
+
+
     return (
         <div className='app-container'>
             <audio controls ref={loginAudioRef} style={{ display: 'none' }}>
@@ -1100,8 +1119,8 @@ export default function Merchent() {
                             <h6 style={{ color: "white", fontSize: "0.8rem", }}>Balance: {currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
                         </div>
                     </div>
-                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
+                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>                        
+                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title +" - "+formatDate(currentDraw.drawDate) + " , " + formatTime(currentDraw.drawTime): "Draw"}</h6>
                         <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop: "6px" }}>{timeRemaining}</h6>
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
@@ -1129,7 +1148,8 @@ export default function Merchent() {
 
                                 {draws.map((draw) => (
                                     <option key={draw._id} value={draw._id}>
-                                        {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)}
+                                        {/* {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)} */}
+                                        {draw.title}
                                     </option>
                                 ))}
                             </select>
@@ -1188,7 +1208,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                             <div style={{ height: '180px', overflowY: 'auto', marginTop: "-15px" }} ref={generalsaleTableRef}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginBottom:"0px"}} >
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginBottom: "0px" }} >
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr key={purchase._id} >
@@ -1241,7 +1261,7 @@ export default function Merchent() {
                                 </div>
 
                                 <div style={{ height: '174px', overflowY: 'auto', marginTop: "-7px" }} ref={oversaleTableRef}>
-                                    <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px",marginBottom:"0px", fontWeight: "bold" }}>
+                                    <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", marginBottom: "0px", fontWeight: "bold" }}>
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >
@@ -1321,7 +1341,7 @@ export default function Merchent() {
 
 
                             <Button variant='primary btn btn-sm'
-                                style={{ width: "50px",height:"45px", fontSize: "0.9rem", marginTop: "14px" }}
+                                style={{ width: "50px", height: "45px", fontSize: "0.9rem", marginTop: "14px" }}
                                 onClick={() => handlePurchaseOne(form.bundle, form.first, form.second)} >
                                 Add
                             </Button>
@@ -1334,7 +1354,7 @@ export default function Merchent() {
                             </h6>
  */}
                             <Button variant='primary btn btn-sm'
-                                style={{ fontSize: "0.8rem", marginTop: "5px", marginLeft:"15vw" }}
+                                style={{ fontSize: "0.8rem", marginTop: "5px", marginLeft: "15vw" }}
                                 onClick={() => setShowModal(true)}>
                                 SMS
                             </Button>
@@ -1644,7 +1664,7 @@ export default function Merchent() {
                         </div>
                     </div>
                     <div className='d-flex justify-content-around' style={{ backgroundColor: "purple", marginTop: "1px" }}>
-                        <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title : "Draw"}</h6>
+                        <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title +" - "+formatDate(currentDraw.drawDate) + " , " + formatTime(currentDraw.drawTime): "Draw"}</h6>
                         <h6 style={{ color: "white", fontSize: "1rem", }}>{timeRemaining}</h6>
                     </div>
                     <div className='d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
@@ -1652,7 +1672,7 @@ export default function Merchent() {
                             <option value="">Select Draw</option>
                             {draws.map((draw) => (
                                 <option key={draw._id} value={draw._id}>
-                                    {formatDate(draw.drawDate) + " , " + formatTime(draw.drawTime)}
+                                    {draw.title}
                                 </option>
                             ))}
                         </select>
@@ -1733,7 +1753,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                             <div style={{ height: '310px', overflowY: 'auto', marginTop: "-15px" }} ref={generalsaleTableRef}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', marginBottom:"0px" }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', marginBottom: "0px" }}>
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr key={purchase._id} >
@@ -1788,7 +1808,7 @@ export default function Merchent() {
                                 </div>
 
                                 <div style={{ height: '320px', overflowY: 'auto', marginTop: "-7px" }} ref={oversaleTableRef}>
-                                    <Table boarded hover size="sm" className="" style={{ fontSize: '1rem', marginTop: "-5px", fontWeight: "bold",marginBottom:"0px" }}>
+                                    <Table boarded hover size="sm" className="" style={{ fontSize: '1rem', marginTop: "-5px", fontWeight: "bold", marginBottom: "0px" }}>
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >
@@ -2034,9 +2054,19 @@ export default function Merchent() {
                                     style={{ fontSize: "0.8rem", marginTop: "0px" }} onClick={() => { handleCurrentOversale(); setOverSaleOption(3) }}>
                                     Current
                                 </Button>
-
                             </div>
+                            
                         </div>
+                        <div className='mt-1'>
+                                <Form.Control
+                                    type="text"
+                                    placeholder='Search Bundle'
+                                    value={overSaleSearch}
+                                    onChange={(e) =>
+                                        setOverSaleSearch(e.target.value)
+                                    }
+                                />
+                            </div>
                         <Table bordered hover size="" className="" style={{ fontSize: '1rem', marginTop: "3px" }}>
                             <thead>
                                 <tr>
@@ -2078,7 +2108,7 @@ export default function Merchent() {
                             <Table bordered hover size="" className="" style={{ fontSize: '1rem', }}>
                                 {overSaleOption == 2 ?
                                     <tbody>
-                                        {oversales.map(purchase => (
+                                        {getFilteredOverSales().map(purchase => (
                                             <tr>
                                                 <td className='col-4' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.bundle}</td>
                                                 <td className='col-4' style={{ backgroundColor: getRowColor(purchase.bundle) }}>{purchase.first}</td>
@@ -2088,7 +2118,7 @@ export default function Merchent() {
                                     </tbody>
                                     :
                                     <tbody>
-                                        {oversales.map(purchase => (
+                                        {getFilteredOverSales().map(purchase => (
                                             <tr>
                                                 <td className='col-1' >
                                                     <Form.Check
