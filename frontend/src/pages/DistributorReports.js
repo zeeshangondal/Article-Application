@@ -493,6 +493,7 @@ const DistributorReports = () => {
 
         }
     };
+
     const generateDealSaleVoucherWithoutGroup = async (savedPurchases, targetUser, heading = "Dealer Sale Voucher Report") => {
         const pdfDoc = new jsPDF();
         const columns = ['Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd', 'Bun', '   1st', '   2nd'];

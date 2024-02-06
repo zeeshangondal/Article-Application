@@ -75,12 +75,23 @@ export default function Merchent() {
     const drawAudioRef = useRef(null);
     const oversaleAudioRef = useRef(null);
     const errorAudioRef = useRef(null);
+    const generalsaleTableRef = useRef(null);
+    const oversaleTableRef = useRef(null);
 
     if (!localStorageUtils.hasToken()) {
         window.location = "/login"
     }
 
-
+    const scrollToBottom = () => {
+        if (generalsaleTableRef.current) {
+          generalsaleTableRef.current.scrollTop = generalsaleTableRef.current.scrollHeight;
+        }
+        if (oversaleTableRef.current) {
+            oversaleTableRef.current.scrollTop = oversaleTableRef.current.scrollHeight;
+          }
+          
+      };
+    
     useEffect(() => {
         try {
             loginAudioRef?.current?.play();
@@ -137,6 +148,9 @@ export default function Merchent() {
         try {
             setSavedPurchases([...purchasedDrawData.savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)])
             setOversales([...purchasedDrawData.savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
+            setTimeout(() => {
+                scrollToBottom()
+            }, 500);
         } catch (e) {
             setSavedPurchases([])
         }
@@ -245,7 +259,6 @@ export default function Merchent() {
             }
         }
         makeOnePurchase()
-
 
         setIsPurchaseMade(false)
     };
@@ -596,6 +609,9 @@ export default function Merchent() {
             }
             setMessagePurchases([])
             setMessage("")
+        }else{
+            alertMessage("Error")
+            errorAudioRef?.current?.play()
         }
         setIsLoading(false)
     }
@@ -1171,8 +1187,8 @@ export default function Merchent() {
                                     </thead>
                                 </Table>
                             </div>
-                            <div style={{ height: '180px', overflowY: 'auto', marginTop: "-15px" }}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
+                            <div style={{ height: '180px', overflowY: 'auto', marginTop: "-15px" }} ref={generalsaleTableRef}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginBottom:"0px"}} >
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr key={purchase._id} >
@@ -1224,8 +1240,8 @@ export default function Merchent() {
                                     </Table>
                                 </div>
 
-                                <div style={{ height: '170px', overflowY: 'auto', marginTop: "-7px" }}>
-                                    <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", fontWeight: "bold" }}>
+                                <div style={{ height: '174px', overflowY: 'auto', marginTop: "-7px" }} ref={oversaleTableRef}>
+                                    <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px",marginBottom:"0px", fontWeight: "bold" }}>
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >
@@ -1299,25 +1315,26 @@ export default function Merchent() {
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
+                            {/* <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
                                 .
-                            </h6>
+                            </h6> */}
 
 
                             <Button variant='primary btn btn-sm'
-                                style={{ width: "40px", fontSize: "0.7rem", marginTop: "2px" }}
+                                style={{ width: "50px",height:"45px", fontSize: "0.9rem", marginTop: "14px" }}
                                 onClick={() => handlePurchaseOne(form.bundle, form.first, form.second)} >
                                 Add
                             </Button>
                         </div>
 
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
+
+                            {/* <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
                                 .
                             </h6>
-
+ */}
                             <Button variant='primary btn btn-sm'
-                                style={{ fontSize: "0.8rem", marginTop: "0px" }}
+                                style={{ fontSize: "0.8rem", marginTop: "5px", marginLeft:"15vw" }}
                                 onClick={() => setShowModal(true)}>
                                 SMS
                             </Button>
@@ -1715,8 +1732,8 @@ export default function Merchent() {
                                     </thead>
                                 </Table>
                             </div>
-                            <div style={{ height: '310px', overflowY: 'auto', marginTop: "-15px" }}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
+                            <div style={{ height: '310px', overflowY: 'auto', marginTop: "-15px" }} ref={generalsaleTableRef}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', marginBottom:"0px" }}>
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr key={purchase._id} >
@@ -1770,8 +1787,8 @@ export default function Merchent() {
                                     </Table>
                                 </div>
 
-                                <div style={{ height: '310px', overflowY: 'auto', marginTop: "-7px" }}>
-                                    <Table boarded hover size="sm" className="" style={{ fontSize: '1rem', marginTop: "-5px", fontWeight: "bold" }}>
+                                <div style={{ height: '320px', overflowY: 'auto', marginTop: "-7px" }} ref={oversaleTableRef}>
+                                    <Table boarded hover size="sm" className="" style={{ fontSize: '1rem', marginTop: "-5px", fontWeight: "bold",marginBottom:"0px" }}>
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >

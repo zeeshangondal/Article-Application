@@ -406,12 +406,12 @@ const UserDetails = () => {
             }
             {paymentMode &&
                 <div className='container'>
-                    <Button className='btn btn-sm btn-info  m-1' onClick={() => { setPaymentModeN(1); handleModalOpen() }} >Debit</Button>
+                    <Button className='btn btn-sm btn-info  m-1' onClick={() => { setPaymentModeN(1); handleModalOpen() }} >Cash</Button>
                     <Button className='btn btn-sm btn-info m-1' onClick={() => { setPaymentModeN(2); handleModalOpen() }}>Credit</Button>
 
                     <Modal show={showModel} onHide={handleModelClose}>
                         <Modal.Header closeButton>
-                            <Modal.Title>{paymentModeN == 1 ? "Debit" : "Credit"} Manager</Modal.Title>
+                            <Modal.Title>{paymentModeN == 1 ? "Cash" : "Credit"} Manager</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                             {paymentModeN == 2 ?
@@ -436,7 +436,7 @@ const UserDetails = () => {
                         <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
                             <thead>
                                 <tr>
-                                    <th>DEBIT</th>
+                                    <th>CASH</th>
                                     <th>CREDIT</th>
                                     <th>BALANCE</th>
                                     <th>BALANCE UPLINE</th>
@@ -539,7 +539,7 @@ const UserDetails = () => {
                                     {userDetails.role != "merchent" &&
                                         <th>AMOUNT</th>
                                     }
-                                    <th>DEBIT</th>
+                                    <th>CASH</th>
                                     <th>CREDIT</th>
                                     <th>BALANCE UPLINE</th>
                                     <th>DATE</th>
@@ -1115,7 +1115,7 @@ const UserDetails = () => {
                         </div>
                         <div className="col-md-6">
                             <p><strong>Phone Number:</strong> {userDetails.generalInfo.contactNumber}</p>
-                            <p><strong>Debit:</strong> {userDetails.debit}</p>
+                            <p><strong>Cash:</strong> {userDetails.debit}</p>
                             <p><strong>Credit:</strong> {userDetails.credit}</p>
                             <p><strong>Balance:</strong> {userDetails.balance}</p>
                             <p><strong>Active:</strong> {userDetails.generalInfo.active ? 'Yes' : 'No'}</p>

@@ -215,7 +215,7 @@ const MerchentReports = () => {
 
     const getTitle = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
-        if (selectedOption === 'totalSheetSale') return 'Total Sheet Sale Report';
+        if (selectedOption === 'totalSheetSale') return 'Total Sheet Sale Save';
         if (selectedOption === 'totalLimitSale') return 'Total Share Limit Sale Report';
         if (selectedOption === 'billingSheet') return 'Bill Sheet';
         return '';
@@ -384,7 +384,7 @@ const MerchentReports = () => {
 
 
         if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
-            pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+            pdfDoc.text("General Sales", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
 
         } else {
             pdfDoc.text("Total Sheet Oversale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
@@ -454,10 +454,10 @@ const MerchentReports = () => {
         pdfDoc.text("Report", pdfDoc.internal.pageSize.width / 2, 10, { align: 'center' });
 
         if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
-            pdfDoc.text("Total Sheet Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+            pdfDoc.text("Generalsales", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
         else {
-            pdfDoc.text("Total Sheet Oversale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
+            pdfDoc.text("Oversales", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
 
         let parts = 4;
@@ -1485,7 +1485,7 @@ const MerchentReports = () => {
                         <Card.Body>
                             <Nav className="flex-column" onSelect={handleSelect}>
                                 <Nav.Link eventKey="totalSale" style={{ background: (selectedOption == "totalSale" ? "lightgray" : "") }}>Total Sale</Nav.Link>
-                                <Nav.Link eventKey="totalSheetSale" style={{ background: (selectedOption == "totalSheetSale" ? "lightgray" : "") }} >Total Sheet Sale</Nav.Link>
+                                <Nav.Link eventKey="totalSheetSale" style={{ background: (selectedOption == "totalSheetSale" ? "lightgray" : "") }} >Total Sheet Save</Nav.Link>
                                 <Nav.Link eventKey="billingSheet" style={{ background: (selectedOption == "billingSheet" ? "lightgray" : "") }} >Bill Sheet</Nav.Link>
 
                                 {localStorageUtils.getLoggedInUser().role != "merchent"
