@@ -301,7 +301,12 @@ const DistributorReports = () => {
                 pdfDoc.setFont("helvetica", "bold");
                 pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(sectionTableData.totalFirst), 15, pdfDoc.autoTable.previous.finalY + 5);
                 pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(sectionTableData.totalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.setFontSize(12);
+                pdfDoc.setFont("helvetica", "bold");
+        
                 pdfDoc.text("Total: " + formatNumberWithTwoDecimals(sectionTableData.total), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 5);
+                pdfDoc.setFontSize(10);
+                
                 pdfDoc.setFont("helvetica", "normal");
 
             }
@@ -339,7 +344,11 @@ const DistributorReports = () => {
             pdfDoc.setFont("helvetica", "bold");
             pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(wtotalFirst), 15, pdfDoc.autoTable.previous.finalY + 10);
             pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(wtotalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.setFontSize(12);
+
             pdfDoc.text("Total: " + formatNumberWithTwoDecimals(wtotal), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+            pdfDoc.setFontSize(10);
+
             pdfDoc.setFont("helvetica", "normal");
         }
         return wtotal;
@@ -412,7 +421,12 @@ const DistributorReports = () => {
         pdfDoc.text("Client: " + targetUser.username + ", " + "Draw: " + selectedDraw.title, 15, tableMarginTop == 32 ? 30 : 10);
         if (isFirst) {
             pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, tableMarginTop == 32 ? 30 : 10, { align: 'right' });
+            pdfDoc.setFontSize(12);
+            pdfDoc.setFont("helvetica", "bold");
+
             pdfDoc.text("All total " + AllTotal, pdfDoc.internal.pageSize.width - 20, tableMarginTop == 32 ? 30 : 10, { align: 'right' });
+            pdfDoc.setFontSize(10);
+            pdfDoc.setFont("helvetica", "normal");
 
         }
 
@@ -472,7 +486,11 @@ const DistributorReports = () => {
         pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(totalFirst), 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(totalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFontSize(12);
+
         pdfDoc.text("Total: " + formatNumberWithTwoDecimals(total), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFontSize(10);
+
         pdfDoc.setFont("helvetica", "normal");
 
     }
@@ -558,7 +576,11 @@ const DistributorReports = () => {
         pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total First: " + formatNumberWithTwoDecimals(totalFirst), 15, pdfDoc.autoTable.previous.finalY + 10);
         pdfDoc.text("Total Second: " + formatNumberWithTwoDecimals(totalSecond), pdfDoc.internal.pageSize.width / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFontSize(12);
+
         pdfDoc.text("Total: " + formatNumberWithTwoDecimals(total), pdfDoc.internal.pageSize.width * 2 / 3, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.setFontSize(10);
+
         pdfDoc.setFont("helvetica", "normal");
 
 
@@ -725,7 +747,6 @@ const DistributorReports = () => {
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
         if (billing || totalLimitSaleForm.limitType == "upLimit") {
-            alert("Billing on")
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 4) {
@@ -790,7 +811,6 @@ const DistributorReports = () => {
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
         if (billing || totalLimitSaleForm.limitType == "upLimit") {
-            alert("Billing on")
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 1) {
@@ -998,7 +1018,12 @@ const DistributorReports = () => {
         // pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
         pdfDoc.text("D Share:", x2, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
 
+        pdfDoc.setFontSize(13);
+        pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total Bill:", x1, y + 20 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40, y + 20 * ySpace);
+        pdfDoc.setFont("helvetica", "normal");
+        pdfDoc.setFontSize(12);
+        
         pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
         pdfDoc.text("Total Bill:", x2 + 10, y + 20 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 20 * ySpace);
     }

@@ -393,7 +393,12 @@ const MerchentReports = () => {
         pdfDoc.text(currentLoggedInUser.username + ", " + selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.setFont("helvetica", "bold");
+
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        pdfDoc.setFontSize(10);
+        pdfDoc.setFont("helvetica", "normal");
 
 
         if (totalSheetSaleForm.category == "combined" || totalSheetSaleForm.category == "general") {
@@ -498,7 +503,12 @@ const MerchentReports = () => {
         pdfDoc.text(currentLoggedInUser.username + ", " + selectedDraw.title + " - Sheet: " + drawData.sheetName, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.setFont("helvetica", "bold");
+
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        pdfDoc.setFontSize(10);
+        pdfDoc.setFont("helvetica", "normal");
 
         prizeBundles = getPrizeBundlesArray(selectedDraw)
 
@@ -678,7 +688,12 @@ const MerchentReports = () => {
         pdfDoc.text(currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.setFont("helvetica", "bold");
+
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        pdfDoc.setFontSize(10);
+        pdfDoc.setFont("helvetica", "normal");
 
         if (totalSaleForm.category == "combined" || totalSaleForm.category == "general") {
             processAndAddTablesInPDF(pdfDoc, savedPurchases, sorted, 32)
@@ -955,8 +970,13 @@ const MerchentReports = () => {
         pdfDoc.text(currentLoggedInUser.username + ", " + "Draw: " + selectedDraw.title, 15, 30);
         // Text above the table on the right with adjusted font size
         pdfDoc.text("Draw date: " + selectedDraw.drawDate, pdfDoc.internal.pageSize.width - 60, 30, { align: 'right' });
-        pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        pdfDoc.setFontSize(12);
+        pdfDoc.setFont("helvetica", "bold");
 
+        pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
+        pdfDoc.setFontSize(10);
+        pdfDoc.setFont("helvetica", "normal");
+        
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
         let dividedArrays = [];
@@ -1208,8 +1228,13 @@ const MerchentReports = () => {
         pdfDoc.text("ABC Share:", x1, y + 19 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40, y + 19 * ySpace);
         // pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
         pdfDoc.text("D Share:", x2, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
+        pdfDoc.setFontSize(13);
 
+        pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total Bill:", x1, y + 20 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40, y + 20 * ySpace);
+        pdfDoc.setFont("helvetica", "normal");
+        pdfDoc.setFontSize(12);
+
         pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
         pdfDoc.text("Total Bill:", x2 + 10, y + 20 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 20 * ySpace);
 
