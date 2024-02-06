@@ -59,13 +59,13 @@ export default function Merchent() {
         first: '',
         second: '',
     });
-    const handleCurrentFocused=(val)=>{
+    const handleCurrentFocused = (val) => {
         setCurrentFocused(val)
-        if(val==1){
+        if (val == 1) {
             bundleRef.current.select()
-        }else if(val==2){
+        } else if (val == 2) {
             firstRef.current.select()
-        }else if(val==3){
+        } else if (val == 3) {
             secondRef.current.select()
         }
     }
@@ -111,10 +111,15 @@ export default function Merchent() {
 
 
         if (window.innerWidth < 700) {
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100%';
             document.body.style.overflow = 'hidden';
+
         } else {
             document.body.style.overflowX = 'hidden';
         }
+
         fetchLoggedInUser();
         fetchDraws();
         // setInterval(calculateRemainingTime,500)
@@ -1129,8 +1134,8 @@ export default function Merchent() {
                             <h6 style={{ color: "white", fontSize: "0.8rem", }}>Balance: {currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
                         </div>
                     </div>
-                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>                        
-                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title +" - "+formatDate(currentDraw.drawDate) + " , " + formatTime(currentDraw.drawTime): "Draw"}</h6>
+                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title + " - " + formatDate(currentDraw.drawDate) + " , " + formatTime(currentDraw.drawTime) : "Draw"}</h6>
                         <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop: "6px" }}>{timeRemaining}</h6>
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
@@ -1307,7 +1312,7 @@ export default function Merchent() {
                                 readOnly
                                 value={form.bundle}
                                 // onChange={(e) => handleBundleChange(e.target.value)}
-                                onClick={() => { bundleRef.current.focus();  handleCurrentFocused(1) }}
+                                onClick={() => { bundleRef.current.focus(); handleCurrentFocused(1) }}
                                 disabled={currentDraw == null}
                                 style={{ width: "60px", fontSize: "0.9rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
                             />
@@ -1674,7 +1679,7 @@ export default function Merchent() {
                         </div>
                     </div>
                     <div className='d-flex justify-content-around' style={{ backgroundColor: "purple", marginTop: "1px" }}>
-                        <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title +" - "+formatDate(currentDraw.drawDate) + " , " + formatTime(currentDraw.drawTime): "Draw"}</h6>
+                        <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title + " - " + formatDate(currentDraw.drawDate) + " , " + formatTime(currentDraw.drawTime) : "Draw"}</h6>
                         <h6 style={{ color: "white", fontSize: "1rem", }}>{timeRemaining}</h6>
                     </div>
                     <div className='d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
@@ -2065,18 +2070,18 @@ export default function Merchent() {
                                     Current
                                 </Button>
                             </div>
-                            
+
                         </div>
                         <div className='mt-1'>
-                                <Form.Control
-                                    type="text"
-                                    placeholder='Search Bundle'
-                                    value={overSaleSearch}
-                                    onChange={(e) =>
-                                        setOverSaleSearch(e.target.value)
-                                    }
-                                />
-                            </div>
+                            <Form.Control
+                                type="text"
+                                placeholder='Search Bundle'
+                                value={overSaleSearch}
+                                onChange={(e) =>
+                                    setOverSaleSearch(e.target.value)
+                                }
+                            />
+                        </div>
                         <Table bordered hover size="" className="" style={{ fontSize: '1rem', marginTop: "3px" }}>
                             <thead>
                                 <tr>
