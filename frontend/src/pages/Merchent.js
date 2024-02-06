@@ -59,6 +59,14 @@ export default function Merchent() {
         first: '',
         second: '',
     });
+    const handleCurrentFocused=(val)=>{
+        setCurrentFocused(val)
+        if(val==2){
+            firstRef.current.select()
+        }else if(val==3){
+            secondRef.current.select()
+        }
+    }
     const [oversaleForm, setOversaleForm] = useState({
         bundle: '',
         first: '',
@@ -202,19 +210,19 @@ export default function Merchent() {
             }
             if (!auto) {
                 if (currentFocused < 3) {
-                    setCurrentFocused(currentFocused + 1)
+                    handleCurrentFocused(currentFocused + 1)
                     return
                 }
                 if (currentFocused == 3) {
-                    setCurrentFocused((1))
+                    handleCurrentFocused((1))
                 }
             } else {
                 if (currentFocused != 1) {
                     if (currentFocused == 3) {
-                        setCurrentFocused(1)
+                        handleCurrentFocused(1)
                         return
                     }
-                    setCurrentFocused(currentFocused + 1)
+                    handleCurrentFocused(currentFocused + 1)
                     return
                 }
             }
@@ -273,19 +281,19 @@ export default function Merchent() {
     //         }
     //         if (!auto) {
     //             if (currentFocused < 3) {
-    //                 setCurrentFocused(currentFocused + 1)
+    //                 handleCurrentFocused(currentFocused + 1)
     //                 return
     //             }
     //             if (currentFocused == 3) {
-    //                 setCurrentFocused((1))
+    //                 handleCurrentFocused((1))
     //             }
     //         } else {
     //             if (currentFocused != 1) {
     //                 if (currentFocused == 3) {
-    //                     setCurrentFocused(1)
+    //                     handleCurrentFocused(1)
     //                     return
     //                 }
-    //                 setCurrentFocused(currentFocused + 1)
+    //                 handleCurrentFocused(currentFocused + 1)
     //                 return
     //             }
     //         }
@@ -1018,18 +1026,18 @@ export default function Merchent() {
             if (!auto) {
                 nextInputRef.current.focus();
                 if (currentFocused < 3) {
-                    setCurrentFocused(currentFocused + 1)
+                    handleCurrentFocused(currentFocused + 1)
                 } else {
-                    setCurrentFocused(1)
+                    handleCurrentFocused(1)
                     handlePurchaseOne(form.bundle, form.first, form.second)
                 }
             } else {
                 if (currentFocused != 1) {
                     if (currentFocused < 3) {
-                        setCurrentFocused(currentFocused + 1)
+                        handleCurrentFocused(currentFocused + 1)
                         nextInputRef.current.focus();
                     } else {
-                        setCurrentFocused(1)
+                        handleCurrentFocused(1)
                         bundleRef.current.focus();
                     }
                 } else {
@@ -1297,7 +1305,7 @@ export default function Merchent() {
                                 readOnly
                                 value={form.bundle}
                                 // onChange={(e) => handleBundleChange(e.target.value)}
-                                onClick={() => { bundleRef.current.focus(); setCurrentFocused(1) }}
+                                onClick={() => { bundleRef.current.focus();  handleCurrentFocused(1) }}
                                 disabled={currentDraw == null}
                                 style={{ width: "60px", fontSize: "0.9rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
                             />
@@ -1313,7 +1321,7 @@ export default function Merchent() {
                                 readOnly
                                 value={form.first}
                                 onChange={(e) => setForm({ ...form, first: e.target.value })}
-                                onClick={() => { firstRef.current.focus(); setCurrentFocused(2) }}
+                                onClick={() => { firstRef.current.focus(); handleCurrentFocused(2) }}
                                 disabled={currentDraw == null}
                                 style={{ width: '70px', fontSize: '0.9rem', fontWeight: 'bold', marginTop: "3px" }}
                             />
@@ -1329,7 +1337,7 @@ export default function Merchent() {
                                 readOnly
                                 value={form.second}
                                 onChange={(e) => setForm({ ...form, second: e.target.value })}
-                                onClick={() => { secondRef.current.focus(); setCurrentFocused(3) }}
+                                onClick={() => { secondRef.current.focus(); handleCurrentFocused(3) }}
                                 disabled={currentDraw == null}
                                 style={{ width: "70px", fontSize: "0.9rem", fontWeight: "bold", marginTop: "3px" }}
                             />
@@ -1847,7 +1855,7 @@ export default function Merchent() {
                                 placeholder='Num'
                                 value={form.bundle}
                                 onChange={(e) => handleBundleChange(e.target.value)}
-                                onClick={() => { bundleRef.current.focus(); setCurrentFocused(1) }}
+                                onClick={() => { bundleRef.current.focus(); handleCurrentFocused(1) }}
                                 disabled={currentDraw == null}
                                 style={{ width: "90px", fontSize: "1rem", marginLeft: "4px", fontWeight: "bold", marginTop: "7px" }}
                                 onKeyDown={(event) => form.bundle && handleKeyDown(event, firstRef)}
@@ -1863,7 +1871,7 @@ export default function Merchent() {
                                 placeholder='F'
                                 value={form.first}
                                 onChange={(e) => setForm({ ...form, first: e.target.value })}
-                                onClick={() => { firstRef.current.focus(); setCurrentFocused(2) }}
+                                onClick={() => { firstRef.current.focus(); handleCurrentFocused(2) }}
                                 disabled={currentDraw == null}
                                 style={{ width: '90px', fontSize: '1rem', fontWeight: 'bold', marginTop: "3px" }}
                                 onKeyDown={(event) => form.first && handleKeyDown(event, secondRef)}
@@ -1879,7 +1887,7 @@ export default function Merchent() {
                                 placeholder='S'
                                 value={form.second}
                                 onChange={(e) => setForm({ ...form, second: e.target.value })}
-                                onClick={() => { secondRef.current.focus(); setCurrentFocused(3) }}
+                                onClick={() => { secondRef.current.focus(); handleCurrentFocused(3) }}
                                 disabled={currentDraw == null}
                                 style={{ width: "90px", fontSize: "1rem", fontWeight: "bold", marginTop: "3px" }}
                                 onKeyDown={(event) => form.second && handleKeyDown(event, bundleRef)}
