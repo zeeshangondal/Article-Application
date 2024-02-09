@@ -182,18 +182,18 @@ export default function Clients() {
                 {localStorageUtils.getLoggedInUser().role != "admin" &&
                     <div>
                         {window.innerWidth <= 600 ?
-                            <div className='d-flex mb-2 justify-content-between' style={{fontSize:'0.7rem'}}>
-                                <p>BALANCE: {formatNumberWithTwoDecimals(currentLoggedInUser.balance)}</p>
-                                {/* <p>CLIENTS BALANCE: {getAvailableBalance()}</p> */}
-                                <p>USERS: {formatNumberWithTwoDecimals(getMerchentsBalance())}</p>
-                                <p>DISTRIBUTERS: {formatNumberWithTwoDecimals(getDistributorsBalance())}</p>
+                            <div className='d-flex mb-2 justify-content-between' style={{fontSize:'0.6rem'}}>
+                                <p>CASH: {formatNumberWithTwoDecimals(currentLoggedInUser.debit)}</p>
+                                <p>CREDIT: {formatNumberWithTwoDecimals(currentLoggedInUser.credit)}</p>
+                                <p style={{ color: (currentLoggedInUser.balance > 0 ? 'lightgreen' : 'red') }}>BALANCE: {formatNumberWithTwoDecimals(currentLoggedInUser.balance)}</p>
+                                <p style={{ color: (currentLoggedInUser.balanceUpline > 0 ? 'lightgreen' : 'red') }}>UPLINE: {formatNumberWithTwoDecimals(currentLoggedInUser.balanceUpline)}</p>
                             </div>
                             :
-                            <div className='d-flex mb-2 justify-content-between'>
-                                <p>BALANCE: {formatNumberWithTwoDecimals(currentLoggedInUser.balance)}</p>
-                                {/* <p>CLIENTS BALANCE: {getAvailableBalance()}</p> */}
-                                <p>USERS: {formatNumberWithTwoDecimals(getMerchentsBalance())}</p>
-                                <p>DISTRIBUTERS: {formatNumberWithTwoDecimals(getDistributorsBalance())}</p>
+                            <div className='d-flex mb-2 justify-content-between'>                                
+                                <p>CASH: {formatNumberWithTwoDecimals(currentLoggedInUser.debit)}</p>
+                                <p>CREDIT: {formatNumberWithTwoDecimals(currentLoggedInUser.credit)}</p>
+                                <p style={{ color: (currentLoggedInUser.balance > 0 ? 'lightgreen' : 'red') }}>BALANCE: {formatNumberWithTwoDecimals(currentLoggedInUser.balance)}</p>
+                                <p style={{ color: (currentLoggedInUser.balanceUpline > 0 ? 'lightgreen' : 'red') }}>UPLINE: {formatNumberWithTwoDecimals(currentLoggedInUser.balanceUpline)}</p>
                             </div>
                         }
                     </div>
