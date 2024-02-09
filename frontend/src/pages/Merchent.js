@@ -1068,8 +1068,8 @@ export default function Merchent() {
                         </div>
                     </div>
                     <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title + " - " + formatDate(currentDraw.drawDate) + " , " + formatTime(currentDraw.drawTime) : "Draw"}</h6>
-                        <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop: "6px" }}>{timeRemaining}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title : "."}</h6>
+                        <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop: "6px" }}>{currentDraw? timeRemaining:"."}</h6>
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
                     <div className='container-fluid d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
@@ -1612,8 +1612,8 @@ export default function Merchent() {
                         </div>
                     </div>
                     <div className='d-flex justify-content-around' style={{ backgroundColor: "purple", marginTop: "1px" }}>
-                        <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title + " - " + formatDate(currentDraw.drawDate) + " , " + formatTime(currentDraw.drawTime) : "Draw"}</h6>
-                        <h6 style={{ color: "white", fontSize: "1rem", }}>{timeRemaining}</h6>
+                        <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title  : "."}</h6>
+                        <h6 style={{ color: "white", fontSize: "1rem", }}>{currentDraw? timeRemaining:"."}</h6>
                     </div>
                     <div className='d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
                         <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "1rem", width: "100vw", color: "white", backgroundColor: "purple", height: "4vh" }}>

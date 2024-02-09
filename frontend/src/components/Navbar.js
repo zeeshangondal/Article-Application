@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import { localStorageUtils } from "../APIs/localStorageUtils";
 import { Navbar, Nav } from 'react-bootstrap';
+import { useState } from "react";
 
 function AppNavbar() {
+    const [expanded, setExpanded] = useState(false); // State to control collapse state
+
     const handleLogout = () => {
         const confirmLogout = window.confirm("Are you sure you want to logout?");
         if (confirmLogout) {
@@ -14,8 +17,8 @@ function AppNavbar() {
 
     let loggedInUser = localStorageUtils.getLoggedInUser();
     return (
-        <div style={{ fontWeight: 'bold' }}>
-            <Navbar bg="light" expand="md">
+        <div style={{ fontWeight: 'bold' }} onClick={()=>setExpanded(!expanded)}>
+            <Navbar bg="light" expand="md" expanded={expanded} onToggle={() => setExpanded(!expanded)}>
                 <Navbar.Brand as={Link} to="/" className="link-primary fs-5 font-weight-bold text-uppercase" style={{ marginLeft: '2vh' }}>App</Navbar.Brand>
                 <Navbar.Toggle aria-controls="navbar-nav" />
                 <Navbar.Collapse id="navbar-nav">

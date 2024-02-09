@@ -36,10 +36,11 @@ export default function DrawTime() {
     }, []);
 
     if (!localStorageUtils.hasToken()) {
-        navigate(`/login`);
+        // navigate(`/login`);
+        window.location="/login"
     }
     if (localStorageUtils.getLoggedInUser().role != "admin") {
-        navigate(`/`);
+        window.location="/"
     }
     const fetchDraws = async () => {
         try {
