@@ -18,6 +18,7 @@ export default function Merchent() {
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [newFocused, setNewFocused] = useState(false)
 
     const [showSheetModal, setShowSheetModal] = useState(false);
     const [showOversaleEditModal, setShowOversaleEditModal] = useState(false);
@@ -103,7 +104,9 @@ export default function Merchent() {
         }
 
     };
-
+    useEffect(()=>{
+        setNewFocused(true)
+    },[currentFocused])
     useEffect(() => {
         try {
             loginAudioRef?.current?.play();
@@ -814,45 +817,71 @@ export default function Merchent() {
             }
         }
     }
+
+
     function backOne() {
         if (currentFocused == 1) {
-            let updt = form.bundle.substring(0, form.bundle.length - 1)
-            setForm({
-                ...form,
-                bundle: updt
-            })
-            handleBundleChange(updt)
+            if (newFocused) {
+                setForm({
+                    ...form,
+                    bundle: ""
+                })
+                handleBundleChange("")
+                setNewFocused(false)
+            } else {
+                let updt = form.bundle.substring(0, form.bundle.length - 1)
+                setForm({
+                    ...form,
+                    bundle: updt
+                })
+                handleBundleChange(updt)
+            }
         } else if (currentFocused == 2) {
-            let updt = form.first.toString()
-            updt = updt.substring(0, updt.length - 1)
-            updt = Number(updt)
-            if (updt == 0) {
+            if (newFocused) {
                 setForm({
                     ...form,
                     first: ""
                 })
-                return
+                setNewFocused(false)
+            } else {
+                let updt = form.first.toString()
+                updt = updt.substring(0, updt.length - 1)
+                updt = Number(updt)
+                if (updt == 0) {
+                    setForm({
+                        ...form,
+                        first: ""
+                    })
+                    return
+                }
+                setForm({
+                    ...form,
+                    first: updt
+                })
             }
-            setForm({
-                ...form,
-                first: updt
-            })
         } else if (currentFocused == 3) {
-            let updt = form.second.toString()
-            updt = updt.substring(0, updt.length - 1)
-            updt = Number(updt)
-            if (updt == 0) {
+            if (newFocused) {
                 setForm({
                     ...form,
                     second: ""
                 })
-                return
+                setNewFocused(false)
+            } else {
+                let updt = form.second.toString()
+                updt = updt.substring(0, updt.length - 1)
+                updt = Number(updt)
+                if (updt == 0) {
+                    setForm({
+                        ...form,
+                        second: ""
+                    })
+                    return
+                }
+                setForm({
+                    ...form,
+                    second: updt
+                })
             }
-
-            setForm({
-                ...form,
-                second: updt
-            })
         }
     }
     const handleInput = (input) => {
@@ -863,32 +892,58 @@ export default function Merchent() {
             backOne()
             return
         }
+
         if (currentFocused == 1) {
             if (form.bundle.length == 4) {
                 return
             }
-            setForm({
-                ...form,
-                bundle: form.bundle + input
-            })
-            handleBundleChange(form.bundle + input)
+            if (newFocused) {
+                setForm({
+                    ...form,
+                    bundle: input
+                })
+                handleBundleChange(input)
+                setNewFocused(false)
+            } else {
+                setForm({
+                    ...form,
+                    bundle: form.bundle + input
+                })
+                handleBundleChange(form.bundle + input)
+            }
             return
         } else if (currentFocused == 2) {
-            let updt = form.first.toString()
-            updt += input
-            updt = Number(updt)
-            setForm({
-                ...form,
-                first: updt
-            })
+            if (newFocused) {
+                setForm({
+                    ...form,
+                    first: input
+                })
+                setNewFocused(false)
+            } else {
+                let updt = form.first.toString()
+                updt += input
+                updt = Number(updt)
+                setForm({
+                    ...form,
+                    first: updt
+                })
+            }
         } else if (currentFocused == 3) {
-            let updt = form.second.toString()
-            updt += input
-            updt = Number(updt)
-            setForm({
-                ...form,
-                second: updt
-            })
+            if (newFocused) {
+                setForm({
+                    ...form,
+                    second: input
+                })
+                setNewFocused(false)
+            } else {
+                let updt = form.second.toString()
+                updt += input
+                updt = Number(updt)
+                setForm({
+                    ...form,
+                    second: updt
+                })
+            }
         }
     }
     function getRowColor(bundle) {
