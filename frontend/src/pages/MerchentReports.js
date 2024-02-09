@@ -74,8 +74,8 @@ const MerchentReports = () => {
         }
     };
 
-    function isDrawResultPosted(draw){
-        if(draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2|| draw.prize.secondPrize3||draw.prize.secondPrize4||draw.prize.secondPrize5)
+    function isDrawResultPosted(draw) {
+        if (draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2 || draw.prize.secondPrize3 || draw.prize.secondPrize4 || draw.prize.secondPrize5)
             return true
         return false
     }
@@ -87,7 +87,7 @@ const MerchentReports = () => {
                 alertMessage("No Record of Draw")
                 return
             }
-            if(!isDrawResultPosted(tempDraw)){
+            if (!isDrawResultPosted(tempDraw)) {
                 alertMessage("Draw result is not posted yet")
                 return
             }
@@ -1427,9 +1427,9 @@ const MerchentReports = () => {
         const pdfDoc = new jsPDF();
         let purchases = []
         if (billingSheetForm.type == "oversale") {
-            purchases = getTotalGeneralSalesOfMerchentFromDraw(targetUser.username, true, false)
-        } else {
             purchases = getTotalGeneralSalesOfMerchentFromDraw(targetUser.username, false, true)
+        } else {
+            purchases = getTotalGeneralSalesOfMerchentFromDraw(targetUser.username, true, false)
         }
 
         let result = calculateResultOfMerchent(targetUser, purchases)
@@ -1459,6 +1459,9 @@ const MerchentReports = () => {
 
         const columns = ['Sheet No', 'Sheet Name', 'Sheet Total', 'Total Prize'];
         let bodyData = []
+        let sheetNos = 0;
+        let allTotalSales = 0;
+        let allTotalPrizes = 0;
         let savedDataOfUser = targetUser.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
         for (let i = 0; i < savedDataOfUser.length; i++) {
             let sheetNo = i + 1
@@ -1473,6 +1476,9 @@ const MerchentReports = () => {
             let sheetSavedPurchasesPrize = calculateResultOfMerchent(targetUser, savedDataOfUser[i].savedPurchases).totalPrize
             let sheetSavedOversalesPrize = calculateResultOfMerchent(targetUser, savedDataOfUser[i].savedOversales).totalPrize
             let totalPrize = sheetSavedPurchasesPrize + sheetSavedOversalesPrize
+            sheetNos++;
+            allTotalSales += Number(totalSale)
+            allTotalPrizes += Number(totalPrize)
             bodyData.push([sheetNo, sheetName, totalSale, totalPrize])
         }
         pdfDoc.autoTable({
@@ -1495,6 +1501,25 @@ const MerchentReports = () => {
                 },
             }
         });
+
+        let generalPurchases = getTotalGeneralSalesOfMerchentFromDraw(targetUser.username, false, true)
+        let oversalePurchases = getTotalGeneralSalesOfMerchentFromDraw(targetUser.username, true, false)
+
+        let resultGeneral = calculateResultOfMerchent(targetUser, generalPurchases)
+        let resultOversale = calculateResultOfMerchent(targetUser, oversalePurchases)
+        let comissions = Number(resultGeneral.commission) + Number(resultGeneral.PCCommission) + Number(resultOversale.commission) + Number(resultOversale.PCCommission)
+        let temp1 = allTotalSales - comissions
+        let temp2 = allTotalPrizes - temp1
+        let totalBill = Number(temp2.toFixed(1))
+        pdfDoc.text("Total Sheets:", 15, pdfDoc.autoTable.previous.finalY + 10); pdfDoc.text("" + sheetNos, 50, pdfDoc.autoTable.previous.finalY + 10);
+        pdfDoc.text("Total Sale:", 15, pdfDoc.autoTable.previous.finalY + 17); pdfDoc.text("" + allTotalSales, 50, pdfDoc.autoTable.previous.finalY + 17);
+        pdfDoc.text("Total Prize:", 15, pdfDoc.autoTable.previous.finalY + 24); pdfDoc.text("" + allTotalPrizes, 50, pdfDoc.autoTable.previous.finalY + 24);
+        pdfDoc.setFontSize(13);
+        pdfDoc.setFont("helvetica", "bold");
+        pdfDoc.text("Total Bill:", 15, pdfDoc.autoTable.previous.finalY + 31); pdfDoc.text("" + totalBill, 50, pdfDoc.autoTable.previous.finalY + 31);
+        pdfDoc.setFont("helvetica", "normal");
+        pdfDoc.setFontSize(12);
+
 
         const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
         const formData = new FormData();
@@ -1620,7 +1645,7 @@ const MerchentReports = () => {
                                             >
                                                 <option value="">Select Sheet</option>
                                                 {getSheetNames().map(data => (
-                                                    <option value={data._id}>{data.no +". "+data.sheetName}</option>
+                                                    <option value={data._id}>{data.no + ". " + data.sheetName}</option>
                                                 ))}
                                             </Form.Control>
                                         </Col>
