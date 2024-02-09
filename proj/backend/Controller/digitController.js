@@ -328,7 +328,6 @@ const makeBulkPurchase = async (req, res) => {
         let updatedUser = await user.save()
         res.status(200).send({ message: "Success", user: updatedUser, inSufCount,oversaleCount });
     } catch (err) {
-        console.log(err)
         res.status(500).send({ message: "Error", err });
     }
 }

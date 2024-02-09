@@ -43,7 +43,7 @@
   grid-gap: 5px;
   background-color: #fafafa;
   position: fixed;
-  bottom: 5;
+  bottom: 1;
   width: 100%;
   background-color: "red";
 }

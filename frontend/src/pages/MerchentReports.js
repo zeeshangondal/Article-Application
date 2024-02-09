@@ -67,19 +67,28 @@ const MerchentReports = () => {
                     fontSize: 11, // Increase font size to 12 (customize as needed)
                     fontStyle: 'bold', // Set font style to bold
                 };
-                data.row.cells[data.column.index+1].styles.textColor='blue'
-                data.row.cells[data.column.index+2].styles.textColor='blue'    
+                data.row.cells[data.column.index + 1].styles.textColor = 'blue'
+                data.row.cells[data.column.index + 2].styles.textColor = 'blue'
             }
 
         }
     };
 
+    function isDrawResultPosted(draw){
+        if(draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2|| draw.prize.secondPrize3||draw.prize.secondPrize4||draw.prize.secondPrize5)
+            return true
+        return false
+    }
     const handleBillingSheetChange = (e) => {
         const { name, value } = e.target;
         if (name == "date") {
             let tempDraw = draws.find(draw => draw.drawDate == value)
             if (!tempDraw) {
                 alertMessage("No Record of Draw")
+                return
+            }
+            if(!isDrawResultPosted(tempDraw)){
+                alertMessage("Draw result is not posted yet")
                 return
             }
             setSelectedDraw(tempDraw)
@@ -215,16 +224,19 @@ const MerchentReports = () => {
 
     const getTitle = () => {
         if (selectedOption === 'totalSale') return 'Total Sale Report';
-        if (selectedOption === 'totalSheetSale') return 'Total Sheet Sale Save';
+        if (selectedOption === 'totalSheetSale') return 'Total Sheet Save';
         if (selectedOption === 'totalLimitSale') return 'Total Share Limit Sale Report';
         if (selectedOption === 'billingSheet') return 'Bill Sheet';
         return '';
     };
     const getSheetNames = () => {
         if (savedPurchasesInDraw) {
-            return savedPurchasesInDraw.map(data => {
-                return { _id: data._id, sheetName: data.sheetName }
-            });
+            let res = []
+            for (let i = 0; i < savedPurchasesInDraw.length; i++) {
+                let data = savedPurchasesInDraw[i]
+                res.push({ _id: data._id, sheetName: data.sheetName, no: i + 1 })
+            }
+            return res
         }
         return []
     }
@@ -976,7 +988,7 @@ const MerchentReports = () => {
         pdfDoc.text("All Total: " + allTotal, pdfDoc.internal.pageSize.width - 20, 30, { align: 'right' });
         pdfDoc.setFontSize(10);
         pdfDoc.setFont("helvetica", "normal");
-        
+
         let parts = 4;
         let chunkSize = Math.ceil(savedPurchases.length / parts);
         let dividedArrays = [];
@@ -1197,48 +1209,48 @@ const MerchentReports = () => {
 
 
         x2 = 120
-        pdfDoc.text("A+B+C First:", x1, y + 11 * ySpace); pdfDoc.text(result.ABCFirstTotal + "", x1 + 40, y + 11 * ySpace);
-        pdfDoc.text("D First:", x2, y + 11 * ySpace); pdfDoc.text(result.DFirstTotal + "", x2 + 40, y + 11 * ySpace);
+        // pdfDoc.text("A+B+C First:", x1, y + 11 * ySpace); pdfDoc.text(result.ABCFirstTotal + "", x1 + 40, y + 11 * ySpace);
+        // pdfDoc.text("D First:", x2, y + 11 * ySpace); pdfDoc.text(result.DFirstTotal + "", x2 + 40, y + 11 * ySpace);
 
-        pdfDoc.text("A+B+C Second:", x1, y + 12 * ySpace); pdfDoc.text(result.ABCSecondTotal + "", x1 + 40, y + 12 * ySpace);
-        pdfDoc.text("D Second:", x2, y + 12 * ySpace); pdfDoc.text(result.DSecondTotal + "", x2 + 40, y + 12 * ySpace);
+        // pdfDoc.text("A+B+C Second:", x1, y + 12 * ySpace); pdfDoc.text(result.ABCSecondTotal + "", x1 + 40, y + 12 * ySpace);
+        // pdfDoc.text("D Second:", x2, y + 12 * ySpace); pdfDoc.text(result.DSecondTotal + "", x2 + 40, y + 12 * ySpace);
 
-        pdfDoc.text("Total Sale:", x1, y + 13 * ySpace); pdfDoc.text(result.ABCTotalSale + "", x1 + 40, y + 13 * ySpace);//ABC total
-        pdfDoc.text("Total Sale:", x2, y + 13 * ySpace); pdfDoc.text(result.DTotalSale + "", x2 + 40, y + 13 * ySpace);//D total
+        pdfDoc.text("ABC Total Sale:", x1, y + 11 * ySpace); pdfDoc.text(result.ABCTotalSale + "", x1 + 40, y + 11 * ySpace);//ABC total
+        pdfDoc.text("PC Total Sale:", x2, y + 11 * ySpace); pdfDoc.text(result.DTotalSale + "", x2 + 40, y + 11 * ySpace);//D total
 
-        pdfDoc.text("Commission:", x1, y + 14 * ySpace); pdfDoc.text(result.commission + "", x1 + 40, y + 14 * ySpace);
-        pdfDoc.text("PC Commsion:", x2, y + 14 * ySpace); pdfDoc.text(result.PCCommission + "", x2 + 40, y + 14 * ySpace);
+        pdfDoc.text("ABC Commission:", x1, y + 12 * ySpace); pdfDoc.text(result.commission + "", x1 + 40, y + 12 * ySpace);
+        pdfDoc.text("PC Commission:", x2, y + 12 * ySpace); pdfDoc.text(result.PCCommission + "", x2 + 40, y + 12 * ySpace);
 
 
-        pdfDoc.text("Total Sale:", x1, y + 15 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 15 * ySpace);
-        pdfDoc.text("Total Commission:", x2, y + 15 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 15 * ySpace);
+        // pdfDoc.text("Total Sale:", x1, y + 15 * ySpace); pdfDoc.text(result.totalSale + "", x1 + 40, y + 15 * ySpace);
+        // pdfDoc.text("Total Commission:", x2, y + 15 * ySpace); pdfDoc.text(result.totalCommission + "", x2 + 40, y + 15 * ySpace);
 
-        pdfDoc.text("ABC Extra:", x1, y + 16 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40, y + 16 * ySpace);
-        pdfDoc.text("D Extra:", x2, y + 16 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 16 * ySpace);
+        pdfDoc.text("ABC Extra:", x1, y + 13 * ySpace); pdfDoc.text(result.ABCExtraSale + "", x1 + 40, y + 13 * ySpace);
+        pdfDoc.text("PC Safi Sale:", x2, y + 13 * ySpace); pdfDoc.text(result.DExtraSale + "", x2 + 40, y + 13 * ySpace);
 
-        pdfDoc.text("ABC Prize:", x1, y + 17 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40, y + 17 * ySpace);
+        pdfDoc.text("ABC Prize:", x1, y + 14 * ySpace); pdfDoc.text(result.ABCPrize + "", x1 + 40, y + 14 * ySpace);
         // pdfDoc.text("D Prize:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
-        pdfDoc.text("D Prize:", x2, y + 17 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 17 * ySpace);
+        pdfDoc.text("PC Prize:", x2, y + 14 * ySpace); pdfDoc.text(result.DPrize + "", x2 + 40, y + 14 * ySpace);
 
-        pdfDoc.text("ABC Bill:", x1, y + 18 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40, y + 18 * ySpace);
+        pdfDoc.text("ABC Bill:", x1, y + 15 * ySpace); pdfDoc.text(result.ABCBill + "", x1 + 40, y + 15 * ySpace);
         // pdfDoc.text("D Bill:", x2 + 10, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
-        pdfDoc.text("D Bill:", x2, y + 18 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 18 * ySpace);
+        pdfDoc.text("PC Bill:", x2, y + 15 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 15 * ySpace);
 
 
-        pdfDoc.text("ABC Share:", x1, y + 19 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40, y + 19 * ySpace);
+        pdfDoc.text("ABC Share:", x1, y + 16 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40, y + 16 * ySpace);
         // pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
-        pdfDoc.text("D Share:", x2, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
-        pdfDoc.setFontSize(13);
+        pdfDoc.text("PC Share:", x2, y + 16 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 16 * ySpace);
 
+        pdfDoc.text("ABC Bill:", x1, y + 17 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40, y + 17 * ySpace);
+
+        pdfDoc.setFontSize(13);
         pdfDoc.setFont("helvetica", "bold");
-        pdfDoc.text("Total Bill:", x1, y + 20 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40, y + 20 * ySpace);
+        pdfDoc.text("Total Bill:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
         pdfDoc.setFont("helvetica", "normal");
         pdfDoc.setFontSize(12);
 
-        pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
-        pdfDoc.text("Total Bill:", x2 + 10, y + 20 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 20 * ySpace);
-
-
+        // pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
+        pdfDoc.text("PC Bill:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 17 * ySpace);
     }
 
     const calculateTotalsInFormat = (savedPurchases) => {
@@ -1554,7 +1566,7 @@ const MerchentReports = () => {
                                                 onChange={handleTotalSaleChange}
                                             >
                                                 <option value="combined">Combined</option>
-                                                <option value="general">General</option>
+                                                <option value="general">General - Party Sale</option>
                                                 <option value="oversale">Oversale</option>
                                             </Form.Control>
                                         </Col>
@@ -1606,9 +1618,9 @@ const MerchentReports = () => {
                                                 value={totalSheetSaleForm.sheetNo}
                                                 onChange={handleTotalSheetSaleChange}
                                             >
-                                                <option value="">-</option>
+                                                <option value="">Select Sheet</option>
                                                 {getSheetNames().map(data => (
-                                                    <option value={data._id}>{data.sheetName}</option>
+                                                    <option value={data._id}>{data.no +". "+data.sheetName}</option>
                                                 ))}
                                             </Form.Control>
                                         </Col>
@@ -1720,7 +1732,7 @@ const MerchentReports = () => {
                                                 value={billingSheetForm.type}
                                                 onChange={handleBillingSheetChange}
                                             >
-                                                <option value="general">General</option>
+                                                <option value="general">General Party Bill</option>
                                                 <option value="oversale">OverSale</option>
                                             </Form.Control>
                                         </Col>
@@ -1782,7 +1794,7 @@ const MerchentReports = () => {
                                         onClick={() => generateBillingSheetSummary()}
                                         disabled={!billingSheetForm.date}
                                     >
-                                        Summarized Bill Sheet
+                                        All Sell Bill
                                     </Button>
                                 </div>
                             </Card.Footer>
