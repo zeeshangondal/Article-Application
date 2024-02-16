@@ -27,6 +27,12 @@ export default function Clients() {
     const navigate = useNavigate();
     if (!localStorageUtils.hasToken()) {
         window.location="/login"
+    }else{
+        if(!(localStorageUtils.getLoggedInUser().generalInfo.active)){
+            localStorage.removeItem("jwt_token");
+            localStorageUtils.removeLoggedInUser();
+            window.location = "/login";
+        }
     }
     useEffect(() => {
         if (!localStorageUtils.hasToken()) {

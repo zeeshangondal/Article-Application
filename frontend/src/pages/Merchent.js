@@ -60,6 +60,7 @@ export default function Merchent() {
         first: '',
         second: '',
     });
+    
     const handleCurrentFocused = (val) => {
         setCurrentFocused(val)
         if (val == 1) {
@@ -94,7 +95,11 @@ export default function Merchent() {
     if (!localStorageUtils.hasToken() || localStorageUtils.getLoggedInUser().role!="merchent") {
         window.location = "/login"
     }
-
+    if(!(localStorageUtils.getLoggedInUser().generalInfo.active)){
+        localStorage.removeItem("jwt_token");
+        localStorageUtils.removeLoggedInUser();
+        window.location = "/login";
+    }
     const scrollToBottom = () => {
         if (generalsaleTableRef.current) {
             generalsaleTableRef.current.scrollTop = generalsaleTableRef.current.scrollHeight;

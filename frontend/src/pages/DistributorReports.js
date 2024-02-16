@@ -62,6 +62,11 @@ const DistributorReports = () => {
     if (!localStorageUtils.hasToken()) {
         navigate(`/login`);
     }
+    if(!(localStorageUtils.getLoggedInUser().generalInfo.active)){
+        localStorage.removeItem("jwt_token");
+        localStorageUtils.removeLoggedInUser();
+        window.location = "/login";
+    }
     useEffect(() => {
         fetchLoggedInUser();
         fetchSubUsersOf()

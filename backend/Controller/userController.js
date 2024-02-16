@@ -142,11 +142,6 @@ const getTheMainCreatorOfUser = async (_id) => {
     }
 }
 
-const getParentStatustemp=async(_id)=>{
-    let parentUser=await getTheMainCreatorOfUser(_id);
-    parentUser=parentUser.toObject()
-    return parentUser.generalInfo.active
-}
 
 let login = async(req, res) => {
     let { username, password } = req.body;
