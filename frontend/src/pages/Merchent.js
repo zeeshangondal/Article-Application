@@ -1790,7 +1790,7 @@ export default function Merchent() {
                                     onClick={(e) => setAuto(e.target.checked)}
                                 />
                             </div>
-                            <input className={"" + currentFocused == 1 ? "temp-border" : ""}
+                            <input className={"" + currentFocused == 1 ? "temp-border" : "no-border"}
                                 type='text'
                                 ref={bundleRef}
                                 placeholder='Num'
