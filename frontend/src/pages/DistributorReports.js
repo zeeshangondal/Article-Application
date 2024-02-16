@@ -510,17 +510,45 @@ const DistributorReports = () => {
     }
 
     const handleParseCell = (data) => {
+        function isInPrizeFirst(bundle){
+            for(let i=0;i < prizeBundles.length;i++){
+                let prizeData=prizeBundles[i]
+                if(prizeData[0]==bundle && prizeData[1]=="f"){
+                    return true
+                }    
+            }
+            return false            
+        }
+        function isInPrizeSecond(bundle){
+            for(let i=0;i < prizeBundles.length;i++){
+                let prizeData=prizeBundles[i]
+                if(prizeData[0]==bundle && prizeData[1]=="s"){
+                    return true
+                }    
+            }
+            return false            
+        }
         if (data.column.index % 3 === 0) {
             let bundleInCell = data.cell.raw + ""
-            if (prizeBundles.includes(bundleInCell)) {
+            if (isInPrizeFirst(bundleInCell)) {
+                data.cell.styles = {
+                    ...data.cell.styles,
+                    textColor: 'red', // Keep the red color
+                    fontSize: 11, // Increase font size to 12 (customize as needed)
+                    fontStyle: 'bold', // Set font style to bold
+                };
+                data.row.cells[data.column.index+1].styles.textColor='red'
+                data.row.cells[data.column.index+2].styles.textColor='red'    
+            }
+            if (isInPrizeSecond(bundleInCell)) {
                 data.cell.styles = {
                     ...data.cell.styles,
                     textColor: 'blue', // Keep the red color
                     fontSize: 11, // Increase font size to 12 (customize as needed)
                     fontStyle: 'bold', // Set font style to bold
                 };
-                data.row.cells[data.column.index + 1].styles.textColor = 'blue'
-                data.row.cells[data.column.index + 2].styles.textColor = 'blue'
+                data.row.cells[data.column.index+1].styles.textColor='blue'
+                data.row.cells[data.column.index+2].styles.textColor='blue'    
             }
 
         }

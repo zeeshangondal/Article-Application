@@ -36,24 +36,30 @@ export function getPrizeBundlesArray(draw) {
         return []
     }
     let resultArray = []
-    function getFormatArray(prize) {
+    function getFormatArray(prize,tag) {
         const output = [];
         for (let i = 1; i <= prize.length; i++) {
-            output.push(prize.substring(0, i));
+            console.log(prize, prize.substring(0, i))
+            output.push([prize.substring(0, i),tag]);
         }
         return output;
     }
     let arrayOfPrizesStr = []
     let { firstPrize, secondPrize1, secondPrize2, secondPrize3, secondPrize4, secondPrize5 } = draw.prize
-    if (firstPrize) { arrayOfPrizesStr.push(firstPrize) }
+    if (firstPrize) { 
+        resultArray=[...getFormatArray(firstPrize,"f")]
+    }
+
     if (secondPrize1) { arrayOfPrizesStr.push(secondPrize1) }
     if (secondPrize2) { arrayOfPrizesStr.push(secondPrize2) }
     if (secondPrize3) { arrayOfPrizesStr.push(secondPrize3) }
     if (secondPrize4) { arrayOfPrizesStr.push(secondPrize4) }
     if (secondPrize5) { arrayOfPrizesStr.push(secondPrize5) }
+
     arrayOfPrizesStr.forEach(str => {
-        resultArray = [...resultArray, ...getFormatArray(str)]
+        resultArray = [...resultArray, ...getFormatArray(str,"s")]
     })
+    
     return resultArray
 }
 
