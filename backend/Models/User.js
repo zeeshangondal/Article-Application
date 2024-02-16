@@ -90,7 +90,7 @@ const UserSchema = mongoose.Schema({
 
         shareEnabled: {
             type: Boolean,
-            default: false
+            default: true
         },
     },
     hadd: {

@@ -257,7 +257,7 @@ export default function Clients() {
                     <tr>
                         <th>User ID</th>
                         <th>Username</th>
-                        <th>Password</th>
+                        <th>Upline</th>
                         <th>Active</th>
                     </tr>
                 </thead>
@@ -266,7 +266,7 @@ export default function Clients() {
                         <tr key={user._id} style={{ cursor: 'pointer' }} onClick={() => handleRowClick(user._id)}>
                             <td>{user.userId}</td>
                             <td>{user.username}</td>
-                            <td>{user.password}</td>
+                            <td style={{ color: (user.balanceUpline > 0 ? 'green' : 'red') }}>{user.balanceUpline}</td>
                             <td>{user.generalInfo.active ? "Yes" : "No"}</td>
                         </tr>
                     ))}

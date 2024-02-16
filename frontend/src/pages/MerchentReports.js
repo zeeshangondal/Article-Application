@@ -647,10 +647,12 @@ const MerchentReports = () => {
         else {
             pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
+        let unSavedData=currentLoggedInUser.purchasedFromDrawData.filter(data=> data.drawId==selectedDraw._id)
+        let allPurchases=[...savedPurchasesInDraw,...unSavedData]
+        
 
 
-
-        let groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedPurchases)
+        let groupedByBundle = allPurchases.flatMap(draw => draw.savedPurchases)
             .reduce((acc, purchase) => {
                 const bundle = purchase.bundle;
 
@@ -668,7 +670,9 @@ const MerchentReports = () => {
         let savedPurchases = Object.values(groupedByBundle);
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
-        groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedOversales)
+
+        let allOversales=[...savedPurchasesInDraw,...unSavedData]
+        groupedByBundle = allOversales.flatMap(draw => draw.savedOversales)
             .reduce((acc, purchase) => {
                 const bundle = purchase.bundle;
 
@@ -929,10 +933,12 @@ const MerchentReports = () => {
         else {
             pdfDoc.text("Total Sale Report", pdfDoc.internal.pageSize.width / 2, 20, { align: 'center' });
         }
+        let unSavedData=currentLoggedInUser.purchasedFromDrawData.filter(data=> data.drawId==selectedDraw._id)
+        let allPurchases=[...savedPurchasesInDraw,...unSavedData]
 
 
 
-        let groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedPurchases)
+        let groupedByBundle = allPurchases.flatMap(draw => draw.savedPurchases)
             .reduce((acc, purchase) => {
                 const bundle = purchase.bundle;
 
@@ -951,7 +957,9 @@ const MerchentReports = () => {
 
         savedPurchases = savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)
 
-        groupedByBundle = savedPurchasesInDraw.flatMap(draw => draw.savedOversales)
+        let allOversales=[...savedPurchasesInDraw,...unSavedData]
+
+        groupedByBundle = allOversales.flatMap(draw => draw.savedOversales)
             .reduce((acc, purchase) => {
                 const bundle = purchase.bundle;
 

@@ -1245,6 +1245,7 @@ const AdminReports = () => {
 
 
     const addBillSheetOfADistributor = async (pdfDoc, targetUser, result) => {
+        
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
@@ -1513,6 +1514,7 @@ const AdminReports = () => {
             }
 
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
+
             addBillSheetOfADistributor(pdfDoc, targetUser, result)
         }
         const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
@@ -1554,7 +1556,8 @@ const AdminReports = () => {
             let share = result.totalShare
             let outputResult = Number((netBalance - share).toFixed(1))
             outputResult = -outputResult
-            bodyData.push([id, name, amount, commission, gross, prize, netBalance, share, outputResult])
+            if(result.totalSale!=0)
+                bodyData.push([id, name, amount, commission, gross, prize, netBalance, share, outputResult])
         }
         pdfDoc.autoTable({
             head: [columns],

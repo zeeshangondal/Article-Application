@@ -91,7 +91,7 @@ export default function Merchent() {
     const generalsaleTableRef = useRef(null);
     const oversaleTableRef = useRef(null);
 
-    if (!localStorageUtils.hasToken()) {
+    if (!localStorageUtils.hasToken() || localStorageUtils.getLoggedInUser().role!="merchent") {
         window.location = "/login"
     }
 
@@ -947,6 +947,7 @@ export default function Merchent() {
         }
     }
     function getRowColor(bundle) {
+        return ""
         if (bundle.length == 1) {
             return "orange"
         }
@@ -1067,17 +1068,17 @@ export default function Merchent() {
                             <h6 style={{ color: "white", fontSize: "0.8rem", }}>Balance: {currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
                         </div>
                     </div>
-                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "purple", marginTop: "1px" }}>
+                    <div className='d-flex justify-content-around ' style={{ backgroundColor: "#6200ea", marginTop: "1px" }}>
                         <h6 style={{ color: "white", fontSize: "0.8rem", marginLeft: "5px", paddingTop: "6px" }}>{currentDraw ? currentDraw.title : "."}</h6>
                         <h6 style={{ color: "white", fontSize: "0.8rem", paddingTop: "6px" }}>{currentDraw? timeRemaining:"."}</h6>
                         {/* <h6 style={{color:"white"}}>Avaliable Balance: {currentLoggedInUser.availableBalance}</h6> */}
                     </div>
-                    <div className='container-fluid d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
+                    <div className='container-fluid d-flex justify-content-around' style={{ backgroundColor: "#6200ea" }}>
                         <div>
-                            <div className='d-flex justify-content-end' >
-                                <Button variant='primary btn btn-sm'
+                            <div className='d-flex justify-content-end'  >
+                                <Button variant='primary btn btn-sm' 
                                     disabled={!currentDraw}
-                                    style={{ fontSize: "0.7rem", marginRight: "10px" }}
+                                    style={{ fontSize: "0.7rem", marginRight: "10px", backgroundColor:"blue" }}
                                     onClick={() => { setShowGeneralsaleModal(true); handleCurrentGeneralsale(); setGeneralSaleOption(3) }}>
                                     GeneralSale
                                 </Button>
@@ -1091,7 +1092,7 @@ export default function Merchent() {
                             </div>
                         </div>
                         <div>
-                            <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", color: "white", backgroundColor: "purple", height: "4vh" }}>
+                            <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "0.8rem", color: "white", backgroundColor: "blue", height: "4vh" }}>
                                 <option value="" disabled={!currentLoggedInUser}>Select Draw</option>
 
                                 {draws.map((draw) => (
@@ -1156,7 +1157,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                             <div style={{ height: '180px', overflowY: 'auto', marginTop: "-15px" }} ref={generalsaleTableRef}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', marginBottom: "0px" }} >
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.9rem', marginBottom: "0px" }} >
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr key={purchase._id} >
@@ -1183,7 +1184,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                         </div>
-                        <div className='col-5 mt-2 ' style={{ marginLeft: "-11px", backgroundColor: "purple" }}>
+                        <div className='col-5 mt-2 ' style={{ marginLeft: "-11px", backgroundColor: "black" }}>
                             <div className=''>
                                 <div className='d-flex justify-content-between  mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
@@ -1197,7 +1198,7 @@ export default function Merchent() {
 
                                 </div>
                                 <div >
-                                    <Table boarded hover size="sm" className="mt-2" style={{ fontSize: '0.8rem', marginTop: "-5px", }}>
+                                    <Table boarded hover size="sm" className="mt-2 table table-dark" style={{ fontSize: '0.8rem', marginTop: "-5px"}}>
                                         <thead>
                                             <tr>
                                                 <th className='col-2'>No</th>
@@ -1209,7 +1210,7 @@ export default function Merchent() {
                                 </div>
 
                                 <div style={{ height: '174px', overflowY: 'auto', marginTop: "-7px" }} ref={oversaleTableRef}>
-                                    <Table boarded hover size="sm" className="" style={{ fontSize: '0.8rem', marginTop: "-5px", marginBottom: "0px", fontWeight: "bold" }}>
+                                    <Table boarded hover size="sm" className="table table-dark" style={{ fontSize: '0.8rem', marginTop: "-5px", marginBottom: "0px", fontWeight: "bold" }}>
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >
@@ -1247,11 +1248,11 @@ export default function Merchent() {
                                 // onChange={(e) => handleBundleChange(e.target.value)}
                                 onClick={() => { bundleRef.current.focus(); handleCurrentFocused(1) }}
                                 disabled={currentDraw == null}
-                                style={{ width: "60px", fontSize: "0.9rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
+                                style={{ width: "60px", fontSize: "1rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "12px" }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '0.8rem', marginTop: "4px" }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '1rem', marginTop: "4px" }}>
                                 {availableArticles ? availableArticles.firstPrice : '.'}
                             </h6>
                             <input className={"" + currentFocused == 2 ? "temp-border" : ""}
@@ -1263,11 +1264,11 @@ export default function Merchent() {
                                 onChange={(e) => setForm({ ...form, first: e.target.value })}
                                 onClick={() => { firstRef.current.focus(); handleCurrentFocused(2) }}
                                 disabled={currentDraw == null}
-                                style={{ width: '70px', fontSize: '0.9rem', fontWeight: 'bold', marginTop: "3px" }}
+                                style={{ width: '70px', fontSize: '1rem', fontWeight: 'bold', marginTop: "-1px" }}
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "19px" }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "0.8rem", marginTop: "4px" }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "1rem", marginTop: "4px" }}>
                                 {availableArticles ? availableArticles.secondPrice : "."}
                             </h6>
                             <input className={"" + currentFocused == 3 ? "temp-border" : ""}
@@ -1279,7 +1280,7 @@ export default function Merchent() {
                                 onChange={(e) => setForm({ ...form, second: e.target.value })}
                                 onClick={() => { secondRef.current.focus(); handleCurrentFocused(3) }}
                                 disabled={currentDraw == null}
-                                style={{ width: "70px", fontSize: "0.9rem", fontWeight: "bold", marginTop: "3px" }}
+                                style={{ width: "70px", fontSize: "1rem", fontWeight: "bold", marginTop: "-1px" }}
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -1289,7 +1290,7 @@ export default function Merchent() {
 
 
                             <Button variant='primary btn btn-sm'
-                                style={{ width: "50px", height: "45px", fontSize: "0.9rem", marginTop: "14px" }}
+                                style={{ width: "50px", height: "45px", fontSize: "0.9rem", marginTop: "14px", marginLeft:"10px" }}
                                 onClick={() => handlePurchaseOne(form.bundle, form.first, form.second)} >
                                 Add
                             </Button>
@@ -1611,12 +1612,12 @@ export default function Merchent() {
                             <h6 style={{ color: "white", fontSize: "1rem", }}>Balance: {currentLoggedInUser && currentLoggedInUser?.balance?.toFixed(1)}</h6>
                         </div>
                     </div>
-                    <div className='d-flex justify-content-around' style={{ backgroundColor: "purple", marginTop: "1px" }}>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "#6200ea", marginTop: "1px" }}>
                         <h6 style={{ color: "white", fontSize: "1rem", marginLeft: "5px" }}>{currentDraw ? currentDraw.title  : "."}</h6>
                         <h6 style={{ color: "white", fontSize: "1rem", }}>{currentDraw? timeRemaining:"."}</h6>
                     </div>
-                    <div className='d-flex justify-content-around' style={{ backgroundColor: "purple" }}>
-                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "1rem", width: "100vw", color: "white", backgroundColor: "purple", height: "4vh" }}>
+                    <div className='d-flex justify-content-around' style={{ backgroundColor: "#6200ea" }}>
+                        <select onChange={handleChangeDraw} style={{ textAlign: "center", fontSize: "1rem", width: "100vw", color: "white", backgroundColor: "#6200ea", height: "4vh" }}>
                             <option value="">Select Draw</option>
                             {draws.map((draw) => (
                                 <option key={draw._id} value={draw._id}>
@@ -1675,7 +1676,7 @@ export default function Merchent() {
                                 </div>
                             </div>
                             <div style={{ marginTop: "-15px" }}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1.3rem', }}>
                                     <thead>
                                         <tr>
                                             <th className='col-1'>
@@ -1701,7 +1702,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                             <div style={{ height: '310px', overflowY: 'auto', marginTop: "-15px" }} ref={generalsaleTableRef}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', marginBottom: "0px" }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1.3rem', marginBottom: "0px" }}>
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr key={purchase._id} >
@@ -1729,7 +1730,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                         </div>
-                        <div className='col-5 mt-1 ' style={{ marginLeft: "-11px", backgroundColor: "purple" }}>
+                        <div className='col-5 mt-1 ' style={{ marginLeft: "-11px", backgroundColor: "black" }}>
                             <div className=''>
                                 <div className='d-flex justify-content-between mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
@@ -1744,7 +1745,7 @@ export default function Merchent() {
 
                                 </div>
                                 <div >
-                                    <Table boarded hover size="sm" className="mt-2" style={{ fontSize: '1rem', marginTop: "-5px", }}>
+                                    <Table boarded hover size="sm" className="mt-2 table table-dark" style={{ fontSize: '1.3rem', marginTop: "-5px", }}>
                                         <thead>
                                             <tr>
                                                 <th className='col-2'>No</th>
@@ -1756,7 +1757,7 @@ export default function Merchent() {
                                 </div>
 
                                 <div style={{ height: '320px', overflowY: 'auto', marginTop: "-7px" }} ref={oversaleTableRef}>
-                                    <Table boarded hover size="sm" className="" style={{ fontSize: '1rem', marginTop: "-5px", fontWeight: "bold", marginBottom: "0px" }}>
+                                    <Table boarded hover size="sm" className="table table-dark" style={{ fontSize: '1.3rem', marginTop: "-5px", fontWeight: "bold", marginBottom: "0px" }}>
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >
@@ -1797,12 +1798,12 @@ export default function Merchent() {
                                 onChange={(e) => handleBundleChange(e.target.value)}
                                 onClick={() => { bundleRef.current.focus(); handleCurrentFocused(1) }}
                                 disabled={currentDraw == null}
-                                style={{ width: "90px", fontSize: "1rem", marginLeft: "4px", fontWeight: "bold", marginTop: "7px" }}
+                                style={{ width: "90px", fontSize: "1.2rem", marginLeft: "4px", fontWeight: "bold", marginTop: "7px" }}
                                 onKeyDown={(event) => form.bundle && handleKeyDown(event, firstRef)}
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "-110px" }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '1rem', marginTop: "4px" }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: '1.2rem', marginTop: "4px" }}>
                                 {availableArticles ? availableArticles.firstPrice : '.'}
                             </h6>
                             <input className={"" + currentFocused == 2 ? "temp-border" : ""}
@@ -1813,12 +1814,12 @@ export default function Merchent() {
                                 onChange={(e) => setForm({ ...form, first: e.target.value })}
                                 onClick={() => { firstRef.current.focus(); handleCurrentFocused(2) }}
                                 disabled={currentDraw == null}
-                                style={{ width: '90px', fontSize: '1rem', fontWeight: 'bold', marginTop: "3px" }}
+                                style={{ width: '90px', fontSize: '1.2rem', fontWeight: 'bold', marginTop: "-2px" }}
                                 onKeyDown={(event) => form.first && handleKeyDown(event, secondRef)}
                             />
                         </div>
                         <div className='col-2' style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginLeft: "-110px" }}>
-                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "1rem", marginTop: "4px" }}>
+                            <h6 className='text-center' style={{ fontWeight: 'normal', fontSize: "1.2rem", marginTop: "4px" }}>
                                 {availableArticles ? availableArticles.secondPrice : "."}
                             </h6>
                             <input className={"" + currentFocused == 3 ? "temp-border" : ""}
@@ -1829,7 +1830,7 @@ export default function Merchent() {
                                 onChange={(e) => setForm({ ...form, second: e.target.value })}
                                 onClick={() => { secondRef.current.focus(); handleCurrentFocused(3) }}
                                 disabled={currentDraw == null}
-                                style={{ width: "90px", fontSize: "1rem", fontWeight: "bold", marginTop: "3px" }}
+                                style={{ width: "90px", fontSize: "1.2rem", fontWeight: "bold", marginTop: "-2px" }}
                                 onKeyDown={(event) => form.second && handleKeyDown(event, bundleRef)}
                             />
                         </div>
@@ -1839,7 +1840,7 @@ export default function Merchent() {
                             </h6>
 
                             <Button variant='primary btn btn-sm'
-                                style={{ fontSize: "1rem", marginTop: "2px" }}
+                                style={{ fontSize: "1.2rem", marginTop: "2px" }}
                                 onClick={() => handlePurchaseOne(form.bundle, form.first, form.second)} >
                                 Add
                             </Button>
@@ -1863,8 +1864,6 @@ export default function Merchent() {
 
                     </div>
                     <CustomNotification notification={notification} setNotification={setNotification} />
-
-
                     <div className='container'>
 
 

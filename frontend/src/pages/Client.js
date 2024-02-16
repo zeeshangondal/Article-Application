@@ -602,32 +602,37 @@ const UserDetails = () => {
                                         </div>
                                     </div>
                                     <div className="row">
-                                        <div className="col-md-6">
-                                            <Form.Group className="mb-3">
-                                                <Form.Label>Share</Form.Label>
-                                                <Form.Control
-                                                    type="number"
-                                                    value={formValues.commission.share}
-                                                    onChange={(e) =>
-                                                        handleFormInputChange('commission', 'share', e.target.value)
-                                                    }
-                                                // disabled={!formValues.commission.shareEnabled}
-                                                />
-                                            </Form.Group>
-                                        </div>
-                                        <div className="col-md-6">
-                                            <Form.Group className="mb-3">
-                                                <Form.Label>PC Share</Form.Label>
-                                                <Form.Control
-                                                    type="number"
-                                                    value={formValues.commission.pcShare}
-                                                    onChange={(e) =>
-                                                        handleFormInputChange('commission', 'pcShare', e.target.value)
-                                                    }
-                                                // disabled={!formValues.commission.shareEnabled}
-                                                />
-                                            </Form.Group>
-                                        </div>
+                                        {userDetails.role == "admin" &&
+                                            <>
+                                                <div className="col-md-6">
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label>Share</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            value={formValues.commission.share}
+                                                            onChange={(e) =>
+                                                                handleFormInputChange('commission', 'share', e.target.value)
+                                                            }
+                                                        // disabled={!formValues.commission.shareEnabled}
+                                                        />
+                                                    </Form.Group>
+                                                </div>
+                                                <div className="col-md-6">
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label>PC Share</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            value={formValues.commission.pcShare}
+                                                            onChange={(e) =>
+                                                                handleFormInputChange('commission', 'pcShare', e.target.value)
+                                                            }
+                                                        // disabled={!formValues.commission.shareEnabled}
+                                                        />
+                                                    </Form.Group>
+                                                </div>
+                                            </>
+                                        }
+
 
                                         {formValues.role != "merchent" &&
                                             <div className="col-md-6">
