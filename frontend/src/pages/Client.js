@@ -602,7 +602,7 @@ const UserDetails = () => {
                                         </div>
                                     </div>
                                     <div className="row">
-                                        {userDetails.role == "admin" &&
+                                        {(userDetails.role == "admin" || userDetails.creator.role == "admin" ) &&
                                             <>
                                                 <div className="col-md-6">
                                                     <Form.Group className="mb-3">

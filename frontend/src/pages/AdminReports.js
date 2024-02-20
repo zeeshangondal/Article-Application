@@ -1273,7 +1273,9 @@ const AdminReports = () => {
 
 
     const addBillSheetOfADistributor = async (pdfDoc, targetUser, result) => {
-        
+        if(result.totalSale<=0){
+            return
+        }
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
         pdfDoc.setFontSize(20);
@@ -1527,6 +1529,9 @@ const AdminReports = () => {
                     savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
                 }
                 let result = calculateResultOfDistributor(targetUser, savedPurchases)
+                if(result.totalSale==0){
+                    continue
+                }
                 addBillSheetOfADistributor(pdfDoc, targetUser, result)
                 if (i + 1 < subUsers.length) {
                     pdfDoc.addPage()
@@ -1542,7 +1547,7 @@ const AdminReports = () => {
             }
 
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
-
+            
             addBillSheetOfADistributor(pdfDoc, targetUser, result)
         }
         const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere

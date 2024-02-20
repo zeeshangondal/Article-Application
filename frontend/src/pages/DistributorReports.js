@@ -949,7 +949,8 @@ const DistributorReports = () => {
     }
 
     const addBillSheetOfADistributor = async (pdfDoc, targetUser, result) => {
-        if(result.totalSale==0){
+        console.log(result.totalSale)
+        if(result.totalSale<=0){
             return
         }
         let x1 = 5, x2 = 140;

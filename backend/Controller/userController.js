@@ -237,14 +237,16 @@ const updateUser = async (req, res) => {
             return res.status(404).send({ message: "User not found" });
         }
 
-        if (updates.generalInfo && updates.generalInfo.active === false) {
-            // Update 'active' to false for all users recursively
-            // await updateRelatedUsers(_id);
-        }
         let admin = await User.findOne({ role: 'admin' });
+
         admin = admin.toObject()
         if (updates.role === "distributor" && admin && updates.creator._id === admin._id.toString()) {
             updateAssociatedLimits(updates,oldUser)
+        }
+        if(updates.role=="admin"){
+            let newRewardUpdates={rewardCommission: updates.rewardCommission}
+            await User.updateMany({}, newRewardUpdates, { new: true });
+            
         }
 
 

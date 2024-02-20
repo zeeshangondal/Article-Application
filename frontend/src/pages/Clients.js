@@ -102,6 +102,7 @@ export default function Clients() {
             let obj = {
                 ...newUserData,
                 creator: localStorageUtils.getLoggedInUser()._id,
+                // rewardCommission: localStorageUtils.getLoggedInUser().rewardCommission
             }
             let role = ""
             let loggedInUser = localStorageUtils.getLoggedInUser()

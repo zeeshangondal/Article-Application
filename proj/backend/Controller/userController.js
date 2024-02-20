@@ -114,19 +114,52 @@ let createUser = async (req, res) => {
         res.status(500).send({ message: "Error", error });
     }
 };
+const getUserDataById = (allUsers, targetUserId) => {
+    const targetUser = allUsers.find(user => user._id.toString() === targetUserId);
+    // Return the found user or null if not found
+    return targetUser || null;
+};
+
+const getTheMainCreatorOfUser = async (_id) => {
+    try {
+        // Make sure to await the User.find() call
+        let allUsers = await User.find({});
+        let adminUser = allUsers.find(user => user.role === "admin");
+        adminUser = adminUser.toObject()
+        let adminId = adminUser._id.toString()
+        let mainCreator = {};
+        let askingUser = _id;
+        while (true) {
+            mainCreator = getUserDataById(allUsers, askingUser);
+            mainCreator = mainCreator.toObject()
+            if (mainCreator.creator.toString() === adminId) {
+                mainCreator = await User.findOne({ _id: mainCreator._id.toString() });
+                return mainCreator
+            }
+            askingUser = mainCreator.creator.toString()
+        }
+    } catch (e) {
+    }
+}
 
 
-let login = (req, res) => {
+let login = async(req, res) => {
     let { username, password } = req.body;
-    User.findOne({ username, password }).then((user) => {
+    User.findOne({ username, password }).then(async(user) => {
         if (!user) {
             console.log('user not found')
             return res.status(404).send({ message: "User not Found" })
         }
         else {
-            if (user.generalInfo.active === false) {
+            let parentUser=await getTheMainCreatorOfUser(user._id.toString());
+            parentUser=parentUser?.toObject()
+
+            if (  user.generalInfo.active === false ) {
+                return res.status(201).send({ message: "This account has been deactivated" })
+            }else if (parentUser && !parentUser.generalInfo.active){
                 return res.status(201).send({ message: "This account has been deactivated" })
             }
+            
             else {
                 const currentDate = new Date();
                 const dateTimeString = currentDate.toLocaleString();
@@ -204,14 +237,16 @@ const updateUser = async (req, res) => {
             return res.status(404).send({ message: "User not found" });
         }
 
-        if (updates.generalInfo && updates.generalInfo.active === false) {
-            // Update 'active' to false for all users recursively
-            await updateRelatedUsers(_id);
-        }
         let admin = await User.findOne({ role: 'admin' });
+
         admin = admin.toObject()
         if (updates.role === "distributor" && admin && updates.creator._id === admin._id.toString()) {
             updateAssociatedLimits(updates,oldUser)
+        }
+        if(updates.role=="admin"){
+            let newRewardUpdates={rewardCommission: updates.rewardCommission}
+            await User.updateMany({}, newRewardUpdates, { new: true });
+            
         }
 
 

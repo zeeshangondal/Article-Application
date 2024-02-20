@@ -113,6 +113,7 @@ export default function Merchent() {
         setNewFocused(true)
     },[currentFocused])
     useEffect(() => {
+
         try {
             loginAudioRef?.current?.play();
         } catch (e) { }
@@ -127,9 +128,10 @@ export default function Merchent() {
         } else {
             document.body.style.overflowX = 'hidden';
         }
-
+        setCurrentLoggedInUser(localStorageUtils.getLoggedInUser())
         fetchLoggedInUser();
         fetchDraws();
+        
         // setInterval(calculateRemainingTime,500)
         return () => {
             document.body.style.overflow = 'auto';
@@ -138,12 +140,13 @@ export default function Merchent() {
             if (intervalId)
                 clearInterval(intervalId);
         };
-
-    }, []);
+    },[]);
 
     const fetchDraws = async () => {
         try {
+            // alert("Draws")
             const response = await DrawAPIs.getAllDraws();
+            console.log(response.draws)
             let filteredDraws = response.draws.filter(draw => draw.drawStatus == true && !draw.drawExpired)
             setDraws(filteredDraws);
             return filteredDraws
@@ -1681,7 +1684,7 @@ export default function Merchent() {
                                 </div>
                             </div>
                             <div style={{ marginTop: "-15px" }}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '1.3rem', }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1.4rem', }}>
                                     <thead>
                                         <tr>
                                             <th className='col-1'>
@@ -1707,7 +1710,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                             <div style={{ height: '310px', overflowY: 'auto', marginTop: "-15px" }} ref={generalsaleTableRef}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '1.3rem', marginBottom: "0px" }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1.4rem', marginBottom: "0px" }}>
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr key={purchase._id} >
@@ -1735,7 +1738,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                         </div>
-                        <div className='col-5 mt-1 ' style={{ marginLeft: "-11px", backgroundColor: "black" }}>
+                        <div className='col-5 mt-1 ' style={{ marginLeft: "-11px", backgroundColor: "#6200ea" }}>
                             <div className=''>
                                 <div className='d-flex justify-content-between mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
@@ -1750,7 +1753,7 @@ export default function Merchent() {
 
                                 </div>
                                 <div >
-                                    <Table boarded hover size="sm" className="mt-2 table table-dark" style={{ fontSize: '1.3rem', marginTop: "-5px", }}>
+                                    <Table boarded hover size="sm" className="mt-2 table " style={{ fontSize: '1.4rem', marginTop: "-5px", }}>
                                         <thead>
                                             <tr>
                                                 <th className='col-2'>No</th>
@@ -1762,7 +1765,7 @@ export default function Merchent() {
                                 </div>
 
                                 <div style={{ height: '320px', overflowY: 'auto', marginTop: "-7px" }} ref={oversaleTableRef}>
-                                    <Table boarded hover size="sm" className="table table-dark" style={{ fontSize: '1.3rem', marginTop: "-5px", fontWeight: "bold", marginBottom: "0px" }}>
+                                    <Table boarded hover size="sm" className="table table-dark" style={{ fontSize: '1.4rem', marginTop: "-5px", fontWeight: "bold", marginBottom: "0px" }}>
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >

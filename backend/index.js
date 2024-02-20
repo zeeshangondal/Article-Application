@@ -71,12 +71,12 @@ app.get('/reports/:fileName', (req, res) => {
 });
 
 
-app.use(express.static(path.join(__dirname, 'build')));
+// app.use(express.static(path.join(__dirname, 'build')));
 
-// For all other requests, serve the React app
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
+// // For all other requests, serve the React app
+// app.get('*', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'build', 'index.html'));
+// });
 
 
 app.listen(process.env.PORT || 3005, () => {
@@ -84,6 +84,9 @@ app.listen(process.env.PORT || 3005, () => {
 })
 
 
-mongoose.connect(process.env.DB_URL).then(err => {
-    console.log("Connected")
-})
+// mongoose.connect(process.env.DB_URL).then(err => {
+//     console.log("Connected")
+// })
+mongoose.connect(process.env.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('Connected to MongoDB'))
+    .catch(err => console.error('Error connecting to MongoDB:', err));

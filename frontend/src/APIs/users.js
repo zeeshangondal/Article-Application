@@ -33,7 +33,7 @@ const login = async (data) => {
             }
 
             // Set up Axios to use the token for subsequent API requests
-            axios.defaults.headers.common['Authorization'] = `Bearer ${localStorageUtils.getToken()}`;
+            // axios.defaults.headers.common['Authorization'] = `Bearer ${localStorageUtils.getToken()}`;
 
             return true;
         } else if (response.status === 201) {
