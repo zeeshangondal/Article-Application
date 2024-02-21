@@ -212,6 +212,8 @@ const removeBulkPurchase = async (req, res) => {
             }
         });
         await Promise.all(savePromises);
+        user.purchasedFromDrawData= user.purchasedFromDrawData.filter(data => data.drawId != draw_id)
+        user.purchasedFromDrawData.push(purchasedFromDrawData)
         let updatedUser = await user.save()
         res.status(200).send({ message: "Success", user: updatedUser });
     } catch (err) {

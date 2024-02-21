@@ -175,7 +175,9 @@ export default function Merchent() {
         let purchasedDrawData = purchasedFromDrawData.find(data => data.drawId === selectedDraw)
 
         try {
-            setSavedPurchases([...purchasedDrawData.savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)])
+            setSavedPurchases([...purchasedDrawData.savedPurchases])
+
+            // setSavedPurchases([...purchasedDrawData.savedPurchases.filter(purchase => purchase.first != 0 || purchase.second != 0)])
             setOversales([...purchasedDrawData.savedOversales.filter(purchase => purchase.first != 0 || purchase.second != 0)])
             setTimeout(() => {
                 scrollToBottom()
