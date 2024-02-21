@@ -11,14 +11,14 @@ const initialDrawData = {
     drawDate: '',
     drawTime: '',
     drawStatus: false,
-    oneDigitFirst: {price:0, digit:""},
-    oneDigitSecond: {price:0, digit:""},
-    twoDigitFirst: {price:0, digit:""},
-    twoDigitSecond: {price:0, digit:""},
-    threeDigitFirst: {price:0, digit:""},
-    threeDigitSecond: {price:0, digit:""},
-    fourDigitFirst: {price:0, digit:""},
-    fourDigitSecond: {price:0, digit:""},
+    oneDigitFirst: { price: 0, digit: "" },
+    oneDigitSecond: { price: 0, digit: "" },
+    twoDigitFirst: { price: 0, digit: "" },
+    twoDigitSecond: { price: 0, digit: "" },
+    threeDigitFirst: { price: 0, digit: "" },
+    threeDigitSecond: { price: 0, digit: "" },
+    fourDigitFirst: { price: 0, digit: "" },
+    fourDigitSecond: { price: 0, digit: "" },
     drawExpired: false,
 }
 
@@ -37,10 +37,10 @@ export default function DrawTime() {
 
     if (!localStorageUtils.hasToken()) {
         // navigate(`/login`);
-        window.location="/login"
+        window.location = "/login"
     }
     if (localStorageUtils.getLoggedInUser().role != "admin") {
-        window.location="/"
+        window.location = "/"
     }
     const fetchDraws = async () => {
         try {
@@ -66,6 +66,7 @@ export default function DrawTime() {
         const drawToEdit = draws.find(draw => draw._id === drawId);
         setEditDrawId(drawId);
         setModalMode('edit');
+
         setNewDrawData({ ...initialDrawData, ...drawToEdit });
         handleModalOpen();
     };
@@ -130,8 +131,8 @@ export default function DrawTime() {
         else
             return <td style={{ color: 'red' }}>Disabled</td>
     }
-    function isDrawResultPosted(draw){
-        if(draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2|| draw.prize.secondPrize3||draw.prize.secondPrize4||draw.prize.secondPrize5)
+    function isDrawResultPosted(draw) {
+        if (draw.prize.firstPrize || draw.prize.secondPrize1 || draw.prize.secondPrize2 || draw.prize.secondPrize3 || draw.prize.secondPrize4 || draw.prize.secondPrize5)
             return true
         return false
     }
@@ -157,7 +158,7 @@ export default function DrawTime() {
                     Create Draw
                 </Button>
             </div>
-            
+
             <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
                 <thead>
                     <tr>
@@ -217,7 +218,7 @@ export default function DrawTime() {
                                         !isDrawResultPosted(draw) && draw.drawStatus ?
                                             <Button variant="danger btn btn-sm" onClick={() => disableDraw(draw)}>Disable</Button>
                                             :
-                                            !isDrawResultPosted(draw) &&<Button variant="primary btn btn-sm" onClick={() => activateDraw(draw)}>Activate</Button>
+                                            !isDrawResultPosted(draw) && <Button variant="primary btn btn-sm" onClick={() => activateDraw(draw)}>Activate</Button>
                                     }
                                 </div>
                             </td>
@@ -254,7 +255,16 @@ export default function DrawTime() {
                                         type="date"
                                         placeholder="Enter draw date"
                                         value={newDrawData.drawDate}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, drawDate: e.target.value })}
+                                        onChange={(e) => {
+                                            for(let i=0;i<draws.length;i++){
+                                                if(draws[i].drawDate==e.target.value){
+                                                    alert("Draw already made in the same date")
+                                                    return
+                                                }
+                                            }
+                                            setNewDrawData({ ...newDrawData, drawDate: e.target.value })
+                                        }
+                                        }
                                     />
                                 </Form.Group>
                             </Col>
@@ -286,7 +296,7 @@ export default function DrawTime() {
                                         type="Number"
                                         placeholder={0}
                                         value={newDrawData.oneDigitFirst.price}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, oneDigitFirst: {...newDrawData.oneDigitFirst , price:Number(e.target.value)} })}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, oneDigitFirst: { ...newDrawData.oneDigitFirst, price: Number(e.target.value) } })}
                                     />
                                 </Form.Group>
                             </Col>
@@ -297,7 +307,7 @@ export default function DrawTime() {
                                         type="Number"
                                         placeholder={0}
                                         value={newDrawData.oneDigitSecond.price}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, oneDigitSecond: {...newDrawData.oneDigitSecond ,price:Number(e.target.value)} })}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, oneDigitSecond: { ...newDrawData.oneDigitSecond, price: Number(e.target.value) } })}
                                     />
                                 </Form.Group>
                             </Col>
@@ -310,7 +320,7 @@ export default function DrawTime() {
                                         type="Number"
                                         placeholder={0}
                                         value={newDrawData.twoDigitFirst.price}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, twoDigitFirst: {...newDrawData.twoDigitFirst , price:Number(e.target.value)} })}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, twoDigitFirst: { ...newDrawData.twoDigitFirst, price: Number(e.target.value) } })}
                                     />
                                 </Form.Group>
                             </Col>
@@ -321,7 +331,7 @@ export default function DrawTime() {
                                         type="Number"
                                         placeholder={0}
                                         value={newDrawData.twoDigitSecond.price}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, twoDigitSecond: {...newDrawData.twoDigitSecond ,price:Number(e.target.value)} })}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, twoDigitSecond: { ...newDrawData.twoDigitSecond, price: Number(e.target.value) } })}
                                     />
                                 </Form.Group>
                             </Col>
@@ -334,7 +344,7 @@ export default function DrawTime() {
                                         type="Number"
                                         placeholder={0}
                                         value={newDrawData.threeDigitFirst.price}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, threeDigitFirst: {...newDrawData.threeDigitFirst ,price:Number(e.target.value)} })}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, threeDigitFirst: { ...newDrawData.threeDigitFirst, price: Number(e.target.value) } })}
                                     />
                                 </Form.Group>
                             </Col>
@@ -345,7 +355,7 @@ export default function DrawTime() {
                                         type="Number"
                                         placeholder={0}
                                         value={newDrawData.threeDigitSecond.price}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, threeDigitSecond: {...newDrawData.threeDigitSecond ,price:Number(e.target.value)} })}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, threeDigitSecond: { ...newDrawData.threeDigitSecond, price: Number(e.target.value) } })}
                                     />
                                 </Form.Group>
                             </Col>
@@ -358,7 +368,7 @@ export default function DrawTime() {
                                         type="Number"
                                         placeholder={0}
                                         value={newDrawData.fourDigitFirst.price}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, fourDigitFirst: {...newDrawData.fourDigitFirst ,price:Number(e.target.value)}})}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, fourDigitFirst: { ...newDrawData.fourDigitFirst, price: Number(e.target.value) } })}
                                     />
                                 </Form.Group>
                             </Col>
@@ -369,7 +379,7 @@ export default function DrawTime() {
                                         type="Number"
                                         placeholder={0}
                                         value={newDrawData.fourDigitSecond.price}
-                                        onChange={(e) => setNewDrawData({ ...newDrawData, fourDigitSecond: {...newDrawData.fourDigitSecond ,price:Number(e.target.value)} })}
+                                        onChange={(e) => setNewDrawData({ ...newDrawData, fourDigitSecond: { ...newDrawData.fourDigitSecond, price: Number(e.target.value) } })}
                                     />
                                 </Form.Group>
                             </Col>

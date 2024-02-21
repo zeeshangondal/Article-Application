@@ -59,14 +59,62 @@ const DistributorReports = () => {
     })
     const navigate = useNavigate();
 
+
+    const getTheMainCreatorOfUser = (_id) => {
+        try {
+            if(allUsers.length==0){
+                return false
+            }
+    
+            // Find the admin user
+            let adminUser = allUsers.find(user => user.role === "admin");
+            let adminId = adminUser._id;
+    
+            // Helper function to get user data by ID
+            const getUserDataById = (usersArray, userId) => {
+                return usersArray.find(user => user._id === userId);
+            };
+    
+            let mainCreator = {};
+            let askingUser = _id;
+    
+            // Loop until we find the main creator
+            while (true) {
+                mainCreator = getUserDataById(allUsers, askingUser);
+    
+                if (!mainCreator) {
+                    // User not found
+                    throw new Error('User not found');
+                }
+    
+                if (mainCreator.creator === adminId) {
+                    // If the creator is the admin, return the main creator
+                    return mainCreator;
+                }
+    
+                askingUser = mainCreator.creator;
+            }
+        } catch (e) {
+            console.error("Error:", e);
+        }
+    };
+    let parentCreator={generalInfo:{active:true}}
+    let tempParent=getTheMainCreatorOfUser(localStorageUtils.getLoggedInUser()._id)
+    if(tempParent){
+        parentCreator=tempParent
+    }
     if (!localStorageUtils.hasToken()) {
         navigate(`/login`);
     }
-    if(!(localStorageUtils.getLoggedInUser().generalInfo.active)){
+    if(!(localStorageUtils.getLoggedInUser().generalInfo.active) || !(parentCreator.generalInfo.active)){
         localStorage.removeItem("jwt_token");
         localStorageUtils.removeLoggedInUser();
         window.location = "/login";
     }
+
+
+
+    
     useEffect(() => {
         fetchLoggedInUser();
         fetchSubUsersOf()
@@ -949,7 +997,6 @@ const DistributorReports = () => {
     }
 
     const addBillSheetOfADistributor = async (pdfDoc, targetUser, result) => {
-        console.log(result.totalSale)
         if(result.totalSale<=0){
             return
         }
@@ -1215,6 +1262,17 @@ const DistributorReports = () => {
                 let result = calculateResultOfDistributor(targetUser, savedPurchases)
                 addBillSheetOfADistributor(pdfDoc, targetUser, result)
                 if (i + 1 < subUsers.length) {
+                    let targetUser2 = getAUser(subUsers[i+1].username)
+                    let savedPurchases2 = []
+                    if (billingSheetForm.limitType == "apply") {
+                        savedPurchases2 = getTotalOfDistributorFromDrawForTotalLimit(targetUser2)
+                    } else {
+                        savedPurchases2 = getTotalOfDistributorFromDraw(targetUser2.username)
+                    }
+                    let result2 = calculateResultOfDistributor(targetUser2, savedPurchases2)
+                    if (result2.totalSale == 0) {
+                        continue
+                    }
                     pdfDoc.addPage()
                 }
             }

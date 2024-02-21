@@ -42,6 +42,7 @@ export default function Merchent() {
 
     const [deleteAllSelected, setDeleteAllSelected] = useState(false)
     const [currentFocused, setCurrentFocused] = useState(1)
+    
     const [draws, setDraws] = useState([]);
     const [currentDraw, setCurrentDraw] = useState(null)
     const [savedPurchases, setSavedPurchases] = useState([]);
@@ -1138,7 +1139,7 @@ export default function Merchent() {
 
                             </div>
                             <div style={{ marginTop: "-15px" }}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.8rem', }}>
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', }}>
                                     <thead>
                                         <tr>
                                             <th className='col-1'>
@@ -1165,7 +1166,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                             <div style={{ height: '180px', overflowY: 'auto', marginTop: "-15px" }} ref={generalsaleTableRef}>
-                                <Table bordered hover size="sm" className="" style={{ fontSize: '0.9rem', marginBottom: "0px" }} >
+                                <Table bordered hover size="sm" className="" style={{ fontSize: '1rem', marginBottom: "0px" }} >
                                     <tbody>
                                         {savedPurchases.map(purchase => (
                                             <tr key={purchase._id} >
@@ -1192,7 +1193,7 @@ export default function Merchent() {
                                 </Table>
                             </div>
                         </div>
-                        <div className='col-5 mt-2 ' style={{ marginLeft: "-11px", backgroundColor: "black" }}>
+                        <div className='col-5 mt-2 ' style={{ marginLeft: "-11px", backgroundColor: "#6200ea" }}>
                             <div className=''>
                                 <div className='d-flex justify-content-between  mt-1 '>
                                     <Button variant='btn btn-primary  btn-sm'
@@ -1206,7 +1207,7 @@ export default function Merchent() {
 
                                 </div>
                                 <div >
-                                    <Table boarded hover size="sm" className="mt-2 table table-dark" style={{ fontSize: '0.8rem', marginTop: "-5px"}}>
+                                    <Table boarded hover size="sm" className="mt-2 table table-dark" style={{ fontSize: '1rem', marginTop: "-5px"}}>
                                         <thead>
                                             <tr>
                                                 <th className='col-2'>No</th>
@@ -1218,7 +1219,7 @@ export default function Merchent() {
                                 </div>
 
                                 <div style={{ height: '174px', overflowY: 'auto', marginTop: "-7px" }} ref={oversaleTableRef}>
-                                    <Table boarded hover size="sm" className="table table-dark" style={{ fontSize: '0.8rem', marginTop: "-5px", marginBottom: "0px", fontWeight: "bold" }}>
+                                    <Table boarded hover size="sm" className="table table-dark" style={{ fontSize: '1rem', marginTop: "-5px", marginBottom: "0px", fontWeight: "bold" }}>
                                         <tbody>
                                             {oversales.map(purchase => (
                                                 <tr  >
@@ -1254,7 +1255,7 @@ export default function Merchent() {
                                 readOnly
                                 value={form.bundle}
                                 // onChange={(e) => handleBundleChange(e.target.value)}
-                                onClick={() => { bundleRef.current.focus(); handleCurrentFocused(1) }}
+                                onClick={() => { bundleRef.current.focus(); handleCurrentFocused(1); setNewFocused(true) }}
                                 disabled={currentDraw == null}
                                 style={{ width: "60px", fontSize: "1rem", marginLeft: "4px", fontWeight: "bold", marginTop: "1px" }}
                             />
@@ -1270,7 +1271,7 @@ export default function Merchent() {
                                 readOnly
                                 value={form.first}
                                 onChange={(e) => setForm({ ...form, first: e.target.value })}
-                                onClick={() => { firstRef.current.focus(); handleCurrentFocused(2) }}
+                                onClick={() => { firstRef.current.focus(); handleCurrentFocused(2); setNewFocused(true) }}
                                 disabled={currentDraw == null}
                                 style={{ width: '70px', fontSize: '1rem', fontWeight: 'bold', marginTop: "-1px" }}
                             />
@@ -1286,7 +1287,7 @@ export default function Merchent() {
                                 readOnly
                                 value={form.second}
                                 onChange={(e) => setForm({ ...form, second: e.target.value })}
-                                onClick={() => { secondRef.current.focus(); handleCurrentFocused(3) }}
+                                onClick={() => { secondRef.current.focus(); handleCurrentFocused(3); setNewFocused(true) }}
                                 disabled={currentDraw == null}
                                 style={{ width: "70px", fontSize: "1rem", fontWeight: "bold", marginTop: "-1px" }}
                             />

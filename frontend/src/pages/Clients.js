@@ -24,11 +24,55 @@ export default function Clients() {
     const [merchentDistributorMode, setMerchentDistributorMode] = useState(1);
     const [currentLoggedInUser, setCurrentLoggedInUser] = useState({ generalInfo: { name: '' }, username: '' })
 
+    const getTheMainCreatorOfUser = (_id) => {
+        try {
+            if(users.length==0){
+                return false
+            }
+            let allUsers = users; // Assuming 'users' is the array containing user objects
+    
+            // Find the admin user
+            let adminUser = allUsers.find(user => user.role === "admin");
+            let adminId = adminUser._id;
+    
+            // Helper function to get user data by ID
+            const getUserDataById = (usersArray, userId) => {
+                return usersArray.find(user => user._id === userId);
+            };
+    
+            let mainCreator = {};
+            let askingUser = _id;
+    
+            // Loop until we find the main creator
+            while (true) {
+                mainCreator = getUserDataById(allUsers, askingUser);
+    
+                if (!mainCreator) {
+                    // User not found
+                    throw new Error('User not found');
+                }
+    
+                if (mainCreator.creator === adminId) {
+                    // If the creator is the admin, return the main creator
+                    return mainCreator;
+                }
+    
+                askingUser = mainCreator.creator;
+            }
+        } catch (e) {
+            console.error("Error:", e);
+        }
+    };
+    let parentCreator={generalInfo:{active:true}}
+    let tempParent=getTheMainCreatorOfUser(localStorageUtils.getLoggedInUser()._id)
+    if(tempParent){
+        parentCreator=tempParent
+    }
     const navigate = useNavigate();
     if (!localStorageUtils.hasToken()) {
         window.location="/login"
     }else{
-        if(!(localStorageUtils.getLoggedInUser().generalInfo.active)){
+        if(!(localStorageUtils.getLoggedInUser().generalInfo.active) || !(parentCreator.generalInfo.active)){
             localStorage.removeItem("jwt_token");
             localStorageUtils.removeLoggedInUser();
             window.location = "/login";

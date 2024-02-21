@@ -76,23 +76,23 @@ const AdminReports = () => {
     let prizeBundles = []
 
     const handleParseCell = (data) => {
-        function isInPrizeFirst(bundle){
-            for(let i=0;i < prizeBundles.length;i++){
-                let prizeData=prizeBundles[i]
-                if(prizeData[0]==bundle && prizeData[1]=="f"){
+        function isInPrizeFirst(bundle) {
+            for (let i = 0; i < prizeBundles.length; i++) {
+                let prizeData = prizeBundles[i]
+                if (prizeData[0] == bundle && prizeData[1] == "f") {
                     return true
-                }    
+                }
             }
-            return false            
+            return false
         }
-        function isInPrizeSecond(bundle){
-            for(let i=0;i < prizeBundles.length;i++){
-                let prizeData=prizeBundles[i]
-                if(prizeData[0]==bundle && prizeData[1]=="s"){
+        function isInPrizeSecond(bundle) {
+            for (let i = 0; i < prizeBundles.length; i++) {
+                let prizeData = prizeBundles[i]
+                if (prizeData[0] == bundle && prizeData[1] == "s") {
                     return true
-                }    
+                }
             }
-            return false            
+            return false
         }
         if (data.column.index % 3 === 0) {
             let bundleInCell = data.cell.raw + ""
@@ -103,8 +103,8 @@ const AdminReports = () => {
                     fontSize: 11, // Increase font size to 12 (customize as needed)
                     fontStyle: 'bold', // Set font style to bold
                 };
-                data.row.cells[data.column.index+1].styles.textColor='red'
-                data.row.cells[data.column.index+2].styles.textColor='red'    
+                data.row.cells[data.column.index + 1].styles.textColor = 'red'
+                data.row.cells[data.column.index + 2].styles.textColor = 'red'
             }
             if (isInPrizeSecond(bundleInCell)) {
                 data.cell.styles = {
@@ -113,8 +113,8 @@ const AdminReports = () => {
                     fontSize: 11, // Increase font size to 12 (customize as needed)
                     fontStyle: 'bold', // Set font style to bold
                 };
-                data.row.cells[data.column.index+1].styles.textColor='blue'
-                data.row.cells[data.column.index+2].styles.textColor='blue'    
+                data.row.cells[data.column.index + 1].styles.textColor = 'blue'
+                data.row.cells[data.column.index + 2].styles.textColor = 'blue'
             }
 
         }
@@ -276,18 +276,18 @@ const AdminReports = () => {
         setTotalLimitSaleForm(tempUpdate);
     };
 
-    const getRespectiveFromAdminLimitCutting=(bundle)=>{
-        if(bundle=="A"){
-            return {indFirst: limitCuttingForm.firstA,indSecond: limitCuttingForm.secondA}
+    const getRespectiveFromAdminLimitCutting = (bundle) => {
+        if (bundle == "A") {
+            return { indFirst: limitCuttingForm.firstA, indSecond: limitCuttingForm.secondA }
         }
-        if(bundle=="B"){
-            return {indFirst: limitCuttingForm.firstB,indSecond: limitCuttingForm.secondB}
+        if (bundle == "B") {
+            return { indFirst: limitCuttingForm.firstB, indSecond: limitCuttingForm.secondB }
         }
-        if(bundle=="C"){
-            return {indFirst: limitCuttingForm.firstC,indSecond: limitCuttingForm.secondC}
+        if (bundle == "C") {
+            return { indFirst: limitCuttingForm.firstC, indSecond: limitCuttingForm.secondC }
         }
-        if(bundle=="D"){
-            return {indFirst: limitCuttingForm.firstD,indSecond: limitCuttingForm.secondD}
+        if (bundle == "D") {
+            return { indFirst: limitCuttingForm.firstD, indSecond: limitCuttingForm.secondD }
         }
     }
     const handleLimitCuttingChange = (e) => {
@@ -309,12 +309,12 @@ const AdminReports = () => {
                 return;
             }
         }
-        if(name=="bundleType" && value!="all"){
-            let tempRes=getRespectiveFromAdminLimitCutting(value)
+        if (name == "bundleType" && value != "all") {
+            let tempRes = getRespectiveFromAdminLimitCutting(value)
             setLimitCuttingForm({
                 ...limitCuttingForm,
-                indFirst:tempRes.indFirst,
-                indSecond:tempRes.indSecond,
+                indFirst: tempRes.indFirst,
+                indSecond: tempRes.indSecond,
                 [name]: value,
             })
             return
@@ -748,9 +748,9 @@ const AdminReports = () => {
         targetsMerchents.forEach(merchent => {
             let merchentsDrawDataArray = merchent.savedPurchasesFromDrawsData.filter(data => data.drawId == selectedDraw._id)
             drawDataArray = [...drawDataArray, ...merchentsDrawDataArray]
-            let unSavedPurchases=merchent.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
-            if(unSavedPurchases)
-                drawDataArray = [...drawDataArray,unSavedPurchases]
+            let unSavedPurchases = merchent.purchasedFromDrawData.find(data => data.drawId == selectedDraw._id)
+            if (unSavedPurchases)
+                drawDataArray = [...drawDataArray, unSavedPurchases]
 
         })
 
@@ -832,13 +832,13 @@ const AdminReports = () => {
         return Number(((share / 100) * price).toFixed(1))
     }
 
-    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser,billing=false) => {
+    const getTotalOfDistributorFromDrawForTotalLimitShareEnabled = (targetUser, billing = false) => {
         let share = Number(targetUser.commission.share)
         let pcPercentage = Number(targetUser.commission.pcPercentage)
 
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
-        if (billing || totalLimitSaleForm.limitType == "upLimit" ) {
+        if (billing || totalLimitSaleForm.limitType == "upLimit") {
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 4) {
@@ -891,12 +891,12 @@ const AdminReports = () => {
     }
 
 
-    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser,billing) => {
+    const getTotalOfDistributorFromDrawForTotalLimitHaddEnabled = (targetUser, billing) => {
         let hadd = {};
         hadd = targetUser.hadd;
         let savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
         let updatedSavedPurchases = []
-        if (billing || totalLimitSaleForm.limitType == "upLimit" ) {
+        if (billing || totalLimitSaleForm.limitType == "upLimit") {
             updatedSavedPurchases = savedPurchases.map(purchase => {
                 let newData = { ...purchase }
                 if (purchase.bundle.length == 1) {
@@ -977,15 +977,15 @@ const AdminReports = () => {
         });
         return result;
     }
-    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser,billing=false) => {
+    const getTotalOfDistributorFromDrawForTotalLimit = (targetUser, billing = false) => {
         if (targetUser.username == "admin") {
             let savedPurchases = []
             subUsers.forEach(subUser => {
                 let tempSavedPurchases = []
                 if (subUser.commission.shareEnabled) {
-                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser,billing).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
+                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitShareEnabled(subUser, billing).map(data => ({ ...data, first: formatNumberWithTwoDecimals(data.first), second: formatNumberWithTwoDecimals(data.second) }))
                 } else if (subUser.hadd.haddEnabled) {
-                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser,billing).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
+                    tempSavedPurchases = getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(subUser, billing).map(data => ({ ...data, first: formatNumberWithTwoDecimals(data.first), second: formatNumberWithTwoDecimals(data.second) }))
                 } else {
                     return []
                 }
@@ -994,9 +994,9 @@ const AdminReports = () => {
             return aggregateSavedPurchases(savedPurchases)
         } else {
             if (targetUser.commission.shareEnabled) {
-                return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
+                return getTotalOfDistributorFromDrawForTotalLimitShareEnabled(targetUser).map(data => ({ ...data, first: formatNumberWithTwoDecimals(data.first), second: formatNumberWithTwoDecimals(data.second) }))
             } else if (targetUser.hadd.haddEnabled) {
-                return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser).map(data=>({...data, first:formatNumberWithTwoDecimals(data.first), second:formatNumberWithTwoDecimals(data.second)}))
+                return getTotalOfDistributorFromDrawForTotalLimitHaddEnabled(targetUser).map(data => ({ ...data, first: formatNumberWithTwoDecimals(data.first), second: formatNumberWithTwoDecimals(data.second) }))
             } else {
                 return []
             }
@@ -1024,8 +1024,8 @@ const AdminReports = () => {
                 secondTotal += Number(purchase.second)
             })
         })
-        firstTotal=formatNumberWithTwoDecimals(firstTotal)
-        secondTotal=formatNumberWithTwoDecimals(secondTotal)
+        firstTotal = formatNumberWithTwoDecimals(firstTotal)
+        secondTotal = formatNumberWithTwoDecimals(secondTotal)
         total += formatNumberWithTwoDecimals(firstTotal + secondTotal)
 
         subUsers.forEach(user => {
@@ -1248,13 +1248,13 @@ const AdminReports = () => {
         } catch (e) {
             alertMessage("Due to an error could not make report")
         }
-        targetUser.limitCuttingSaves={
+        targetUser.limitCuttingSaves = {
             ...targetUser.limitCuttingSaves,
-            firstA:limitCuttingForm.firstA,secondA:limitCuttingForm.secondA,firstB:limitCuttingForm.firstB,
-            secondB:limitCuttingForm.secondB,firstC:limitCuttingForm.firstC,
-            secondC:limitCuttingForm.secondC,
-            firstD:limitCuttingForm.firstD,
-            secondD:limitCuttingForm.secondD
+            firstA: limitCuttingForm.firstA, secondA: limitCuttingForm.secondA, firstB: limitCuttingForm.firstB,
+            secondB: limitCuttingForm.secondB, firstC: limitCuttingForm.firstC,
+            secondC: limitCuttingForm.secondC,
+            firstD: limitCuttingForm.firstD,
+            secondD: limitCuttingForm.secondD
         }
         await APIs.updateUser(targetUser)
         fetchLoggedInUser()
@@ -1273,8 +1273,8 @@ const AdminReports = () => {
 
 
     const addBillSheetOfADistributor = async (pdfDoc, targetUser, result) => {
-        if(result.totalSale<=0){
-            return
+        if (result.totalSale <= 0) {
+            return false
         }
         let x1 = 5, x2 = 140;
         let y = 20, ySpace = 7
@@ -1283,7 +1283,7 @@ const AdminReports = () => {
         if (billingSheetForm.limitType == "apply") {
             head1 += targetUser.haddEnabled ? "- Hadd Sale" : "- Share Sale"
         }
-        if(targetUser.username=="admin"){
+        if (targetUser.username == "admin") {
             head1 = "Bill Sheet of Draw";
         }
 
@@ -1381,20 +1381,21 @@ const AdminReports = () => {
         pdfDoc.text("PC Bill:", x2, y + 15 * ySpace); pdfDoc.text(result.DBill + "", x2 + 40, y + 15 * ySpace);
 
 
-        pdfDoc.text("ABC Share:", x1, y + 16 * ySpace); pdfDoc.text(result.ABCShare  + "", x1 + 40, y + 16 * ySpace);
+        pdfDoc.text("ABC Share:", x1, y + 16 * ySpace); pdfDoc.text(result.ABCShare + "", x1 + 40, y + 16 * ySpace);
         // pdfDoc.text("D Share:", x2 + 10, y + 19 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 19 * ySpace);
         pdfDoc.text("PC Share:", x2, y + 16 * ySpace); pdfDoc.text(result.DShare + "", x2 + 40, y + 16 * ySpace);
 
-        pdfDoc.text("ABC Bill:", x1, y + 17 * ySpace); pdfDoc.text(result.totalABCBill+ "", x1 + 40, y + 17 * ySpace);
+        pdfDoc.text("ABC Bill:", x1, y + 17 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40, y + 17 * ySpace);
 
         pdfDoc.setFontSize(13);
         pdfDoc.setFont("helvetica", "bold");
         pdfDoc.text("Total Bill:", x1 + 50 + 20, y + 17 * ySpace); pdfDoc.text(result.totalBill + "", x1 + 40 + 50 + 5, y + 17 * ySpace);
         pdfDoc.setFont("helvetica", "normal");
         pdfDoc.setFontSize(12);
-        
+
         // pdfDoc.text("ABC Bill:", x1 + 50 + 20, y + 20 * ySpace); pdfDoc.text(result.totalABCBill + "", x1 + 40 + 50 + 5, y + 20 * ySpace);
         pdfDoc.text("PC Bill:", x2 + 10, y + 17 * ySpace); pdfDoc.text(result.totalDBill + "", x2 + 40, y + 17 * ySpace);
+        return true
     }
 
     const calculateTotalsInFormat = (savedPurchases) => {
@@ -1529,11 +1530,24 @@ const AdminReports = () => {
                     savedPurchases = getTotalOfDistributorFromDraw(targetUser.username)
                 }
                 let result = calculateResultOfDistributor(targetUser, savedPurchases)
-                if(result.totalSale==0){
+                if (result.totalSale == 0) {
                     continue
                 }
                 addBillSheetOfADistributor(pdfDoc, targetUser, result)
+
+
                 if (i + 1 < subUsers.length) {
+                    let targetUser2 = getAUser(subUsers[i+1].username)
+                    let savedPurchases2 = []
+                    if (billingSheetForm.limitType == "apply") {
+                        savedPurchases2 = getTotalOfDistributorFromDrawForTotalLimit(targetUser2)
+                    } else {
+                        savedPurchases2 = getTotalOfDistributorFromDraw(targetUser2.username)
+                    }
+                    let result2 = calculateResultOfDistributor(targetUser2, savedPurchases2)
+                    if (result2.totalSale == 0) {
+                        continue
+                    }
                     pdfDoc.addPage()
                 }
             }
@@ -1547,7 +1561,7 @@ const AdminReports = () => {
             }
 
             let result = calculateResultOfDistributor(targetUser, savedPurchases)
-            
+
             addBillSheetOfADistributor(pdfDoc, targetUser, result)
         }
         const pdfContent = pdfDoc.output(); // Assuming pdfDoc is defined somewhere
@@ -1589,7 +1603,7 @@ const AdminReports = () => {
             let share = result.totalShare
             let outputResult = Number((netBalance - share).toFixed(1))
             outputResult = -outputResult
-            if(result.totalSale!=0)
+            if (result.totalSale != 0)
                 bodyData.push([id, name, amount, commission, gross, prize, netBalance, share, outputResult])
         }
         pdfDoc.autoTable({
@@ -1644,7 +1658,7 @@ const AdminReports = () => {
                     if (purchases) {
                         let tempNewBalance = calculateResultOfDistributor(user, purchases).totalBill
                         if (tempNewBalance && !ifRewarded(user.username)) {
-                            dataArray.push({ userId: user.userId, username: user.username, newBalance: tempNewBalance , role:user.role})
+                            dataArray.push({ userId: user.userId, username: user.username, newBalance: tempNewBalance, role: user.role })
                         }
                     }
                 } catch (e) {
@@ -1658,7 +1672,7 @@ const AdminReports = () => {
         }
         let resStr = ""
         dataArray.forEach(d => {
-            if(d.role=="distributor")
+            if (d.role == "distributor")
                 resStr += d.userId + ", " + d.username + ": " + formatNumberWithTwoDecimals(d.newBalance) + "\n"
         })
         if (window.confirm("Below Users will be updated. Do You confirm? \n\n" + resStr)) {
@@ -1668,7 +1682,7 @@ const AdminReports = () => {
 
     const handleUpdateBalances = async (dataArray) => {
         let resultDataArray = []
-    
+
         try {
             for (const d of dataArray) {
                 let user = await getAUser(d.username)
@@ -1679,8 +1693,8 @@ const AdminReports = () => {
         } catch (e) {
             alert("Error Occurred.")
         }
-    
-        
+
+
         let resStr = ""
         resultDataArray.forEach((d) => {
             selectedDraw.rewardedUsernames.push(d.username)
@@ -1693,7 +1707,7 @@ const AdminReports = () => {
             alert("All balances updated")
             selectedDraw.allRewarded = true
         }
-    
+
         try {
             await DrawAPIs.updateDraw(selectedDraw)
             fetchLoggedInUser()
@@ -1703,11 +1717,11 @@ const AdminReports = () => {
             // Handle the error
         }
     }
-    
+
     const generateAdminLimitSaleBillingSheet = async () => {
         const pdfDoc = new jsPDF();
         let targetUser = getAUser("admin")
-        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser,true)
+        let savedPurchases = getTotalOfDistributorFromDrawForTotalLimit(targetUser, true)
         let result = calculateResultOfDistributor(targetUser, savedPurchases)
         addBillSheetOfADistributor(pdfDoc, targetUser, result)
 
@@ -1722,7 +1736,7 @@ const AdminReports = () => {
         }
     }
 
-    const generateAdminLimitCuttingBillSheet=async()=>{
+    const generateAdminLimitCuttingBillSheet = async () => {
         const pdfDoc = new jsPDF();
         let targetUser = getAUser("admin")
         let savedPurchases = getTotalOfDistributorFromDrawForLimitCutting()
@@ -2215,22 +2229,22 @@ const AdminReports = () => {
                         {selectedOption === 'limitCutting' && (
                             <Card.Footer>
                                 <div className='d-flex justify-content-between'>
-                                <div className="d-flex flex-wrap justify-content-start">
-                                    <Button variant="primary btn btn-sm m-1"
-                                        onClick={() => generateLimitCuttingGroupWise()}
-                                        disabled={!limitCuttingForm.date || !limitCuttingForm.bundleType || !limitCuttingForm.limitType || !enableLimitCuttinButton}
-                                    >
-                                        Report
-                                    </Button>
-                                </div>
-                                <div className="">
-                                    <Button variant="primary btn btn-sm m-1"
-                                        onClick={() => generateAdminLimitCuttingBillSheet()}
-                                        disabled={!limitCuttingForm.date || !limitCuttingForm.bundleType || !limitCuttingForm.limitType || !enableLimitCuttinButton}
-                                    >
-                                        Admin Bill Sheet
-                                    </Button>
-                                </div>
+                                    <div className="d-flex flex-wrap justify-content-start">
+                                        <Button variant="primary btn btn-sm m-1"
+                                            onClick={() => generateLimitCuttingGroupWise()}
+                                            disabled={!limitCuttingForm.date || !limitCuttingForm.bundleType || !limitCuttingForm.limitType || !enableLimitCuttinButton}
+                                        >
+                                            Report
+                                        </Button>
+                                    </div>
+                                    <div className="">
+                                        <Button variant="primary btn btn-sm m-1"
+                                            onClick={() => generateAdminLimitCuttingBillSheet()}
+                                            disabled={!limitCuttingForm.date || !limitCuttingForm.bundleType || !limitCuttingForm.limitType || !enableLimitCuttinButton}
+                                        >
+                                            Admin Bill Sheet
+                                        </Button>
+                                    </div>
 
                                 </div>
                             </Card.Footer>
