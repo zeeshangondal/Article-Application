@@ -42,7 +42,7 @@ const AdminReports = () => {
     });
     const [limitCuttingForm, setLimitCuttingForm] = useState({
         date: '',
-        bundleType: 'A',
+        bundleType: 'all',
         indFirst: null,
         indSecond: null,
         firstA: null,

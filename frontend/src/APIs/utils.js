@@ -1,6 +1,6 @@
 import axios from "axios";
 
-// const API_URL = 'https://pzprize.com';
+// const API_URL = 'https://pzprize-022cf955959c.herokuapp.com';
 const API_URL = 'http://localhost:3005';
 
 export const savePdfOnBackend = async (formData) => {

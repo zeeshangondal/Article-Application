@@ -155,6 +155,12 @@ const updateDigit = async (req, res) => {
 const removeBulkPurchase = async (req, res) => {
     let { draw_id, user_id, purchases } = req.body
     try {
+        let drawData=await Draw.findById(draw_id, 'drawStatus drawExpired')
+        drawData=drawData.toObject()
+        if(!drawData.drawStatus || drawData.drawExpired){
+            res.status(201).send({ message: "Draw is Disabled or Expired" });
+            return
+        }
         let user = await User.findById(user_id);
         let parentUser = await getTheMainCreatorOfUser(user._id.toString())
         let purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)
@@ -225,6 +231,13 @@ const removeBulkPurchase = async (req, res) => {
 const makeBulkPurchase = async (req, res) => {
     let { draw_id, user_id, purchases, message } = req.body
     try {
+        let drawData=await Draw.findById(draw_id, 'drawStatus drawExpired')
+        drawData=drawData.toObject()
+        if(!drawData.drawStatus || drawData.drawExpired){
+            res.status(201).send({ message: "Draw is Disabled or Expired" });
+            return
+        }
+
         let user = await User.findById(user_id);
         let parentUser = await getTheMainCreatorOfUser(user._id.toString())
         let purchasedFromDrawData = user.purchasedFromDrawData.find(data => data.drawId == draw_id)

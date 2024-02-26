@@ -310,6 +310,13 @@ const UserDetails = () => {
                 date: (new Date()).toISOString().split('T')[0],
                 balanceUpline: obj.balanceUpline
             }
+            if(mainUser.role=="distributor"){
+                if(mainUser.balance-Number(creditTransaction.amount)<0){
+                    alert("You dont have enough balance")
+                    return
+                }
+            }
+            
             obj = {
                 ...obj,
                 credit: obj.credit + Number(creditTransaction.amount),
@@ -361,6 +368,12 @@ const UserDetails = () => {
                 ...transaction,
                 debit: obj.debit + Number(debitTransaction.amount),
                 balanceUpline: obj.balanceUpline + Number(debitTransaction.amount)
+            }
+            if(mainUser.role=="distributor"){
+                if(mainUser.balance-Number(creditTransaction.amount)<0){
+                    alert("You dont have enough balance")
+                    return
+                }
             }
             obj = {
                 ...obj,
