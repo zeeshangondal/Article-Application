@@ -1246,7 +1246,14 @@ const DistributorReports = () => {
 
     const generateBillingSheet = async () => {
         const pdfDoc = new jsPDF();
+
+
         if (billingSheetForm.dealer == "allDealers") {
+            let mainUsersavedPurchases = getTotalOfDistributorFromDrawForTotalLimit(localStorageUtils.getLoggedInUser(), true)
+            let mainUserresult = calculateResultOfDistributor(localStorageUtils.getLoggedInUser(), mainUsersavedPurchases)
+            addBillSheetOfADistributor(pdfDoc, localStorageUtils.getLoggedInUser(), mainUserresult )
+            pdfDoc.addPage()
+    
             for (let i = 0; i < subUsers.length; i++) {
                 let targetUser = getAUser(subUsers[i].username)
                 let savedPurchases = []
@@ -1264,11 +1271,17 @@ const DistributorReports = () => {
                 if (i + 1 < subUsers.length) {
                     let targetUser2 = getAUser(subUsers[i+1].username)
                     let savedPurchases2 = []
-                    if (billingSheetForm.limitType == "apply") {
-                        savedPurchases2 = getTotalOfDistributorFromDrawForTotalLimit(targetUser2)
+
+                    if (targetUser2.role == "distributor") {
+                        if (billingSheetForm.limitType == "apply") {
+                            savedPurchases2 = getTotalOfDistributorFromDrawForTotalLimit(targetUser2, true)
+                        } else {
+                            savedPurchases2 = getTotalOfDistributorFromDraw(targetUser2.username)
+                        }
                     } else {
-                        savedPurchases2 = getTotalOfDistributorFromDraw(targetUser2.username)
+                        savedPurchases2 = getTotalOfMerchentFromDraw(targetUser2.username)
                     }
+                    
                     let result2 = calculateResultOfDistributor(targetUser2, savedPurchases2)
                     if (result2.totalSale == 0) {
                         continue

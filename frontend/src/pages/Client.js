@@ -189,8 +189,26 @@ const UserDetails = () => {
     const handleModelClose = () => {
         setShowModel(false);
     };
-
+    function getCurrentTime() {
+        const date = new Date();
+        const months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        let hours = date.getHours();
+        const minutes = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+        const meridiem = hours >= 12 ? 'PM' : 'AM';
+    
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Handle midnight (0 hours)
+    
+        return `${hours}:${minutes} ${meridiem}`;
+    }
+    
+    
+    
     const handleCreditInputChange = (e) => {
+
         const { name, value } = e.target;
         setCreditTransaction((prevValues) => ({
             ...prevValues,
@@ -201,8 +219,12 @@ const UserDetails = () => {
     const handleDebitInputChange = (e) => {
         const { name, value } = e.target;
         if (debitTransaction.txType == 2 && name == "amount") {
-            if (Number(value) > Number(userDetails.credit)) {
-                alert("You can not withdraw more than the credit which is " + userDetails.credit)
+            if (Number(value) > Number(userDetails.credit) +Number(userDetails.debit)) {
+                alert("You can not withdraw more than  " + (Number(userDetails.credit)+Number(userDetails.debit)))
+                setDebitTransaction((prevValues) => ({
+                    ...prevValues,
+                    [name]: 0,
+                }));                
                 return
             }
         }
@@ -308,6 +330,7 @@ const UserDetails = () => {
                 debit: obj.debit,
                 credit: obj.credit + Number(creditTransaction.amount),
                 date: (new Date()).toISOString().split('T')[0],
+                time: getCurrentTime(),
                 balanceUpline: obj.balanceUpline
             }
             if(mainUser.role=="distributor"){
@@ -331,6 +354,7 @@ const UserDetails = () => {
                 debit: obj.debit,
                 credit: obj.credit - Number(creditTransaction.amount),
                 date: (new Date()).toISOString().split('T')[0],
+                time: getCurrentTime(),
                 balanceUpline: obj.balanceUpline
             }
             obj = {
@@ -342,6 +366,9 @@ const UserDetails = () => {
             mainUser.balance += Number(creditTransaction.amount)
         }
         try {
+            // obj={
+            //     ...obj,
+            // }
             await APIs.updateUser(obj)
             await fetchUserDetails()
             if (mainUser.role != "admin") {
@@ -362,6 +389,7 @@ const UserDetails = () => {
             description: debitTransaction.description,
             credit: obj.credit,
             date: (new Date()).toISOString().split('T')[0],
+            time: getCurrentTime(),
         }
         if (debitTransaction.txType == 1) {
             transaction = {
@@ -516,7 +544,7 @@ const UserDetails = () => {
                             </tbody>
                         </Table>
                     </div>
-                    {userDetails.role != "merchent" &&
+                    {/* {userDetails.role != "merchent" &&
                         <div style={{ marginTop: '3vh' }}>
                             <div className='text-center'>
                                 {window.innerWidth <= 600 ?
@@ -558,7 +586,7 @@ const UserDetails = () => {
                             </Table>
                         </div>
 
-                    }
+                    } */}
 
                     <div style={{ marginTop: '4vh' }}>
                         <div className='text-center'>
@@ -599,9 +627,7 @@ const UserDetails = () => {
                         <Table striped hover size="sm" className="mt-3" style={{ fontSize: '0.8rem' }}>
                             <thead>
                                 <tr>
-                                    {userDetails.role != "merchent" &&
-                                        <th>AMOUNT</th>
-                                    }
+                                    <th>AMOUNT</th>
                                     <th>CASH</th>
                                     <th>CREDIT</th>
                                     <th>BALANCE UPLINE</th>
@@ -612,13 +638,11 @@ const UserDetails = () => {
                             <tbody>
                                 {getTransactionsInDateRange().map(t => (
                                     <tr>
-                                        {userDetails.role != "merchent" &&
-                                            <td>{formatNumberWithTwoDecimals(t.amount)}</td>
-                                        }
+                                        <td>{formatNumberWithTwoDecimals(t.amount)}</td>
                                         <td>{formatNumberWithTwoDecimals(t.debit)}</td>
                                         <td>{formatNumberWithTwoDecimals(t.credit)}</td>
                                         <td>{formatNumberWithTwoDecimals(t.balanceUpline)}</td>
-                                        <td>{formatDate(t.date)}</td>
+                                        <td>{formatDate(t.date) +" "+(t.time?t.time:"")}</td>
                                         <td>{t.description}</td>
                                     </tr>
                                 ))}

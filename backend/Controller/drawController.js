@@ -5,14 +5,14 @@ const Digit = require("../Models/Digit");
 let createDraw = async (req, res) => {
     try {
         let drawData = { ...req.body }
-        const oneDigitFirst = await createDigit({articles: initializeOneDigit(drawData.oneDigitFirst.price)});
-        const oneDigitSecond = await createDigit({articles:initializeOneDigit(drawData.oneDigitSecond.price)});
-        const twoDigitFirst = await createDigit({articles:initializeTwoDigit(drawData.twoDigitFirst.price)});
-        const twoDigitSecond = await createDigit({articles:initializeTwoDigit(drawData.twoDigitSecond.price)});
-        const threeDigitFirst = await createDigit({articles:initializeThreeDigit(drawData.threeDigitFirst.price)});
-        const threeDigitSecond = await createDigit({articles:initializeThreeDigit(drawData.threeDigitSecond.price)});
-        const fourDigitFirst = await createDigit({articles:initializeFourDigit(drawData.fourDigitFirst.price)});
-        const fourDigitSecond = await createDigit({articles:initializeFourDigit(drawData.fourDigitSecond.price)});
+        const oneDigitFirst = await createDigit({ articles: initializeOneDigit(drawData.oneDigitFirst.price) });
+        const oneDigitSecond = await createDigit({ articles: initializeOneDigit(drawData.oneDigitSecond.price) });
+        const twoDigitFirst = await createDigit({ articles: initializeTwoDigit(drawData.twoDigitFirst.price) });
+        const twoDigitSecond = await createDigit({ articles: initializeTwoDigit(drawData.twoDigitSecond.price) });
+        const threeDigitFirst = await createDigit({ articles: initializeThreeDigit(drawData.threeDigitFirst.price) });
+        const threeDigitSecond = await createDigit({ articles: initializeThreeDigit(drawData.threeDigitSecond.price) });
+        const fourDigitFirst = await createDigit({ articles: initializeFourDigit(drawData.fourDigitFirst.price) });
+        const fourDigitSecond = await createDigit({ articles: initializeFourDigit(drawData.fourDigitSecond.price) });
 
         const draw = new Draw({
             ...drawData,
@@ -102,51 +102,81 @@ let updateDraw = async (req, res) => {
     }
 };
 
+// let articleKeys=Object.keys(digit.articles)
+// // console.log(digit.articles)
+// articleKeys.forEach(key=>{
+//     console.log(key, digit.articles[key])
+// })
+
+
 const updateAssociatedDigits = async (updatedDraw, prevDraw) => {
     try {
         // Loop through each digit field and trigger a dummy update in the associated Digit model
         for (const digitField of ['oneDigitFirst', 'oneDigitSecond', 'twoDigitFirst', 'twoDigitSecond', 'threeDigitFirst', 'threeDigitSecond', 'fourDigitFirst', 'fourDigitSecond']) {
             if (updatedDraw[digitField] && updatedDraw[digitField].digit) {
-                if (updatedDraw[digitField].price !== prevDraw[digitField].price) {
-                    const digit = await Digit.findById(updatedDraw[digitField].digit);
-                    if (digit) {
-                        switch (digitField) {
-                            case 'oneDigitFirst':
-                                digit.articles = initializeOneDigit(updatedDraw[digitField].price)
-                                break;
-                            case 'oneDigitSecond':
-                                digit.articles = initializeOneDigit(updatedDraw[digitField].price)
-                                break;
-                            case 'twoDigitFirst':
-                                digit.articles = initializeTwoDigit(updatedDraw[digitField].price)
-                                break;
-                            case 'twoDigitSecond':
-                                digit.articles = initializeTwoDigit(updatedDraw[digitField].price)
-                                break;
-                            case 'threeDigitFirst':
-                                digit.articles = initializeThreeDigit(updatedDraw[digitField].price)
-                                break;
-                            case 'threeDigitSecond':
-                                digit.articles = initializeThreeDigit(updatedDraw[digitField].price)
-                                break;
-                            case 'fourDigitFirst':
-                                digit.articles = initializeFourDigit(updatedDraw[digitField].price)
-                                break;
-                            case 'fourDigitSecond':
-                                digit.articles = initializeFourDigit(updatedDraw[digitField].price)
-                                break;
-                            default:
-                        }
-                        await digit.save();
-                    }
+                const digit = await Digit.findById(updatedDraw[digitField].digit);
+                if (digit) {
+                    // digit.articles = initializeOneDigit(updatedDraw[digitField].price)
+                    let articleKeys = Object.keys(digit.articles)
+                    
+                    articleKeys.forEach(key => {
+                        digit.articles[key] = Number(digit.articles[key]) + Number(updatedDraw[digitField].price) - Number(prevDraw[digitField].price)
+                    })
                 }
+                digit.markModified('articles');
+                await digit.save();
             }
         }
-
     } catch (err) {
         console.error("Error triggering dummy update in associated digits:", err);
     }
 };
+
+// const updateAssociatedDigits = async (updatedDraw, prevDraw) => {
+//     try {
+//         // Loop through each digit field and trigger a dummy update in the associated Digit model
+//         for (const digitField of ['oneDigitFirst', 'oneDigitSecond', 'twoDigitFirst', 'twoDigitSecond', 'threeDigitFirst', 'threeDigitSecond', 'fourDigitFirst', 'fourDigitSecond']) {
+//             if (updatedDraw[digitField] && updatedDraw[digitField].digit) {
+//                 if (updatedDraw[digitField].price !== prevDraw[digitField].price) {
+//                     const digit = await Digit.findById(updatedDraw[digitField].digit);
+//                     if (digit) {
+//                         switch (digitField) {
+//                             case 'oneDigitFirst':
+//                                 digit.articles = initializeOneDigit(updatedDraw[digitField].price)
+//                                 break;
+//                             case 'oneDigitSecond':
+//                                 digit.articles = initializeOneDigit(updatedDraw[digitField].price)
+//                                 break;
+//                             case 'twoDigitFirst':
+//                                 digit.articles = initializeTwoDigit(updatedDraw[digitField].price)
+//                                 break;
+//                             case 'twoDigitSecond':
+//                                 digit.articles = initializeTwoDigit(updatedDraw[digitField].price)
+//                                 break;
+//                             case 'threeDigitFirst':
+//                                 digit.articles = initializeThreeDigit(updatedDraw[digitField].price)
+//                                 break;
+//                             case 'threeDigitSecond':
+//                                 digit.articles = initializeThreeDigit(updatedDraw[digitField].price)
+//                                 break;
+//                             case 'fourDigitFirst':
+//                                 digit.articles = initializeFourDigit(updatedDraw[digitField].price)
+//                                 break;
+//                             case 'fourDigitSecond':
+//                                 digit.articles = initializeFourDigit(updatedDraw[digitField].price)
+//                                 break;
+//                             default:
+//                         }
+//                         await digit.save();
+//                     }
+//                 }
+//             }
+//         }
+
+//     } catch (err) {
+//         console.error("Error triggering dummy update in associated digits:", err);
+//     }
+// };
 // Delete a draw
 let deleteDraw = (req, res) => {
     let _id = req.params.id;

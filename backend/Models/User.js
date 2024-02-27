@@ -190,6 +190,10 @@ const UserSchema = mongoose.Schema({
         date: {
             type: String,
         },
+        time: {
+            type: String,
+        },
+        
     }],
     purchasedFromDrawData: [{
         drawId: {
