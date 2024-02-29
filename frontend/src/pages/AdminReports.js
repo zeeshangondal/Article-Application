@@ -1537,7 +1537,7 @@ const AdminReports = () => {
 
 
                 if (i + 1 < subUsers.length) {
-                    let targetUser2 = getAUser(subUsers[i+1].username)
+                    let targetUser2 = getAUser(subUsers[i + 1].username)
                     let savedPurchases2 = []
                     if (billingSheetForm.limitType == "apply") {
                         savedPurchases2 = getTotalOfDistributorFromDrawForTotalLimit(targetUser2)
@@ -1656,9 +1656,13 @@ const AdminReports = () => {
                         purchases = getTotalOfMerchentFromDraw(user.username)
                     }
                     if (purchases) {
-                        let tempNewBalance = calculateResultOfDistributor(user, purchases).totalBill
-                        if (tempNewBalance && !ifRewarded(user.username)) {
-                            dataArray.push({ userId: user.userId, username: user.username, newBalance: tempNewBalance, role: user.role })
+                        let result = calculateResultOfDistributor(user, purchases)
+                        if (result.totalSale > 0) {
+                            let tempNewBalance = result.totalBill
+                            if (tempNewBalance && !ifRewarded(user.username)) {
+                                dataArray.push({ userId: user.userId, username: user.username, newBalance: tempNewBalance, role: user.role })
+                            }
+
                         }
                     }
                 } catch (e) {
@@ -1679,6 +1683,21 @@ const AdminReports = () => {
             handleUpdateBalances(dataArray)
         }
     }
+    function getCurrentTime() {
+        const date = new Date();
+        const months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
+        const month = months[date.getMonth()];
+        const day = date.getDate();
+        const year = date.getFullYear();
+        let hours = date.getHours();
+        const minutes = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+        const meridiem = hours >= 12 ? 'PM' : 'AM';
+
+        hours = hours % 12;
+        hours = hours ? hours : 12; // Handle midnight (0 hours)
+
+        return `${hours}:${minutes} ${meridiem}`;
+    }
 
     const handleUpdateBalances = async (dataArray) => {
         let resultDataArray = []
@@ -1686,9 +1705,27 @@ const AdminReports = () => {
         try {
             for (const d of dataArray) {
                 let user = await getAUser(d.username)
-                user.balance += d.newBalance
+                user = {
+                    ...user,
+                    balance: user.balance + d.newBalance,
+                    balanceUpline: user.balanceUpline + d.newBalance,
+                }
+                let transaction = {
+                    amount: d.newBalance,
+                    description: "Draw: " + selectedDraw.drawDate + " , " + selectedDraw.title,
+                    debit: d.newBalance,
+                    credit: user.credit,
+                    date: (new Date()).toISOString().split('T')[0],
+                    time: getCurrentTime(),
+                    balanceUpline: Number(user.balanceUpline) + Number(d.newBalance)
+                }
+                user = {
+                    ...user,
+                    debit: user.debit + d.newBalance,
+                    transactionHistory: [...user.transactionHistory, transaction]
+                }
                 await APIs.updateUser(user)
-                resultDataArray.push({ ...d, newBalance: formatNumberWithTwoDecimals(user.balance) })
+                resultDataArray.push({ ...d, newBalance: formatNumberWithTwoDecimals(user.balance),creator:{...user.creator} })
             }
         } catch (e) {
             alert("Error Occurred.")
@@ -1698,8 +1735,13 @@ const AdminReports = () => {
         let resStr = ""
         resultDataArray.forEach((d) => {
             selectedDraw.rewardedUsernames.push(d.username)
-            resStr += d.userId + ", " + d.username + " Updated: " + d.newBalance + "\n"
         })
+        resultDataArray.forEach((d) => {
+            if(d.creator.role="admin"){
+                resStr += d.userId + ", " + d.username + " Updated: " + d.newBalance + "\n"    
+            }
+        })
+
 
         alert("Below are updated balances of each user \n\n" + resStr)
 
@@ -2280,11 +2322,11 @@ const AdminReports = () => {
                                                 Update Balances
                                             </Button>
                                             :
-                                            <Button variant="success btn btn-sm m-1"
-                                                disabled={true}
-                                            >
-                                                Balance Updated
-                                            </Button>
+                                        <Button variant="success btn btn-sm m-1"
+                                            disabled={true}
+                                        >
+                                            Balance Updated
+                                        </Button>
 
                                         }
                                     </div>

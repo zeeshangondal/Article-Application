@@ -143,23 +143,23 @@ const getTheMainCreatorOfUser = async (_id) => {
 }
 
 
-let login = async(req, res) => {
+let login = async (req, res) => {
     let { username, password } = req.body;
-    User.findOne({ username, password }).then(async(user) => {
+    User.findOne({ username, password }).then(async (user) => {
         if (!user) {
             console.log('user not found')
             return res.status(404).send({ message: "User not Found" })
         }
         else {
-            let parentUser=await getTheMainCreatorOfUser(user._id.toString());
-            parentUser=parentUser?.toObject()
+            let parentUser = await getTheMainCreatorOfUser(user._id.toString());
+            parentUser = parentUser?.toObject()
 
-            if (  user.generalInfo.active === false ) {
+            if (user.generalInfo.active === false) {
                 return res.status(201).send({ message: "This account has been deactivated" })
-            }else if (parentUser && !parentUser.generalInfo.active){
+            } else if (parentUser && !parentUser.generalInfo.active) {
                 return res.status(201).send({ message: "This account has been deactivated" })
             }
-            
+
             else {
                 const currentDate = new Date();
                 const dateTimeString = currentDate.toLocaleString();
@@ -176,47 +176,84 @@ let login = async(req, res) => {
 }
 
 const updateAssociatedLimits = async (updatedUser, prevUser) => {
-    let updatedLimits=updatedUser.purchaseLimit
-    let prevLimits=prevUser.purchaseLimit
+    let updatedLimits = updatedUser.purchaseLimit
+    let prevLimits = prevUser.purchaseLimit
     try {
-        if(updatedLimits.purchaseLimitA1!=prevLimits.purchaseLimitA1){
+        if (updatedLimits.purchaseLimitA1 != prevLimits.purchaseLimitA1) {
             const digit = await Digit.findById(updatedLimits.oneDigitFirst);
-            digit.articles = initializeOneDigit(updatedLimits.purchaseLimitA1)
+            let articleKeys = Object.keys(digit.articles)
+            articleKeys.forEach(key => {
+                digit.articles[key] = Number(digit.articles[key]) + Number(updatedLimits.purchaseLimitA1) - Number(prevLimits.purchaseLimitA1)
+            })
+            digit.markModified('articles');
             digit.save();
         }
-        if(updatedLimits.purchaseLimitA2!=prevLimits.purchaseLimitA2){
+        if (updatedLimits.purchaseLimitA2 != prevLimits.purchaseLimitA2) {
             const digit = await Digit.findById(updatedLimits.oneDigitSecond);
-            digit.articles = initializeOneDigit(updatedLimits.purchaseLimitA2)
-            digit.save();            
+            let articleKeys = Object.keys(digit.articles)
+            articleKeys.forEach(key => {
+                digit.articles[key] = Number(digit.articles[key]) + Number(updatedLimits.purchaseLimitA2) - Number(prevLimits.purchaseLimitA2)
+            })
+            digit.markModified('articles');
+
+            digit.save();
         }
-        if(updatedLimits.purchaseLimitB1!=prevLimits.purchaseLimitB1){
+        if (updatedLimits.purchaseLimitB1 != prevLimits.purchaseLimitB1) {
             const digit = await Digit.findById(updatedLimits.twoDigitFirst);
-            digit.articles = initializeTwoDigit(updatedLimits.purchaseLimitB1)
+            let articleKeys = Object.keys(digit.articles)
+            articleKeys.forEach(key => {
+                digit.articles[key] = Number(digit.articles[key]) + Number(updatedLimits.purchaseLimitB1) - Number(prevLimits.purchaseLimitB1)
+            })
+            digit.markModified('articles');
+
             digit.save();
         }
-        if(updatedLimits.purchaseLimitB2!=prevLimits.purchaseLimitB2){
+        if (updatedLimits.purchaseLimitB2 != prevLimits.purchaseLimitB2) {
             const digit = await Digit.findById(updatedLimits.twoDigitSecond);
-            digit.articles = initializeTwoDigit(updatedLimits.purchaseLimitB2)
+            let articleKeys = Object.keys(digit.articles)
+            articleKeys.forEach(key => {
+                digit.articles[key] = Number(digit.articles[key]) + Number(updatedLimits.purchaseLimitB2) - Number(prevLimits.purchaseLimitB2)
+            })
+            digit.markModified('articles');
             digit.save();
         }
-        if(updatedLimits.purchaseLimitC1!=prevLimits.purchaseLimitC1){
-            const digit = await Digit.findById(updatedLimits.threeDigitFirst);            
-            digit.articles = initializeThreeDigit(updatedLimits.purchaseLimitC1)
+        if (updatedLimits.purchaseLimitC1 != prevLimits.purchaseLimitC1) {
+            const digit = await Digit.findById(updatedLimits.threeDigitFirst);
+            let articleKeys = Object.keys(digit.articles)
+            articleKeys.forEach(key => {
+                digit.articles[key] = Number(digit.articles[key]) + Number(updatedLimits.purchaseLimitC1) - Number(prevLimits.purchaseLimitC1)
+            })
+            digit.markModified('articles');
             digit.save();
         }
-        if(updatedLimits.purchaseLimitC2!=prevLimits.purchaseLimitC2){
+        if (updatedLimits.purchaseLimitC2 != prevLimits.purchaseLimitC2) {
             const digit = await Digit.findById(updatedLimits.threeDigitSecond);
-            digit.articles = initializeThreeDigit(updatedLimits.purchaseLimitC2)
+            let articleKeys = Object.keys(digit.articles)
+            articleKeys.forEach(key => {
+                digit.articles[key] = Number(digit.articles[key]) + Number(updatedLimits.purchaseLimitC2) - Number(prevLimits.purchaseLimitC2)
+            })
+            digit.markModified('articles');
+
             digit.save();
         }
-        if(updatedLimits.purchaseLimitD1!=prevLimits.purchaseLimitD1){
-            const digit = await Digit.findById(updatedLimits.fourDigitFirst); 
-            digit.articles = initializeFourDigit(updatedLimits.purchaseLimitD1)
+        if (updatedLimits.purchaseLimitD1 != prevLimits.purchaseLimitD1) {
+            const digit = await Digit.findById(updatedLimits.fourDigitFirst);
+            let articleKeys = Object.keys(digit.articles)
+            articleKeys.forEach(key => {
+                digit.articles[key] = Number(digit.articles[key]) + Number(updatedLimits.purchaseLimitD1) - Number(prevLimits.purchaseLimitD1)
+            })
+            digit.markModified('articles');
+
             digit.save();
         }
-        if(updatedLimits.purchaseLimitD2!=prevLimits.purchaseLimitD2){
+        if (updatedLimits.purchaseLimitD2 != prevLimits.purchaseLimitD2) {
             const digit = await Digit.findById(updatedLimits.fourDigitSecond);
-            digit.articles = initializeFourDigit(updatedLimits.purchaseLimitD2)
+            let articleKeys = Object.keys(digit.articles)
+            articleKeys.forEach(key => {
+                digit.articles[key] = Number(digit.articles[key]) + Number(updatedLimits.purchaseLimitD2) - Number(prevLimits.purchaseLimitD2)
+            })
+            digit.markModified('articles');
+
             digit.save();
         }
     } catch (err) {
@@ -241,12 +278,12 @@ const updateUser = async (req, res) => {
 
         admin = admin.toObject()
         if (updates.role === "distributor" && admin && updates.creator._id === admin._id.toString()) {
-            updateAssociatedLimits(updates,oldUser)
+            updateAssociatedLimits(updates, oldUser)
         }
-        if(updates.role=="admin"){
-            let newRewardUpdates={rewardCommission: updates.rewardCommission}
+        if (updates.role == "admin") {
+            let newRewardUpdates = { rewardCommission: updates.rewardCommission }
             await User.updateMany({}, newRewardUpdates, { new: true });
-            
+
         }
 
 

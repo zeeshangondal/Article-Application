@@ -48,7 +48,7 @@ app.post('/savePdf', upload.single('pdfContent'), (req, res) => {
         const saveDirectory = '/uploads';
         const filePath = path.join(__dirname, saveDirectory, pdfFileName);
         fs.writeFileSync(filePath, pdfContent);
-        const pdfLink = `http://localhost:3005/reports/${pdfFileName}`;
+        const pdfLink = `https://pzprize-022cf955959c.herokuapp.com/reports/${pdfFileName}`;
         res.json({ pdfLink });
     } catch (error) {
         console.error('Error saving the PDF:', error.message);

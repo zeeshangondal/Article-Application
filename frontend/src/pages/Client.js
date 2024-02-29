@@ -81,53 +81,53 @@ const UserDetails = () => {
     };
     const getTheMainCreatorOfUser = (_id) => {
         try {
-            if(users.length==0){
+            if (users.length == 0) {
                 return false
             }
-    
-            let allUsers=users
+
+            let allUsers = users
             // Find the admin user
             let adminUser = allUsers.find(user => user.role === "admin");
             let adminId = adminUser._id;
-    
+
             // Helper function to get user data by ID
             const getUserDataById = (usersArray, userId) => {
                 return usersArray.find(user => user._id === userId);
             };
-    
+
             let mainCreator = {};
             let askingUser = _id;
-    
+
             // Loop until we find the main creator
             while (true) {
                 mainCreator = getUserDataById(allUsers, askingUser);
-    
+
                 if (!mainCreator) {
                     // User not found
                     throw new Error('User not found');
                 }
-    
+
                 if (mainCreator.creator === adminId) {
                     // If the creator is the admin, return the main creator
                     return mainCreator;
                 }
-    
+
                 askingUser = mainCreator.creator;
             }
         } catch (e) {
             console.error("Error:", e);
         }
-        
+
     };
-    let parentCreator={generalInfo:{active:true}}
-    let tempParent=getTheMainCreatorOfUser(localStorageUtils.getLoggedInUser()._id)
-    if(tempParent){
-        parentCreator=tempParent
+    let parentCreator = { generalInfo: { active: true } }
+    let tempParent = getTheMainCreatorOfUser(localStorageUtils.getLoggedInUser()._id)
+    if (tempParent) {
+        parentCreator = tempParent
     }
     if (!localStorageUtils.hasToken()) {
         navigate(`/login`);
     }
-    if(!(localStorageUtils.getLoggedInUser().generalInfo.active) || !(parentCreator.generalInfo.active)){
+    if (!(localStorageUtils.getLoggedInUser().generalInfo.active) || !(parentCreator.generalInfo.active)) {
         localStorage.removeItem("jwt_token");
         localStorageUtils.removeLoggedInUser();
         window.location = "/login";
@@ -198,18 +198,29 @@ const UserDetails = () => {
         let hours = date.getHours();
         const minutes = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
         const meridiem = hours >= 12 ? 'PM' : 'AM';
-    
+
         hours = hours % 12;
         hours = hours ? hours : 12; // Handle midnight (0 hours)
-    
+
         return `${hours}:${minutes} ${meridiem}`;
     }
-    
-    
-    
+
+
+
     const handleCreditInputChange = (e) => {
 
         const { name, value } = e.target;
+        if (creditTransaction.txType == 2 && name == "amount") {
+
+            if (Number(value) > Number(userDetails.credit)) {
+                alert("You can not withdraw more than  " + (Number(userDetails.credit)))
+                setDebitTransaction((prevValues) => ({
+                    ...prevValues,
+                    [name]: 0,
+                }));
+                return
+            }
+        }
         setCreditTransaction((prevValues) => ({
             ...prevValues,
             [name]: value,
@@ -219,12 +230,12 @@ const UserDetails = () => {
     const handleDebitInputChange = (e) => {
         const { name, value } = e.target;
         if (debitTransaction.txType == 2 && name == "amount") {
-            if (Number(value) > Number(userDetails.credit) +Number(userDetails.debit)) {
-                alert("You can not withdraw more than  " + (Number(userDetails.credit)+Number(userDetails.debit)))
+            if (Number(value) > Number(userDetails.credit) + Number(userDetails.debit)) {
+                alert("You can not withdraw more than  " + (Number(userDetails.credit) + Number(userDetails.debit)))
                 setDebitTransaction((prevValues) => ({
                     ...prevValues,
                     [name]: 0,
-                }));                
+                }));
                 return
             }
         }
@@ -333,13 +344,13 @@ const UserDetails = () => {
                 time: getCurrentTime(),
                 balanceUpline: obj.balanceUpline
             }
-            if(mainUser.role=="distributor"){
-                if(mainUser.balance-Number(creditTransaction.amount)<0){
+            if (mainUser.role == "distributor") {
+                if (mainUser.balance - Number(creditTransaction.amount) < 0) {
                     alert("You dont have enough balance")
                     return
                 }
             }
-            
+
             obj = {
                 ...obj,
                 credit: obj.credit + Number(creditTransaction.amount),
@@ -397,8 +408,8 @@ const UserDetails = () => {
                 debit: obj.debit + Number(debitTransaction.amount),
                 balanceUpline: obj.balanceUpline + Number(debitTransaction.amount)
             }
-            if(mainUser.role=="distributor"){
-                if(mainUser.balance-Number(creditTransaction.amount)<0){
+            if (mainUser.role == "distributor") {
+                if (mainUser.balance - Number(creditTransaction.amount) < 0) {
                     alert("You dont have enough balance")
                     return
                 }
@@ -642,7 +653,7 @@ const UserDetails = () => {
                                         <td>{formatNumberWithTwoDecimals(t.debit)}</td>
                                         <td>{formatNumberWithTwoDecimals(t.credit)}</td>
                                         <td>{formatNumberWithTwoDecimals(t.balanceUpline)}</td>
-                                        <td>{formatDate(t.date) +" "+(t.time?t.time:"")}</td>
+                                        <td>{formatDate(t.date) + " " + (t.time ? t.time : "")}</td>
                                         <td>{t.description}</td>
                                     </tr>
                                 ))}
@@ -689,7 +700,7 @@ const UserDetails = () => {
                                         </div>
                                     </div>
                                     <div className="row">
-                                        {(userDetails.role == "admin" || userDetails.creator.role == "admin" ) &&
+                                        {(userDetails.role == "admin" || userDetails.creator.role == "admin") &&
                                             <>
                                                 <div className="col-md-6">
                                                     <Form.Group className="mb-3">

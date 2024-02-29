@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3005/article';
-// const API_URL = 'https://pzprize-022cf955959c.herokuapp.com/article';
+// const API_URL = 'http://localhost:3005/article';
+const API_URL = 'https://pzprize-022cf955959c.herokuapp.com/article';
 
 
 const makeBulkPurchase = async (data) => {

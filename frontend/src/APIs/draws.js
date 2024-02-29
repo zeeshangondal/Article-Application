@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { localStorageUtils } from './localStorageUtils';
 
-const API_URL = 'http://localhost:3005/draw';
-// const API_URL = 'https://pzprize-022cf955959c.herokuapp.com/draw';
+// const API_URL = 'http://localhost:3005/draw';
+const API_URL = 'https://pzprize-022cf955959c.herokuapp.com/draw';
 
 // Create Draw Service
 const createDraw = async (drawData) => {
